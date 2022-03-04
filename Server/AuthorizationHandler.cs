@@ -10,15 +10,15 @@ namespace VoxelTanksServer
 {
     internal class AuthorizationHandler
     {
-        private void clientAuthRequest()
+        private void ClientAuthRequest()
         {
-            DB db = new DB();
-            MySqlCommand myCommand = new MySqlCommand("SELECT Count(*) FROM  admin WHERE login = '" + "логин" + "' AND password = '" + "пароль в мд5" + "'", db.GetConnection());
+            Database db = new Database();
+            MySqlCommand myCommand = new MySqlCommand("SELECT Count(*) FROM  admin WHERE login = 0" + "логин" + "' AND password = '" + "пароль в мд5" + "'", db.GetConnection());
             MySqlDataAdapter adapter = new MySqlDataAdapter();
-            DataTable dt = new DataTable();
+            DataTable table = new DataTable();
             adapter.SelectCommand = myCommand;
-            adapter.Fill(dt);
-            if (dt.Rows[0][0].ToString() == "1")
+            adapter.Fill(table);
+            if (table.Rows[0][0].ToString() == "1")
             {
                 //отправлять клиенту что авторизация успешна
             }

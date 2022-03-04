@@ -10,6 +10,8 @@ namespace VoxelTanksServer
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static Dictionary<int, Client> Clients = new Dictionary<int, Client>();
+        public delegate void PacketHandler(int fromClient, Packet packet);
+        public static Dictionary<int, PacketHandler> PacketHandlers;
 
         private static TcpListener _tcpListener;
 
@@ -18,20 +20,20 @@ namespace VoxelTanksServer
             MaxPlayers = maxPlayers;
             Port = port;
 
-            Console.WriteLine("Starting server...");
+            Console.WriteLine("[INFO] Starting server...");
             InitializeServerData();
             _tcpListener = new TcpListener(IPAddress.Any, Port);
             _tcpListener.Start();
             _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
-            Console.WriteLine($"Server started on {Port}");
+            Console.WriteLine($"[INFO] Server started on {Port}");
         }
 
         private static void TCPConnectCallback(IAsyncResult result)
         {
             TcpClient client = _tcpListener.EndAcceptTcpClient(result);
             _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
-            Console.WriteLine($"Trying to connect {client.Client.RemoteEndPoint}");
+            Console.WriteLine($"[INFO] Trying to connect {client.Client.RemoteEndPoint}");
             for (int i = 1; i <= MaxPlayers; i++)
             {
                 if (Clients[i].Tcp.Socket == null)
@@ -41,7 +43,7 @@ namespace VoxelTanksServer
                 }
             }
 
-            Console.WriteLine($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
+            Console.WriteLine($"[INFO] {client.Client.RemoteEndPoint} failed to connect: Server full!");
         }
 
         private static void InitializeServerData()
@@ -50,6 +52,12 @@ namespace VoxelTanksServer
             {
                 Clients.Add(i, new Client(i));
             }
+
+            PacketHandlers = new Dictionary<int, PacketHandler>()
+            {
+                {(int) ClientPackets.WelcomeReceived, ServerHandle.WelcomePacketReceived}
+            };
+            Console.WriteLine("[INFO] Packets initialized");
         }
     }
 }
