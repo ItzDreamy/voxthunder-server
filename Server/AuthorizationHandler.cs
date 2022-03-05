@@ -12,19 +12,22 @@ namespace VoxelTanksServer
     {
         private void ClientAuthRequest()
         {
-            Database db = new Database();
-            MySqlCommand myCommand = new MySqlCommand("SELECT Count(*) FROM  admin WHERE login = 0" + "логин" + "' AND password = '" + "пароль в мд5" + "'", db.GetConnection());
-            MySqlDataAdapter adapter = new MySqlDataAdapter();
-            DataTable table = new DataTable();
-            adapter.SelectCommand = myCommand;
-            adapter.Fill(table);
-            if (table.Rows[0][0].ToString() == "1")
-            {
-                //отправлять клиенту что авторизация успешна
-            }
-            else
-            {
-                //посылать клиента нахрен т.к авторизация неудачна
+            if (1 == 1 /* если отправлен запрос на авторизацию, 1 == 1 чтоб ошибок не было */){
+
+                Database db = new Database();
+                MySqlCommand myCommand = new MySqlCommand("SELECT Count(*) FROM *таблица* WHERE login = 0" + "логин" + "' AND password = '" + "пароль в мд5" + "'", db.GetConnection());
+                MySqlDataAdapter adapter = new MySqlDataAdapter();
+                DataTable table = new DataTable();
+                adapter.SelectCommand = myCommand;
+                adapter.Fill(table);
+                if (table.Rows[0][0].ToString() == "1")
+                {
+                    //отправлять клиенту что авторизация успешна
+                }
+                else
+                {
+                    //посылать клиента нахрен т.к авторизация неудачна
+                }
             }
         }
     }
