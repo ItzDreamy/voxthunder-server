@@ -11,6 +11,8 @@ namespace VoxelTanksServer
         public int Id;
         public Player Player;
         public string Username { get; set; }
+        public string SelectedTank { get; set; }
+
         public TCP Tcp;
 
         public Client(int clientId)
@@ -136,9 +138,9 @@ namespace VoxelTanksServer
             }
         }
 
-        public void SendIntoGame(string playerName)
+        public void SendIntoGame(string playerName, string tankName)
         {
-            Player = new Player(Id, playerName, new Vector3(0, 0, 0));
+            Player = new Player(Id, playerName, new Vector3(0, 0, 0), tankName);
 
             foreach (var client in Server.Clients.Values)
             {

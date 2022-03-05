@@ -12,7 +12,7 @@ namespace VoxelTanksServer
     {
         private void ClientAuthRequest()
         {
-            if (1 == 1 /* если отправлен запрос на авторизацию, 1 == 1 чтоб ошибок не было */){
+            if (true/* если отправлен запрос на авторизацию, 1 == 1 чтоб ошибок не было */){
 
                 Database db = new Database();
                 MySqlCommand myCommand = new MySqlCommand("SELECT Count(*) FROM *таблица* WHERE login = 0" + "логин" + "' AND password = '" + "пароль в мд5" + "'", db.GetConnection());

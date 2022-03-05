@@ -50,10 +50,34 @@ namespace VoxelTanksServer
                 packet.Write(player.Username);
                 packet.Write(player.Position);
                 packet.Write(player.Rotation);  
+                packet.Write(player.TankName);
                 SendTCPData(toClient, packet);
             }
         }
 
+        public static void MovePlayer(Player player)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.PlayerMovement))
+            {
+                packet.Write(player.Id);
+                packet.Write(player.Position);
+                packet.Write(player.Rotation);
+                packet.Write(player.BarrelRotation);
+                
+                SendTCPDataToAll(player.Id, packet);
+            }
+        }
+
+        public static void RotateTurret(Player player)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.RotateTurret))
+            {
+                packet.Write(player.Id);
+                packet.Write(player.TurretRotation);
+                
+                SendTCPDataToAll(player.Id, packet);
+            }
+        }
         #endregion
     }
 }

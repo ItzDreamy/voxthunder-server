@@ -10,7 +10,9 @@ namespace VoxelTanksServer
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static Dictionary<int, Client> Clients = new Dictionary<int, Client>();
+
         public delegate void PacketHandler(int fromClient, Packet packet);
+
         public static Dictionary<int, PacketHandler> PacketHandlers;
 
         private static TcpListener _tcpListener;
@@ -56,7 +58,10 @@ namespace VoxelTanksServer
             PacketHandlers = new Dictionary<int, PacketHandler>()
             {
                 {(int) ClientPackets.WelcomeReceived, ServerHandle.WelcomePacketReceived},
-                {(int) ClientPackets.ReadyToSpawn, ServerHandle.ReadyToSpawnReceived}
+                {(int) ClientPackets.ReadyToSpawn, ServerHandle.ReadyToSpawnReceived},
+                {(int) ClientPackets.SelectTank, ServerHandle.ChangeTank},
+                {(int) ClientPackets.PlayerMovement, ServerHandle.PlayerMovement},
+                {(int) ClientPackets.RotateTurret, ServerHandle.RotateTurret}
             };
             Console.WriteLine("[INFO] Packets initialized");
         }

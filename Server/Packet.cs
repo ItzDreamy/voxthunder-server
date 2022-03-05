@@ -10,8 +10,8 @@ namespace VoxelTanksServer
     {
         Welcome = 1,
         SpawnPlayer,
-        PlayerPosition,
-        PlayerRotation
+        PlayerMovement,
+        RotateTurret,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -19,7 +19,9 @@ namespace VoxelTanksServer
     {
         WelcomeReceived = 1,
         PlayerMovement,
-        ReadyToSpawn
+        RotateTurret,
+        ReadyToSpawn,
+        SelectTank,
     }
 
     public class Packet : IDisposable
