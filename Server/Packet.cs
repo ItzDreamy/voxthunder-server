@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 
 namespace VoxelTanksServer
@@ -7,13 +8,18 @@ namespace VoxelTanksServer
     /// <summary>Sent from server to client.</summary>
     public enum ServerPackets
     {
-        Welcome = 1
+        Welcome = 1,
+        SpawnPlayer,
+        PlayerPosition,
+        PlayerRotation
     }
 
     /// <summary>Sent from client to server.</summary>
     public enum ClientPackets
     {
-        WelcomeReceived = 1
+        WelcomeReceived = 1,
+        PlayerMovement,
+        ReadyToSpawn
     }
 
     public class Packet : IDisposable
@@ -160,7 +166,7 @@ namespace VoxelTanksServer
         {
             _buffer.AddRange(BitConverter.GetBytes(value));
         }
-
+        
         /// <summary>Adds a string to the packet.</summary>
         /// <param name="value">The string to add.</param>
         public void Write(string value)
@@ -168,7 +174,25 @@ namespace VoxelTanksServer
             Write(value.Length); // Add the length of the string to the packet
             _buffer.AddRange(Encoding.ASCII.GetBytes(value)); // Add the string itself
         }
-
+        
+        /// <summary>Adds a Vector3 to the packet.</summary>
+        /// <param name="value">The Vector3 to add.</param>
+        public void Write(Vector3 value)
+        {
+            Write(value.X);
+            Write(value.Y);
+            Write(value.Z);
+        }
+        
+        /// <summary>Adds a Quaternion to the packet.</summary>
+        /// <param name="value">The Quaternion to add.</param>
+        public void Write(Quaternion value)
+        {
+            Write(value.X);
+            Write(value.Y);
+            Write(value.Z);
+            Write(value.W);
+        }
         #endregion
 
         #region Read Data
@@ -353,6 +377,20 @@ namespace VoxelTanksServer
             }
         }
 
+        /// <summary>Reads a Vector3 from the packet.</summary>
+        /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
+        public Vector3 ReadVector3(bool moveReadPos = true)
+        {
+            return new Vector3(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
+        }
+
+        /// <summary>Reads a Quaternion from the packet.</summary>
+        /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
+        public Quaternion ReadQuaternion(bool moveReadPos = true)
+        {
+            return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
+        }
+        
         #endregion
 
         private bool _disposed = false;

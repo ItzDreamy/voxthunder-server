@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <PackageReference Include="MySql.Data" Version="8.0.28" />
+      <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     </ItemGroup>
 
 </Project>

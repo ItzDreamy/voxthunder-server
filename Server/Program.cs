@@ -5,17 +5,16 @@ namespace VoxelTanksServer
 {
     public static class Program
     {
-        private static bool IsRunning;
+        private static bool _isRunning;
         public static void Main(string[] args)
         {
             Console.Title = "VoxelTanksServer";
             
-            IsRunning = true;
+            _isRunning = true;
             Thread mainThread = new Thread(new ThreadStart(MainThread));
             mainThread.Start();
             
             Server.Start(100, 25565);
-            
         }
 
         private static void MainThread()
@@ -23,7 +22,7 @@ namespace VoxelTanksServer
             Console.WriteLine($"[INFO] Main thread started. Tickrate: {Constants.Tickrate}");
             DateTime nextLoop = DateTime.Now;
 
-            while (IsRunning)
+            while (_isRunning)
             {
                 while (nextLoop < DateTime.Now)
                 {

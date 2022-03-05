@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Numerics;
 
 namespace VoxelTanksServer
 {
@@ -8,6 +9,8 @@ namespace VoxelTanksServer
         public static int DataBufferSize = 4096;
         
         public int Id;
+        public Player Player;
+        public string Username { get; set; }
         public TCP Tcp;
 
         public Client(int clientId)
@@ -129,6 +132,31 @@ namespace VoxelTanksServer
                 catch (Exception e)
                 {
                     Console.WriteLine($"[ERROR] Error sending data to player {_id} via TCP {e.Message}");
+                }
+            }
+        }
+
+        public void SendIntoGame(string playerName)
+        {
+            Player = new Player(Id, playerName, new Vector3(0, 0, 0));
+
+            foreach (var client in Server.Clients.Values)
+            {
+                if (client.Player != null )
+                {
+                    if (client.Id != Id)
+                    {
+                        ServerSend.SpawnPlayer(Id, client.Player);
+                    }
+                    
+                }
+            }
+
+            foreach (var client in Server.Clients.Values)
+            {
+                if (client.Player != null)
+                {
+                    ServerSend.SpawnPlayer(client.Id, Player);
                 }
             }
         }

@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace VoxelTanksServer
 {
-    public class Server
+    public static class Server
     {
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
@@ -55,7 +55,8 @@ namespace VoxelTanksServer
 
             PacketHandlers = new Dictionary<int, PacketHandler>()
             {
-                {(int) ClientPackets.WelcomeReceived, ServerHandle.WelcomePacketReceived}
+                {(int) ClientPackets.WelcomeReceived, ServerHandle.WelcomePacketReceived},
+                {(int) ClientPackets.ReadyToSpawn, ServerHandle.ReadyToSpawnReceived}
             };
             Console.WriteLine("[INFO] Packets initialized");
         }
