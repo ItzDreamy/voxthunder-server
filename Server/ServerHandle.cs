@@ -10,17 +10,20 @@ namespace VoxelTanksServer
             int clientIdCheck = packet.ReadInt();
             string username = packet.ReadString();
             Server.Clients[fromClient].Username = username;
-            Console.WriteLine($"[INFO] {Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint} connected successfully as {username} with ID {fromClient}");
+            Console.WriteLine(
+                $"[INFO] {Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint} connected successfully as {username} with ID {fromClient}");
 
             if (fromClient != clientIdCheck)
             {
-                Console.WriteLine($"[INFO] Player \"{username}\" (ID: {fromClient}) has the wrong client ID ({clientIdCheck})");
+                Console.WriteLine(
+                    $"[INFO] Player \"{username}\" (ID: {fromClient}) has the wrong client ID ({clientIdCheck})");
             }
         }
 
         public static void ReadyToSpawnReceived(int fromClient, Packet packet)
         {
-            Server.Clients[fromClient].SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
+            Server.Clients[fromClient]
+                .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
         }
 
         public static void ChangeTank(int fromClient, Packet packet)
@@ -34,9 +37,9 @@ namespace VoxelTanksServer
             Vector3 playerPosition = packet.ReadVector3();
             Quaternion playerRotation = packet.ReadQuaternion();
             Quaternion barrelRotation = packet.ReadQuaternion();
-            
+
             Player player = Server.Clients[fromClient].Player;
-            
+
             player.Move(playerPosition, playerRotation, barrelRotation);
         }
 
@@ -45,6 +48,17 @@ namespace VoxelTanksServer
             Quaternion turretRotation = packet.ReadQuaternion();
             Player player = Server.Clients[fromClient].Player;
             player.RotateTurret(turretRotation);
+        }
+
+        public static void TryLogin(int fromClient, Packet packet)
+        {
+            string username = packet.ReadString();
+            string password = packet.ReadString();
+
+            if (AuthorizationHandler.ClientAuthRequest(username, password))
+                Server.Clients[fromClient].Username = username;
+            
+            ServerSend.LoginResult(fromClient, AuthorizationHandler.ClientAuthRequest(username, password));
         }
     }
 }

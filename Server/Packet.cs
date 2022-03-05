@@ -12,6 +12,7 @@ namespace VoxelTanksServer
         SpawnPlayer,
         PlayerMovement,
         RotateTurret,
+        LoginResult
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -22,6 +23,7 @@ namespace VoxelTanksServer
         RotateTurret,
         ReadyToSpawn,
         SelectTank,
+        TryLogin
     }
 
     public class Packet : IDisposable

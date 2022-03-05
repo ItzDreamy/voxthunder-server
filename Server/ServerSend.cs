@@ -78,6 +78,16 @@ namespace VoxelTanksServer
                 SendTCPDataToAll(player.Id, packet);
             }
         }
+
+        public static void LoginResult(int toClient, bool result)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.LoginResult))
+            {
+                packet.Write(result);
+
+                SendTCPData(toClient, packet);
+            }
+        }
         #endregion
     }
 }

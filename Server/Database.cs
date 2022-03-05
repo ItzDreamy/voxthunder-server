@@ -10,14 +10,12 @@ namespace VoxelTanksServer
         public void OpenConnection()
         {
             if (_connection.State == System.Data.ConnectionState.Closed)
-
                 _connection.Open();
         }
 
         public void CloseConnection()
         {
             if (_connection.State == System.Data.ConnectionState.Open)
-
                 _connection.Close();
         }
 

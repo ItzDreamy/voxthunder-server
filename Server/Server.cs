@@ -61,7 +61,8 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.ReadyToSpawn, ServerHandle.ReadyToSpawnReceived},
                 {(int) ClientPackets.SelectTank, ServerHandle.ChangeTank},
                 {(int) ClientPackets.PlayerMovement, ServerHandle.PlayerMovement},
-                {(int) ClientPackets.RotateTurret, ServerHandle.RotateTurret}
+                {(int) ClientPackets.RotateTurret, ServerHandle.RotateTurret},
+                {(int) ClientPackets.TryLogin, ServerHandle.TryLogin}
             };
             Console.WriteLine("[INFO] Packets initialized");
         }
