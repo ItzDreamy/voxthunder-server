@@ -3,3 +3,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+*.v2
+*.vsidx
+*.v1
+*.v2
+*.v2
+*.vsidx
