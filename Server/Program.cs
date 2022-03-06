@@ -12,7 +12,7 @@ namespace VoxelTanksServer
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
-                .WriteTo.File("logs/server.txt", rollingInterval: RollingInterval.Day)
+                .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             
