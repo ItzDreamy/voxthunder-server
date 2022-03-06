@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Numerics;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -97,6 +98,15 @@ namespace VoxelTanksServer
 
                 return false;
             }
+
+            public void Disconnect()
+            {
+                Socket.Close();
+                _stream = null;
+                _receivedData = null;
+                _receiveBuffer = null;
+                Socket = null;
+            }
             
             private void ReceiveCallback(IAsyncResult result)
             {
@@ -105,7 +115,7 @@ namespace VoxelTanksServer
                     int byteLength = _stream.EndRead(result);
                     if (byteLength <= 0)
                     {
-                        //TODO disconnect
+                        Server.Clients[_id].Disconnect();
                         return;
                     }
 
@@ -117,8 +127,8 @@ namespace VoxelTanksServer
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"[ERROR] Error receiving TCP data: {e.Message}");
-                    //TODO: disconnect
+                    Log.Error($"Error receiving TCP data: {e.Message}");
+                    Server.Clients[_id].Disconnect();
                 }
             }
 
@@ -133,7 +143,7 @@ namespace VoxelTanksServer
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"[ERROR] Error sending data to player {_id} via TCP {e.Message}");
+                    Log.Error($"Error sending data to player {_id} via TCP {e.Message}");
                 }
             }
         }
@@ -161,6 +171,15 @@ namespace VoxelTanksServer
                     ServerSend.SpawnPlayer(client.Id, Player);
                 }
             }
+        }
+
+        private void Disconnect()
+        {
+            Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} has disconnected.");
+           
+            Player = null;
+            Tcp.Disconnect();
+            ServerSend.PlayerDisconnected(Id);
         }
     }
 }

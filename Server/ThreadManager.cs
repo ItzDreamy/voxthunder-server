@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -16,7 +17,7 @@ namespace VoxelTanksServer
         {
             if (action == null)
             {
-                Console.WriteLine("No action to execute on main thread!");
+                Log.Information("No action to execute on main thread!");
 
                 return;
             }

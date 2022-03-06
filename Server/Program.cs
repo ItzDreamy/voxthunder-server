@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -8,6 +9,13 @@ namespace VoxelTanksServer
         private static bool _isRunning;
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.File("logs/server.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
+            
             Console.Title = "VoxelTanksServer";
             
             _isRunning = true;
@@ -19,7 +27,7 @@ namespace VoxelTanksServer
 
         private static void MainThread()
         {
-            Console.WriteLine($"[INFO] Main thread started. Tickrate: {Constants.Tickrate}");
+            Log.Information($"Main thread started. Tickrate: {Constants.Tickrate}");
             DateTime nextLoop = DateTime.Now;
 
             while (_isRunning)

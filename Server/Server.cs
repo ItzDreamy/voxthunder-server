@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -22,20 +23,20 @@ namespace VoxelTanksServer
             MaxPlayers = maxPlayers;
             Port = port;
 
-            Console.WriteLine("[INFO] Starting server...");
+            Log.Information("Starting server...");
             InitializeServerData();
             _tcpListener = new TcpListener(IPAddress.Any, Port);
             _tcpListener.Start();
             _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
-            Console.WriteLine($"[INFO] Server started on {Port}");
+            Log.Information($"Server started on {Port}");
         }
 
         private static void TCPConnectCallback(IAsyncResult result)
         {
             TcpClient client = _tcpListener.EndAcceptTcpClient(result);
             _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
-            Console.WriteLine($"[INFO] Trying to connect {client.Client.RemoteEndPoint}");
+            Log.Information($"Trying to connect {client.Client.RemoteEndPoint}");
             for (int i = 1; i <= MaxPlayers; i++)
             {
                 if (Clients[i].Tcp.Socket == null)
@@ -45,7 +46,7 @@ namespace VoxelTanksServer
                 }
             }
 
-            Console.WriteLine($"[INFO] {client.Client.RemoteEndPoint} failed to connect: Server full!");
+            Log.Information($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
         }
 
         private static void InitializeServerData()
@@ -62,9 +63,12 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.SelectTank, ServerHandle.ChangeTank},
                 {(int) ClientPackets.PlayerMovement, ServerHandle.PlayerMovement},
                 {(int) ClientPackets.RotateTurret, ServerHandle.RotateTurret},
-                {(int) ClientPackets.TryLogin, ServerHandle.TryLogin}
+                {(int) ClientPackets.TryLogin, ServerHandle.TryLogin},
+                {(int) ClientPackets.TakeDamage, ServerHandle.TakeDamage},
+                {(int) ClientPackets.InstantiateObject, ServerHandle.InstantiateObject},
+                {(int) ClientPackets.ShootBullet, ServerHandle.ShootBullet}
             };
-            Console.WriteLine("[INFO] Packets initialized");
+            Log.Information("Packets initialized");
         }
     }
 }
