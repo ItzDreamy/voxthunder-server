@@ -15,7 +15,8 @@ namespace VoxelTanksServer
         LoginResult,
         PlayerDisconnected,
         InstantiateObject,
-        TakeDamage
+        TakeDamage,
+        PlayerDead
     }
 
     /// <summary>Sent from client to server.</summary>

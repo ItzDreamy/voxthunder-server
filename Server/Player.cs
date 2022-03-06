@@ -8,6 +8,8 @@ namespace VoxelTanksServer
 {
     public class Player
     {
+        public Room ConnectedRoom = null;
+        public Team PlayerTeam;
         public int Id;
         public string Username;
         public string TankName = "";
@@ -25,6 +27,7 @@ namespace VoxelTanksServer
         public int TotalDamage = 0;
         
         private bool _canShoot;
+        private bool _isAlive;
         
 
         public Player(int id, string username, Vector3 spawnPosition, string tankName)
@@ -34,6 +37,7 @@ namespace VoxelTanksServer
             Position = spawnPosition;
             Rotation = Quaternion.Identity;
             TankName = tankName;
+            _isAlive = true;
             
             MaxHealth = (int) Database.RequestData("health", "tanksstats", "tankname", tankName.ToLower());
             Damage = (int) Database.RequestData("damage", "tanksstats", "tankname", tankName.ToLower());
@@ -51,31 +55,35 @@ namespace VoxelTanksServer
             });
         }
         
-        
         public void Move(Vector3 nextPos, Quaternion rotation, Quaternion barrelRotation, float speed, bool isForward)
         {
             if (isForward)
             {
-                if (speed < MaxSpeed)
+                if (speed < MaxSpeed && _isAlive)
                 {
                     Position = nextPos;
                 }
             }
             else
             {
-                if (speed < MaxBackSpeed)
+                if (speed < MaxBackSpeed && _isAlive)
                 {
                     Position = nextPos;
                 }
             }
-            Rotation = rotation;
-            BarrelRotation = barrelRotation;
+
+            if (_isAlive)
+            {
+                Rotation = rotation;
+                BarrelRotation = barrelRotation;   
+            }
             ServerSend.MovePlayer(this);
         }
 
         public void RotateTurret(Quaternion turretRotation)
         {
-            TurretRotation = turretRotation;
+            if(_isAlive)
+                TurretRotation = turretRotation;
             ServerSend.RotateTurret(this);
         }
 
@@ -100,11 +108,13 @@ namespace VoxelTanksServer
         private void Die()
         {
             Log.Information($"Client {Id} with name {Username} died");
+            _isAlive = false;
+            ServerSend.PlayerDead(Id);
         }
 
         public void Shoot(string bulletPrefab, string particlePrefab, Vector3 position, Quaternion rotation)
         {
-            if (!_canShoot)
+            if (!_canShoot && !_isAlive)
                 return;
             
             _canShoot = false;

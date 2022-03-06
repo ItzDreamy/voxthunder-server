@@ -72,7 +72,7 @@ namespace VoxelTanksServer
                 SendTCPDataToAll(packet);
             }
         }
-
+        
         public static void RotateTurret(Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.RotateTurret))
@@ -126,6 +126,16 @@ namespace VoxelTanksServer
                 packet.Write(currentHealth);
                 
                 SendTCPData(playerId, packet);
+            }
+        }
+
+        public static void PlayerDead(int playerId)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.PlayerDead))
+            {
+                packet.Write(playerId);
+                
+                SendTCPDataToAll(packet);
             }
         }
         #endregion

@@ -12,6 +12,8 @@ namespace VoxelTanksServer
         public static int Port { get; private set; }
         public static Dictionary<int, Client> Clients = new Dictionary<int, Client>();
 
+        public static List<Room> Rooms = new List<Room>();
+
         public delegate void PacketHandler(int fromClient, Packet packet);
 
         public static Dictionary<int, PacketHandler> PacketHandlers;

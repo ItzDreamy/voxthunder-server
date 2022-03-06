@@ -38,7 +38,7 @@ namespace VoxelTanksServer
             Quaternion barrelRotation = packet.ReadQuaternion();
             bool isForward = packet.ReadBool();
             float speed = packet.ReadFloat();
-            
+
             Player player = Server.Clients[fromClient].Player;
             if (player != null)
             {
@@ -64,11 +64,13 @@ namespace VoxelTanksServer
             if (AuthorizationHandler.ClientAuthRequest(username, password))
             {
                 Server.Clients[fromClient].Username = username;
-                Log.Information($"[{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint}] {username} успешно зашел в аккаунт.");
+                Log.Information(
+                    $"[{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint}] {username} успешно зашел в аккаунт.");
             }
             else
             {
-                Log.Information($"[{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint}] {username} ввел некорректные данные.");
+                Log.Information(
+                    $"[{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint}] {username} ввел некорректные данные.");
             }
 
             ServerSend.LoginResult(fromClient, AuthorizationHandler.ClientAuthRequest(username, password));
@@ -79,7 +81,7 @@ namespace VoxelTanksServer
             string name = packet.ReadString();
             Vector3 position = packet.ReadVector3();
             Quaternion rotation = packet.ReadQuaternion();
-            
+
             ServerSend.InstantiateObject(name, position, rotation, fromClient);
         }
 
@@ -93,23 +95,40 @@ namespace VoxelTanksServer
             Player player = Server.Clients[fromClient].Player;
             player.Shoot(name, particlePrefab, position, rotation);
         }
-        
+
         public static void TakeDamage(int fromClient, Packet packet)
         {
             int enemyId = packet.ReadInt();
             Player enemy = Server.Clients[enemyId].Player;
-            
+
             int damage = enemy.Damage;
             float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
-            int calculatedDamage = damage + (int)randomCoof;
-            
+            int calculatedDamage = damage + (int) randomCoof;
+
             if (calculatedDamage == 0)
             {
                 calculatedDamage = damage;
             }
-            
+
             Server.Clients[fromClient].Player.TakeDamage(calculatedDamage);
             enemy.TotalDamage += calculatedDamage;
+        }
+
+        public static void JoinOrCreateRoom(int fromClient, Packet packet)
+        {
+            if (Server.Rooms.Count > 0)
+            {
+                foreach (var room in Server.Rooms)
+                {
+                    if (room.IsOpen)
+                    {
+                        //TODO: connect player to room
+                        return;
+                    }
+                }
+            }
+
+            Server.Rooms.Add(new Room(2));
         }
     }
 }
