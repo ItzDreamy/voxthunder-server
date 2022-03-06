@@ -16,6 +16,7 @@ namespace VoxelTanksServer
             adapter.SelectCommand = myCommand;
             adapter.Fill(table);
             return table.Rows[0][0].ToString() == "1";
+            return true;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace VoxelTanksServer
 {
@@ -22,6 +23,20 @@ namespace VoxelTanksServer
         public MySqlConnection GetConnection()
         {
             return _connection;
+        }
+
+        public static object RequestData(string neededColumn, string tableName, string column, string columnValue)
+        {
+            var db = new Database();
+            MySqlCommand myCommand =
+                new MySqlCommand(
+                    $"SELECT `{neededColumn}` FROM `{tableName}` WHERE `{column}` = '{columnValue}'",
+                    db.GetConnection());
+            MySqlDataAdapter adapter = new MySqlDataAdapter();
+            DataTable table = new DataTable();
+            adapter.SelectCommand = myCommand;
+            adapter.Fill(table);
+            return table.Rows[0][0];
         }
     }
 }

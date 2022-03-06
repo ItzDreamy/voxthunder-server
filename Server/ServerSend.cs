@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Numerics;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -51,6 +53,7 @@ namespace VoxelTanksServer
                 packet.Write(player.Position);
                 packet.Write(player.Rotation);  
                 packet.Write(player.TankName);
+                packet.Write(player.Cooldown);
                 SendTCPData(toClient, packet);
             }
         }
@@ -64,7 +67,7 @@ namespace VoxelTanksServer
                 packet.Write(player.Rotation);
                 packet.Write(player.BarrelRotation);
                 
-                SendTCPDataToAll(player.Id, packet);
+                SendTCPDataToAll(packet);
             }
         }
 
@@ -86,6 +89,29 @@ namespace VoxelTanksServer
                 packet.Write(result);
 
                 SendTCPData(toClient, packet);
+            }
+        }
+
+        public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, int fromClient)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.InstantiateObject))
+            {
+                packet.Write(name);
+                packet.Write(position);
+                packet.Write(rotation);
+                packet.Write(fromClient);
+                
+                SendTCPDataToAll(packet);
+            }
+        }
+        
+        public static void PlayerDisconnected(int playerId)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.PlayerDisconnected))
+            {
+                packet.Write(playerId);
+                
+                SendTCPDataToAll(packet);
             }
         }
         #endregion
