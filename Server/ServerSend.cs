@@ -54,6 +54,8 @@ namespace VoxelTanksServer
                 packet.Write(player.Rotation);  
                 packet.Write(player.TankName);
                 packet.Write(player.Cooldown);
+                packet.Write(player.MaxHealth);
+                
                 SendTCPData(toClient, packet);
             }
         }
@@ -112,6 +114,18 @@ namespace VoxelTanksServer
                 packet.Write(playerId);
                 
                 SendTCPDataToAll(packet);
+            }
+        }
+
+        public static void TakeDamage(int playerId, int maxHealth, int currentHealth)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.TakeDamage))
+            {
+                packet.Write(playerId);
+                packet.Write(maxHealth);
+                packet.Write(currentHealth);
+                
+                SendTCPData(playerId, packet);
             }
         }
         #endregion

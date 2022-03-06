@@ -45,7 +45,6 @@ namespace VoxelTanksServer
             
             Task.Run(async () =>
             {
-                Log.Information(((int) Cooldown * 1000).ToString());
                 await Task.Delay((int) (Cooldown * 1000));
                 _canShoot = true;
                 return Task.CompletedTask;
@@ -94,6 +93,8 @@ namespace VoxelTanksServer
                 Health = 0;
                 Die();
             }
+            
+            ServerSend.TakeDamage(Id, MaxHealth, Health);
         }
 
         private void Die()
@@ -105,8 +106,7 @@ namespace VoxelTanksServer
         {
             if (!_canShoot)
                 return;
-
-            //TODO: take cooldown from database
+            
             _canShoot = false;
             ServerSend.InstantiateObject(bulletPrefab, position, rotation, Id);
             ServerSend.InstantiateObject(particlePrefab, position, rotation, Id);

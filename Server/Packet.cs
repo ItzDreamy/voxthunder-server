@@ -14,7 +14,8 @@ namespace VoxelTanksServer
         RotateTurret,
         LoginResult,
         PlayerDisconnected,
-        InstantiateObject
+        InstantiateObject,
+        TakeDamage
     }
 
     /// <summary>Sent from client to server.</summary>

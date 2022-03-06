@@ -99,7 +99,6 @@ namespace VoxelTanksServer
             int enemyId = packet.ReadInt();
             Player enemy = Server.Clients[enemyId].Player;
             
-            //TODO: Take damage value from database
             int damage = enemy.Damage;
             float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
             int calculatedDamage = damage + (int)randomCoof;
