@@ -22,16 +22,23 @@ namespace VoxelTanksServer
 
         public static void Start(int maxPlayers, int port)
         {
-            MaxPlayers = maxPlayers;
-            Port = port;
+            try
+            {
+                MaxPlayers = maxPlayers;
+                Port = port;
 
-            Log.Information("Starting server...");
-            InitializeServerData();
-            _tcpListener = new TcpListener(IPAddress.Any, Port);
-            _tcpListener.Start();
-            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
+                Log.Information("Starting server...");
+                InitializeServerData();
+                _tcpListener = new TcpListener(IPAddress.Any, Port);
+                _tcpListener.Start();
+                _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
-            Log.Information($"Server started on {Port}");
+                Log.Information($"Server started on {Port}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private static void TCPConnectCallback(IAsyncResult result)
@@ -70,7 +77,9 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.InstantiateObject, ServerHandle.InstantiateObject},
                 {(int) ClientPackets.ShootBullet, ServerHandle.ShootBullet},
                 {(int) ClientPackets.JoinRoom, ServerHandle.JoinOrCreateRoom},
-                {(int) ClientPackets.LeaveRoom, ServerHandle.LeaveRoom}
+                {(int) ClientPackets.LeaveRoom, ServerHandle.LeaveRoom},
+                {(int) ClientPackets.CheckAbleToReconnect, ServerHandle.CheckAbleToReconnect},
+                {(int) ClientPackets.ReconnectRequest, ServerHandle.Reconnect}
             };
             Log.Information("Packets initialized");
         }

@@ -6,14 +6,14 @@ using Serilog.Core;
 
 namespace VoxelTanksServer
 {
-    internal class AuthorizationHandler
+    internal static class AuthorizationHandler
     {
-        public static bool ClientAuthRequest(string username, string password, string ip, out string message)
+        public static bool ClientAuthRequest(string username, string password, string? ip, int playerId,
+            out string message)
         {
             message = "";
             foreach (var client in Server.Clients.Values)
             {
-                Log.Information(client.Username);
                 if (client.Username == username)
                 {
                     Log.Information($"[{ip}] Игрок с логином {username} уже в сети!");
@@ -21,13 +21,14 @@ namespace VoxelTanksServer
                     return false;
                 }
             }
-            
+
             try
             {
                 Database db = new Database();
                 MySqlCommand myCommand =
                     new MySqlCommand(
-                        $"SELECT Count(*) FROM `authdata` WHERE `login` = '{username}' AND `password` = '{password}'" , db.GetConnection());
+                        $"SELECT Count(*) FROM `authdata` WHERE `login` = '{username}' AND `password` = '{password}'",
+                        db.GetConnection());
                 MySqlDataAdapter adapter = new MySqlDataAdapter();
                 DataTable table = new DataTable();
                 adapter.SelectCommand = myCommand;
@@ -36,17 +37,19 @@ namespace VoxelTanksServer
                 {
                     Log.Information($"[{ip}] {username} успешно зашел в аккаунт");
                     message = "Авторизация прошла успешно";
+
                     return true;
                 }
+
                 Log.Information($"[{ip}] {username} ввел некорректные данные.");
                 message = $"Неправильный логин или пароль";
                 return false;
-
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
+
             return false;
         }
     }

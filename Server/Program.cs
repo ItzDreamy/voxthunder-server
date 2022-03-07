@@ -9,20 +9,27 @@ namespace VoxelTanksServer
         private static bool _isRunning;
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console()
-                .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+            try
+            {
+                 Log.Logger = new LoggerConfiguration()
+                     .MinimumLevel.Debug()
+                     .WriteTo.Console()
+                     .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
+                     .CreateLogger();
             
             
-            Console.Title = "VoxelTanksServer";
+                Console.Title = "VoxelTanksServer";
             
-            _isRunning = true;
-            Thread mainThread = new Thread(new ThreadStart(MainThread));
-            mainThread.Start();
+                 _isRunning = true;
+                 Thread mainThread = new Thread(new ThreadStart(MainThread));
+                 mainThread.Start();
             
-            Server.Start(100, 25565);
+                Server.Start(100, 25565);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private static void MainThread()

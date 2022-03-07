@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Org.BouncyCastle.Crypto.Tls;
 using Serilog;
 
 namespace VoxelTanksServer
@@ -30,7 +31,7 @@ namespace VoxelTanksServer
                 player.Tcp.SendData(packet);
             }
         }
-        
+
         public static void SendTCPDataToRoom(Room room, int exceptId, Packet packet)
         {
             packet.WriteLength();
@@ -43,13 +44,13 @@ namespace VoxelTanksServer
                 }
             }
         }
-        
+
         private static void SendTCPDataToAll(int exceptClient, Packet packet)
         {
             packet.WriteLength();
             for (int i = 1; i < Server.MaxPlayers; i++)
             {
-                if(i != exceptClient)
+                if (i != exceptClient)
                     Server.Clients[i].Tcp.SendData(packet);
             }
         }
@@ -58,7 +59,7 @@ namespace VoxelTanksServer
 
         public static void Welcome(int toClient, string message)
         {
-            using (Packet packet = new Packet((int)ServerPackets.Welcome))
+            using (Packet packet = new Packet((int) ServerPackets.Welcome))
             {
                 packet.Write(message);
                 packet.Write(toClient);
@@ -66,19 +67,23 @@ namespace VoxelTanksServer
                 SendTCPData(toClient, packet);
             }
         }
-        
+
         public static void SpawnPlayer(int toClient, Player player)
         {
-            using (Packet packet = new Packet((int)ServerPackets.SpawnPlayer))
+            using (Packet packet = new Packet((int) ServerPackets.SpawnPlayer))
             {
                 packet.Write(player.Id);
                 packet.Write(player.Username);
                 packet.Write(player.Position);
-                packet.Write(player.Rotation);  
+                packet.Write(player.Rotation);
+                packet.Write(player.TurretRotation);
+                packet.Write(player.BarrelRotation);
                 packet.Write(player.TankName);
                 packet.Write(player.Cooldown);
+                packet.Write(!player.CanShoot);
+                packet.Write(player.Health);
                 packet.Write(player.MaxHealth);
-                
+
                 SendTCPData(toClient, packet);
             }
         }
@@ -91,18 +96,18 @@ namespace VoxelTanksServer
                 packet.Write(player.Position);
                 packet.Write(player.Rotation);
                 packet.Write(player.BarrelRotation);
-                
+
                 SendTCPDataToRoom(room, packet);
             }
         }
-        
+
         public static void RotateTurret(Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.RotateTurret))
             {
                 packet.Write(player.Id);
                 packet.Write(player.TurretRotation);
-                
+
                 SendTCPDataToRoom(player.ConnectedRoom, player.Id, packet);
             }
         }
@@ -118,7 +123,8 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, int fromClient, Room room)
+        public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, int fromClient,
+            Room room)
         {
             using (Packet packet = new Packet((int) ServerPackets.InstantiateObject))
             {
@@ -126,26 +132,35 @@ namespace VoxelTanksServer
                 packet.Write(position);
                 packet.Write(rotation);
                 packet.Write(fromClient);
-                
+
                 SendTCPDataToRoom(room, packet);
             }
         }
 
-        public static void LoadGame(Room room)
+        public static void LoadScene(Room room, string sceneName)
         {
             using (Packet packet = new Packet((int) ServerPackets.LoadGame))
             {
-                packet.Write("FirstMap");
+                packet.Write(sceneName);
                 SendTCPDataToRoom(room, packet);
             }
         }
-        
-        public static void PlayerDisconnected(int playerId)
+
+        public static void LoadScene(int toClient, string sceneName)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.LoadGame))
+            {
+                packet.Write(sceneName);
+                SendTCPData(toClient, packet);
+            }
+        }
+
+        public static void PlayerDisconnected(int playerId, bool isReconnected)
         {
             using (Packet packet = new Packet((int) ServerPackets.PlayerDisconnected))
             {
                 packet.Write(playerId);
-                
+                packet.Write(isReconnected);
                 SendTCPDataToAll(packet);
             }
         }
@@ -157,7 +172,7 @@ namespace VoxelTanksServer
                 packet.Write(playerId);
                 packet.Write(maxHealth);
                 packet.Write(currentHealth);
-                
+
                 SendTCPData(playerId, packet);
             }
         }
@@ -167,10 +182,19 @@ namespace VoxelTanksServer
             using (Packet packet = new Packet((int) ServerPackets.PlayerDead))
             {
                 packet.Write(playerId);
-                
+
                 SendTCPDataToRoom(Server.Clients[playerId].ConnectedRoom, packet);
             }
         }
+
+        public static void AbleToReconnect(int playerId)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.AbleToReconnect))
+            {
+                SendTCPData(playerId, packet);
+            }
+        }
+
         #endregion
     }
 }

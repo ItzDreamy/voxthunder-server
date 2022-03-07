@@ -8,7 +8,7 @@ namespace VoxelTanksServer
     public class Client
     {
         public static int DataBufferSize = 4096;
-        
+
         public int Id;
         public Player Player;
         public string Username { get; set; }
@@ -23,7 +23,7 @@ namespace VoxelTanksServer
             Id = clientId;
             Tcp = new TCP(Id);
         }
-        
+
         public class TCP
         {
             public TcpClient Socket;
@@ -50,14 +50,14 @@ namespace VoxelTanksServer
                 _receiveBuffer = new byte[DataBufferSize];
 
                 _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
-                
+
                 ServerSend.Welcome(_id, "You have been successfully connected to server");
             }
 
             private bool HandleData(byte[] data)
             {
                 int packetLength = 0;
-            
+
                 _receivedData.SetBytes(data);
 
                 if (_receivedData.UnreadLength() >= 4)
@@ -66,7 +66,7 @@ namespace VoxelTanksServer
                     if (packetLength <= 0)
                     {
                         return true;
-                    }   
+                    }
                 }
 
                 while (packetLength > 0 && packetLength <= _receivedData.UnreadLength())
@@ -82,14 +82,14 @@ namespace VoxelTanksServer
                     });
 
                     packetLength = 0;
-                
+
                     if (_receivedData.UnreadLength() >= 4)
                     {
                         packetLength = _receivedData.ReadInt();
                         if (packetLength <= 0)
                         {
                             return true;
-                        }   
+                        }
                     }
                 }
 
@@ -109,7 +109,7 @@ namespace VoxelTanksServer
                 _receiveBuffer = null;
                 Socket = null;
             }
-            
+
             private void ReceiveCallback(IAsyncResult result)
             {
                 try
@@ -123,7 +123,7 @@ namespace VoxelTanksServer
 
                     byte[] data = new byte[byteLength];
                     Array.Copy(_receiveBuffer, data, byteLength);
-                    
+
                     _receivedData.Reset(HandleData(data));
                     _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
                 }
@@ -152,11 +152,11 @@ namespace VoxelTanksServer
 
         public void SendIntoGame(string playerName, string tankName)
         {
-            Player = new Player(Id, playerName, new Vector3(0, 0, 0), tankName, ConnectedRoom);
-
+            Player ??= new Player(Id, playerName, new Vector3(0, 0, 0), tankName, ConnectedRoom);
+            
             foreach (var client in ConnectedRoom.Players.Values)
             {
-                if (client.Player != null )
+                if (client.Player != null)
                 {
                     if (client.Id != Id)
                     {
@@ -182,19 +182,20 @@ namespace VoxelTanksServer
             Username = null;
             SelectedTank = null;
             Tcp.Disconnect();
-            ServerSend.PlayerDisconnected(Id);
+            ServerSend.PlayerDisconnected(Id, false);
         }
-        
+
         public void LeftRoom()
         {
             if (ConnectedRoom == null) return;
-            
+
             Log.Information($"Client {Id} left the room");
             ConnectedRoom.Players.Remove(Id);
             if (ConnectedRoom.PlayersCount == 0)
             {
                 Server.Rooms.Remove(ConnectedRoom);
             }
+
             ConnectedRoom = null;
         }
     }

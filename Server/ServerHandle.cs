@@ -61,7 +61,7 @@ namespace VoxelTanksServer
             string username = packet.ReadString();
             string password = packet.ReadString();
             bool correctData = AuthorizationHandler.ClientAuthRequest(username, password,
-                Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint.ToString(), out string message);
+                Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient, out string message);
             if (correctData)
             {
                 Server.Clients[fromClient].Username = username;
@@ -124,7 +124,7 @@ namespace VoxelTanksServer
                         if (room.PlayersCount == room.MaxPlayers)
                         {
                             room.IsOpen = false;
-                            ServerSend.LoadGame(room);
+                            ServerSend.LoadScene(room, "FirstMap");
                         }
                         return;
                     }
@@ -141,6 +141,42 @@ namespace VoxelTanksServer
         {
             Room playerRoom = Server.Clients[fromClient].ConnectedRoom;
             Server.Clients[fromClient].LeftRoom();
+        }
+
+        public static void CheckAbleToReconnect(int fromClient, Packet packet)
+        {
+            foreach (var room in Server.Rooms)
+            {
+                foreach (var cachedPlayer in room.CachedPlayers)
+                {
+                    if (cachedPlayer.Username == Server.Clients[fromClient].Username && cachedPlayer.IsAlive)
+                    {
+                        ServerSend.AbleToReconnect(fromClient);
+                        Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
+                    }
+                }
+            }
+        }
+
+        public static void Reconnect(int fromClient, Packet packet)
+        {
+            foreach (var room in Server.Rooms)
+            {
+                foreach (var cachedPlayer in room.CachedPlayers)
+                {
+                    if (cachedPlayer.Username == Server.Clients[fromClient].Username)
+                    {
+                        Client client = Server.Clients[fromClient];
+                        
+                        room.Players[fromClient] = client;
+                        client.ConnectedRoom = room;
+                        Log.Information($"Client {fromClient} connected to room");
+                        ServerSend.LoadScene(fromClient, "FirstMap");
+                        client.Player = new Player(cachedPlayer, fromClient);
+                        return;
+                    }
+                }
+            }
         }
     }
 }
