@@ -60,20 +60,13 @@ namespace VoxelTanksServer
         {
             string username = packet.ReadString();
             string password = packet.ReadString();
-
-            if (AuthorizationHandler.ClientAuthRequest(username, password))
+            bool correctData = AuthorizationHandler.ClientAuthRequest(username, password,
+                Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint.ToString(), out string message);
+            if (correctData)
             {
                 Server.Clients[fromClient].Username = username;
-                Log.Information(
-                    $"[{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint}] {username} успешно зашел в аккаунт.");
             }
-            else
-            {
-                Log.Information(
-                    $"[{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint}] {username} ввел некорректные данные.");
-            }
-
-            ServerSend.LoginResult(fromClient, AuthorizationHandler.ClientAuthRequest(username, password));
+            ServerSend.LoginResult(fromClient, correctData, message);
         }
 
         public static void InstantiateObject(int fromClient, Packet packet)
@@ -100,18 +93,20 @@ namespace VoxelTanksServer
         {
             int enemyId = packet.ReadInt();
             Player enemy = Server.Clients[enemyId].Player;
-
-            int damage = enemy.Damage;
-            float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
-            int calculatedDamage = damage + (int) randomCoof;
-
-            if (calculatedDamage == 0)
+            if (enemy != null)
             {
-                calculatedDamage = damage;
-            }
+                int damage = enemy.Damage;
+                float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
+                int calculatedDamage = damage + (int) randomCoof;
 
-            Server.Clients[fromClient].Player.TakeDamage(calculatedDamage);
-            enemy.TotalDamage += calculatedDamage;
+                if (calculatedDamage == 0)
+                {
+                    calculatedDamage = damage;
+                }
+
+                Server.Clients[fromClient].Player.TakeDamage(calculatedDamage);
+                enemy.TotalDamage += calculatedDamage;   
+            }
         }
 
         public static void JoinOrCreateRoom(int fromClient, Packet packet)

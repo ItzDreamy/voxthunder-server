@@ -107,11 +107,12 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void LoginResult(int toClient, bool result)
+        public static void LoginResult(int toClient, bool result, string message)
         {
             using (Packet packet = new Packet((int) ServerPackets.LoginResult))
             {
                 packet.Write(result);
+                packet.Write(message);
 
                 SendTCPData(toClient, packet);
             }

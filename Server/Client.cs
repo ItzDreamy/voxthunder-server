@@ -176,9 +176,11 @@ namespace VoxelTanksServer
 
         private void Disconnect()
         {
-            Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} has disconnected.");
+            Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} отключился.");
             LeftRoom();
             Player = null;
+            Username = null;
+            SelectedTank = null;
             Tcp.Disconnect();
             ServerSend.PlayerDisconnected(Id);
         }

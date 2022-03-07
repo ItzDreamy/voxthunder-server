@@ -14,7 +14,7 @@ namespace VoxelTanksServer
                 .WriteTo.Console()
                 .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
-
+            
             
             Console.Title = "VoxelTanksServer";
             
