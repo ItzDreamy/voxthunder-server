@@ -10,28 +10,23 @@ namespace VoxelTanksServer
         
         public int PlayersCount => Players.Count;
 
-        public Dictionary<int, Player?> Players = new Dictionary<int, Player?>();
-        public List<Team> Teams = new List<Team>();
+        public Dictionary<int, Client?> Players = new Dictionary<int, Client?>();
+        //public List<Team> Teams = new List<Team>();
 
         public Room(int maxPlayers)
         {
             MaxPlayers = maxPlayers;
             PlayersPerTeam = maxPlayers / 2;
-            Teams.Add(new Team());
-            Teams.Add(new Team());
+            Server.Rooms.Add(this);
+            //Teams.Add(new Team());
+            //Teams.Add(new Team());
         }
         
-        public Player? GetPlayer(int playerId)
+        public Client? GetPlayer(int playerId)
         {
-            Players.TryGetValue(playerId, out Player? player);
+            Players.TryGetValue(playerId, out Client? player);
 
             return player;
-        }
-        
-        public void LeftRoom(Player player)
-        {
-            Players.Remove(player.Id);
-            player.ConnectedRoom = null;
         }
     }
 }

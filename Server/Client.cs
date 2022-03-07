@@ -14,6 +14,8 @@ namespace VoxelTanksServer
         public string Username { get; set; }
         public string SelectedTank { get; set; }
 
+        public Room ConnectedRoom = null;
+
         public TCP Tcp;
 
         public Client(int clientId)
@@ -150,9 +152,9 @@ namespace VoxelTanksServer
 
         public void SendIntoGame(string playerName, string tankName)
         {
-            Player = new Player(Id, playerName, new Vector3(0, 0, 0), tankName);
+            Player = new Player(Id, playerName, new Vector3(0, 0, 0), tankName, ConnectedRoom);
 
-            foreach (var client in Server.Clients.Values)
+            foreach (var client in ConnectedRoom.Players.Values)
             {
                 if (client.Player != null )
                 {
@@ -160,11 +162,10 @@ namespace VoxelTanksServer
                     {
                         ServerSend.SpawnPlayer(Id, client.Player);
                     }
-                    
                 }
             }
 
-            foreach (var client in Server.Clients.Values)
+            foreach (var client in ConnectedRoom.Players.Values)
             {
                 if (client.Player != null)
                 {
@@ -176,10 +177,23 @@ namespace VoxelTanksServer
         private void Disconnect()
         {
             Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} has disconnected.");
-            Player.ConnectedRoom.LeftRoom(Player);
+            LeftRoom();
             Player = null;
             Tcp.Disconnect();
             ServerSend.PlayerDisconnected(Id);
+        }
+        
+        public void LeftRoom()
+        {
+            if (ConnectedRoom == null) return;
+            
+            Log.Information($"Client {Id} left the room");
+            ConnectedRoom.Players.Remove(Id);
+            if (ConnectedRoom.PlayersCount == 0)
+            {
+                Server.Rooms.Remove(ConnectedRoom);
+            }
+            ConnectedRoom = null;
         }
     }
 }

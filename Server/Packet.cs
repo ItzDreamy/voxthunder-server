@@ -16,7 +16,8 @@ namespace VoxelTanksServer
         PlayerDisconnected,
         InstantiateObject,
         TakeDamage,
-        PlayerDead
+        PlayerDead,
+        LoadGame
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -31,6 +32,8 @@ namespace VoxelTanksServer
         TakeDamage,
         InstantiateObject,
         ShootBullet,
+        JoinRoom,
+        LeaveRoom
     }
 
     public class Packet : IDisposable

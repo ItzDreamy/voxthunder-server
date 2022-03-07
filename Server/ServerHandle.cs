@@ -18,7 +18,7 @@ namespace VoxelTanksServer
                     $"Player (ID: {fromClient}) has the wrong client ID ({clientIdCheck})");
             }
         }
-
+        
         public static void ReadyToSpawnReceived(int fromClient, Packet packet)
         {
             Server.Clients[fromClient]
@@ -82,7 +82,7 @@ namespace VoxelTanksServer
             Vector3 position = packet.ReadVector3();
             Quaternion rotation = packet.ReadQuaternion();
 
-            ServerSend.InstantiateObject(name, position, rotation, fromClient);
+            ServerSend.InstantiateObject(name, position, rotation, fromClient, Server.Clients[fromClient].ConnectedRoom);
         }
 
         public static void ShootBullet(int fromClient, Packet packet)
@@ -122,13 +122,30 @@ namespace VoxelTanksServer
                 {
                     if (room.IsOpen)
                     {
-                        //TODO: connect player to room
+                        room.Players[fromClient] = Server.Clients[fromClient];
+                        Server.Clients[fromClient].ConnectedRoom = room;
+                        Log.Information($"Client {fromClient} connected to room");
+                        Log.Information($"Current players in room {Server.Rooms.IndexOf(room)} : {room.PlayersCount} / {room.MaxPlayers}");
+                        if (room.PlayersCount == room.MaxPlayers)
+                        {
+                            room.IsOpen = false;
+                            ServerSend.LoadGame(room);
+                        }
                         return;
                     }
                 }
             }
+            Room newRoom = new Room(2);
+            Log.Information($"Client {fromClient} created the room {Server.Rooms.IndexOf(newRoom)}");
+            
+            newRoom.Players[fromClient] = Server.Clients[fromClient];
+            Server.Clients[fromClient].ConnectedRoom = newRoom;
+        }
 
-            Server.Rooms.Add(new Room(2));
+        public static void LeaveRoom(int fromClient, Packet packet)
+        {
+            Room playerRoom = Server.Clients[fromClient].ConnectedRoom;
+            Server.Clients[fromClient].LeftRoom();
         }
     }
 }

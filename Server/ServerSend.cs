@@ -20,6 +20,29 @@ namespace VoxelTanksServer
                 Server.Clients[i].Tcp.SendData(packet);
             }
         }
+
+        public static void SendTCPDataToRoom(Room room, Packet packet)
+        {
+            packet.WriteLength();
+
+            foreach (var player in room.Players.Values)
+            {
+                player.Tcp.SendData(packet);
+            }
+        }
+        
+        public static void SendTCPDataToRoom(Room room, int exceptId, Packet packet)
+        {
+            packet.WriteLength();
+
+            foreach (var player in room.Players.Values)
+            {
+                if (player.Id != exceptId)
+                {
+                    player.Tcp.SendData(packet);
+                }
+            }
+        }
         
         private static void SendTCPDataToAll(int exceptClient, Packet packet)
         {
@@ -60,7 +83,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void MovePlayer(Player player)
+        public static void MovePlayer(Room room, Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.PlayerMovement))
             {
@@ -69,7 +92,7 @@ namespace VoxelTanksServer
                 packet.Write(player.Rotation);
                 packet.Write(player.BarrelRotation);
                 
-                SendTCPDataToAll(packet);
+                SendTCPDataToRoom(room, packet);
             }
         }
         
@@ -80,7 +103,7 @@ namespace VoxelTanksServer
                 packet.Write(player.Id);
                 packet.Write(player.TurretRotation);
                 
-                SendTCPDataToAll(player.Id, packet);
+                SendTCPDataToRoom(player.ConnectedRoom, player.Id, packet);
             }
         }
 
@@ -94,7 +117,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, int fromClient)
+        public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, int fromClient, Room room)
         {
             using (Packet packet = new Packet((int) ServerPackets.InstantiateObject))
             {
@@ -103,7 +126,16 @@ namespace VoxelTanksServer
                 packet.Write(rotation);
                 packet.Write(fromClient);
                 
-                SendTCPDataToAll(packet);
+                SendTCPDataToRoom(room, packet);
+            }
+        }
+
+        public static void LoadGame(Room room)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.LoadGame))
+            {
+                packet.Write("FirstMap");
+                SendTCPDataToRoom(room, packet);
             }
         }
         
@@ -135,7 +167,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(playerId);
                 
-                SendTCPDataToAll(packet);
+                SendTCPDataToRoom(Server.Clients[playerId].ConnectedRoom, packet);
             }
         }
         #endregion

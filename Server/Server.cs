@@ -68,7 +68,9 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.TryLogin, ServerHandle.TryLogin},
                 {(int) ClientPackets.TakeDamage, ServerHandle.TakeDamage},
                 {(int) ClientPackets.InstantiateObject, ServerHandle.InstantiateObject},
-                {(int) ClientPackets.ShootBullet, ServerHandle.ShootBullet}
+                {(int) ClientPackets.ShootBullet, ServerHandle.ShootBullet},
+                {(int) ClientPackets.JoinRoom, ServerHandle.JoinOrCreateRoom},
+                {(int) ClientPackets.LeaveRoom, ServerHandle.LeaveRoom}
             };
             Log.Information("Packets initialized");
         }

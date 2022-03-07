@@ -8,11 +8,10 @@ namespace VoxelTanksServer
 {
     public class Player
     {
-        public Room ConnectedRoom = null;
-        public Team PlayerTeam;
         public int Id;
         public string Username;
         public string TankName = "";
+        public Room ConnectedRoom = null;
         
         public Vector3 Position;
         public Quaternion Rotation;
@@ -30,7 +29,7 @@ namespace VoxelTanksServer
         private bool _isAlive;
         
 
-        public Player(int id, string username, Vector3 spawnPosition, string tankName)
+        public Player(int id, string username, Vector3 spawnPosition, string tankName, Room room)
         {
             Id = id;
             Username = username;
@@ -38,6 +37,7 @@ namespace VoxelTanksServer
             Rotation = Quaternion.Identity;
             TankName = tankName;
             _isAlive = true;
+            ConnectedRoom = room;
             
             MaxHealth = (int) Database.RequestData("health", "tanksstats", "tankname", tankName.ToLower());
             Damage = (int) Database.RequestData("damage", "tanksstats", "tankname", tankName.ToLower());
@@ -77,7 +77,7 @@ namespace VoxelTanksServer
                 Rotation = rotation;
                 BarrelRotation = barrelRotation;   
             }
-            ServerSend.MovePlayer(this);
+            ServerSend.MovePlayer(ConnectedRoom, this);
         }
 
         public void RotateTurret(Quaternion turretRotation)
@@ -118,8 +118,8 @@ namespace VoxelTanksServer
                 return;
             
             _canShoot = false;
-            ServerSend.InstantiateObject(bulletPrefab, position, rotation, Id);
-            ServerSend.InstantiateObject(particlePrefab, position, rotation, Id);
+            ServerSend.InstantiateObject(bulletPrefab, position, rotation, Id, ConnectedRoom);
+            ServerSend.InstantiateObject(particlePrefab, position, rotation, Id, ConnectedRoom);
             
             Task.Run(async () =>
             {
