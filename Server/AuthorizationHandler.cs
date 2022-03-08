@@ -37,7 +37,7 @@ namespace VoxelTanksServer
                 {
                     Log.Information($"[{ip}] {username} успешно зашел в аккаунт");
                     message = "Авторизация прошла успешно";
-
+                    Server.Clients[playerId].IsAuth = true;
                     return true;
                 }
 

@@ -34,6 +34,7 @@ namespace VoxelTanksServer
                 _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
                 Log.Information($"Server started on {Port}");
+                Log.Information($"Max players: {MaxPlayers}");
             }
             catch (Exception e)
             {
@@ -79,7 +80,9 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.JoinRoom, ServerHandle.JoinOrCreateRoom},
                 {(int) ClientPackets.LeaveRoom, ServerHandle.LeaveRoom},
                 {(int) ClientPackets.CheckAbleToReconnect, ServerHandle.CheckAbleToReconnect},
-                {(int) ClientPackets.ReconnectRequest, ServerHandle.Reconnect}
+                {(int) ClientPackets.ReconnectRequest, ServerHandle.Reconnect},
+                {(int) ClientPackets.CancelReconnect, ServerHandle.CancelReconnect},
+                {(int) ClientPackets.RequestPlayersCount, ServerHandle.OnPlayersOnlineCountRequest}
             };
             Log.Information("Packets initialized");
         }

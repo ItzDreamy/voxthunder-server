@@ -24,6 +24,7 @@ namespace VoxelTanksServer
         public int Damage;
         public float Cooldown;
         public int TotalDamage = 0;
+        public int Kills = 0;
 
         public bool CanShoot;
         public bool IsAlive;

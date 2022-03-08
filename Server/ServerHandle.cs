@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Serilog;
+using Serilog.Core;
 
 namespace VoxelTanksServer
 {
@@ -21,18 +22,21 @@ namespace VoxelTanksServer
         
         public static void ReadyToSpawnReceived(int fromClient, Packet packet)
         {
+            
             Server.Clients[fromClient]
                 .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
         }
 
         public static void ChangeTank(int fromClient, Packet packet)
         {
+            
             string tankName = packet.ReadString();
             Server.Clients[fromClient].SelectedTank = tankName;
         }
 
         public static void PlayerMovement(int fromClient, Packet packet)
         {
+            
             Vector3 playerPosition = packet.ReadVector3();
             Quaternion playerRotation = packet.ReadQuaternion();
             Quaternion barrelRotation = packet.ReadQuaternion();
@@ -119,8 +123,6 @@ namespace VoxelTanksServer
                     {
                         room.Players[fromClient] = Server.Clients[fromClient];
                         Server.Clients[fromClient].ConnectedRoom = room;
-                        Log.Information($"Client {fromClient} connected to room");
-                        Log.Information($"Current players in room {Server.Rooms.IndexOf(room)} : {room.PlayersCount} / {room.MaxPlayers}");
                         if (room.PlayersCount == room.MaxPlayers)
                         {
                             room.IsOpen = false;
@@ -130,17 +132,22 @@ namespace VoxelTanksServer
                     }
                 }
             }
-            Room newRoom = new Room(2);
-            Log.Information($"Client {fromClient} created the room {Server.Rooms.IndexOf(newRoom)}");
-            
+            Room newRoom = new Room(1);
             newRoom.Players[fromClient] = Server.Clients[fromClient];
             Server.Clients[fromClient].ConnectedRoom = newRoom;
+            
+            if (newRoom.PlayersCount == newRoom.MaxPlayers)
+            {
+                newRoom.IsOpen = false;
+                ServerSend.LoadScene(newRoom, "FirstMap");
+            }
+
         }
 
         public static void LeaveRoom(int fromClient, Packet packet)
         {
             Room playerRoom = Server.Clients[fromClient].ConnectedRoom;
-            Server.Clients[fromClient].LeftRoom();
+            Server.Clients[fromClient].LeaveRoom();
         }
 
         public static void CheckAbleToReconnect(int fromClient, Packet packet)
@@ -149,7 +156,7 @@ namespace VoxelTanksServer
             {
                 foreach (var cachedPlayer in room.CachedPlayers)
                 {
-                    if (cachedPlayer.Username == Server.Clients[fromClient].Username && cachedPlayer.IsAlive)
+                    if (cachedPlayer?.Username == Server.Clients[fromClient].Username && cachedPlayer.IsAlive)
                     {
                         ServerSend.AbleToReconnect(fromClient);
                         Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
@@ -158,21 +165,47 @@ namespace VoxelTanksServer
             }
         }
 
+        public static void OnPlayersOnlineCountRequest(int fromClient, Packet packet)
+        {
+            if (!Server.Clients[fromClient].IsAuth)
+            {
+                Log.Information("Попытка взлома");
+                Server.Clients[fromClient].Disconnect();
+                return;
+            }
+            ServerSend.SendPlayersOnline(fromClient);
+        }
+
         public static void Reconnect(int fromClient, Packet packet)
         {
+            Client client = Server.Clients[fromClient];
             foreach (var room in Server.Rooms)
             {
                 foreach (var cachedPlayer in room.CachedPlayers)
                 {
-                    if (cachedPlayer.Username == Server.Clients[fromClient].Username)
+                    if (cachedPlayer?.Username == Server.Clients[fromClient].Username)
                     {
-                        Client client = Server.Clients[fromClient];
-                        
                         room.Players[fromClient] = client;
                         client.ConnectedRoom = room;
                         Log.Information($"Client {fromClient} connected to room");
                         ServerSend.LoadScene(fromClient, "FirstMap");
                         client.Player = new Player(cachedPlayer, fromClient);
+                        return;
+                    }
+                }
+            }
+        }
+
+        public static void CancelReconnect(int fromClient, Packet packet)
+        {
+            foreach (var room in Server.Rooms)
+            {
+                foreach (var cachedPlayer in room.CachedPlayers)
+                {
+                    if (cachedPlayer?.Username == Server.Clients[fromClient].Username)
+                    {
+                        Log.Information($"{cachedPlayer.Username} canceled reconnect");
+                        room.CachedPlayers[room.CachedPlayers.IndexOf(cachedPlayer)] = null;
                         return;
                     }
                 }

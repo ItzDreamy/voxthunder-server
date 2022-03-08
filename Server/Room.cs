@@ -14,15 +14,17 @@ namespace VoxelTanksServer
         public Dictionary<int, Client?> Players = new Dictionary<int, Client?>();
 
         public List<CachedPlayer?> CachedPlayers = new List<CachedPlayer?>();
-        //public List<Team> Teams = new List<Team>();
 
         public Room(int maxPlayers)
         {
             MaxPlayers = maxPlayers;
             PlayersPerTeam = maxPlayers / 2;
             Server.Rooms.Add(this);
-            //Teams.Add(new Team());
-            //Teams.Add(new Team());
+        }
+
+        public void BalanceTeams()
+        {
+            
         }
     }
 }

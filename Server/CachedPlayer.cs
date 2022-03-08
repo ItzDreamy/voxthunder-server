@@ -13,7 +13,7 @@ namespace VoxelTanksServer
         public Quaternion TurretRotation;
         public int Health;
         public int TotalDamage;
-
+        public int Kills;
         public bool CanShoot;
         public bool IsAlive;
 

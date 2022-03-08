@@ -18,7 +18,8 @@ namespace VoxelTanksServer
         TakeDamage,
         PlayerDead,
         LoadGame,
-        AbleToReconnect
+        AbleToReconnect,
+        PlayersOnlineCount
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -36,7 +37,9 @@ namespace VoxelTanksServer
         JoinRoom,
         LeaveRoom,
         CheckAbleToReconnect,
-        ReconnectRequest
+        ReconnectRequest,
+        CancelReconnect,
+        RequestPlayersCount
     }
 
     public class Packet : IDisposable

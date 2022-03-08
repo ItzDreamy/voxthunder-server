@@ -10,9 +10,10 @@ namespace VoxelTanksServer
         public static int DataBufferSize = 4096;
 
         public int Id;
+        public bool IsAuth = false;
         public Player Player;
-        public string Username { get; set; }
-        public string SelectedTank { get; set; }
+        public string Username;
+        public string SelectedTank;
 
         public Room ConnectedRoom = null;
 
@@ -146,6 +147,7 @@ namespace VoxelTanksServer
                 catch (Exception e)
                 {
                     Log.Error($"Error sending data to player {_id} via TCP {e.Message}");
+                    Server.Clients[_id].Disconnect();
                 }
             }
         }
@@ -174,18 +176,21 @@ namespace VoxelTanksServer
             }
         }
 
-        private void Disconnect()
+        public void Disconnect()
         {
+            if (Tcp.Socket == null)
+                return;
             Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} отключился.");
-            LeftRoom();
+            LeaveRoom();
             Player = null;
             Username = null;
             SelectedTank = null;
+            IsAuth = false;
             Tcp.Disconnect();
             ServerSend.PlayerDisconnected(Id, false);
         }
 
-        public void LeftRoom()
+        public void LeaveRoom()
         {
             if (ConnectedRoom == null) return;
 
