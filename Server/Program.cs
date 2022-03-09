@@ -5,6 +5,8 @@ using System.Threading;
 using Serilog;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
+using Serilog.Core;
+using VoxelTanksServer.API;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoxelTanksServer
@@ -22,13 +24,13 @@ namespace VoxelTanksServer
                     .WriteTo.Console()
                     .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
                     .CreateLogger();
-                
+
                 var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-                
+
                 var config = deserializer.Deserialize<Config>(File.ReadAllText("Configs/config.yml"));
-                
+
                 Console.Title = "VoxelTanksServer";
 
                 _isRunning = true;
@@ -44,7 +46,10 @@ namespace VoxelTanksServer
                 commandsThread.Start();
                 mainThread.Start();
 
-                Server.Start(config.MaxPlayers, config.Port);
+                Server.Start(config.MaxPlayers, config.ServerPort);
+                ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
+
+                Log.Information($"Client version: {config.ClientVersion}");
             }
             catch (Exception e)
             {
@@ -60,23 +65,27 @@ namespace VoxelTanksServer
             {
                 while (nextLoop < DateTime.Now)
                 {
-                    GameLogic.Update();
+                    // If the time for the next loop is in the past, aka it's time to execute another tick
+                    GameLogic.Update(); // Execute game logic
 
-                    nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
+                    nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick); // Calculate at what point in time the next tick should be executed
 
                     if (nextLoop > DateTime.Now)
                     {
-                        Thread.Sleep(nextLoop - DateTime.Now);
+                        // If the execution time for the next tick is in the future, aka the server is NOT running behind
+                        Thread.Sleep(nextLoop - DateTime.Now); // Let the thread sleep until it's needed again.
                     }
                 }
             }
         }
-        
     }
 
     public class Config
     {
+        public string ClientVersion;
         public int MaxPlayers;
-        public int Port;
+        public int ServerPort;
+        public int ApiPort;
+        public int ApiMaxConnections;
     }
 }

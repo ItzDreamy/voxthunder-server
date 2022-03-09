@@ -2,7 +2,7 @@
 {
     public static class Constants
     {
-        public const int Tickrate = 64;
-        public const int MsPerTick = 1000 / Tickrate;
+        public const int Tickrate = 30;
+        public const float MsPerTick = 1000f / Tickrate;
     }
 }

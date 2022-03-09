@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using Serilog;
 
@@ -8,6 +10,8 @@ namespace VoxelTanksServer
 {
     public static class Server
     {
+        public static bool IsOnline = false;
+        
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static Dictionary<int, Client> Clients = new Dictionary<int, Client>();
@@ -35,6 +39,7 @@ namespace VoxelTanksServer
 
                 Log.Information($"Server started on {Port}");
                 Log.Information($"Max players: {MaxPlayers}");
+                IsOnline = true;
             }
             catch (Exception e)
             {
@@ -44,7 +49,7 @@ namespace VoxelTanksServer
 
         private static void TCPConnectCallback(IAsyncResult result)
         {
-            TcpClient client = _tcpListener.EndAcceptTcpClient(result);
+            TcpClient? client = _tcpListener.EndAcceptTcpClient(result);
             _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
             Log.Information($"Trying to connect {client.Client.RemoteEndPoint}");
             for (int i = 1; i <= MaxPlayers; i++)
@@ -82,7 +87,6 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.CheckAbleToReconnect, ServerHandle.CheckAbleToReconnect},
                 {(int) ClientPackets.ReconnectRequest, ServerHandle.Reconnect},
                 {(int) ClientPackets.CancelReconnect, ServerHandle.CancelReconnect},
-                {(int) ClientPackets.RequestPlayersCount, ServerHandle.OnPlayersOnlineCountRequest}
             };
             Log.Information("Packets initialized");
         }

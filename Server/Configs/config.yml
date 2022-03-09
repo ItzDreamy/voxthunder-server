@@ -1,2 +1,5 @@
-﻿maxPlayers: 100
-port: 25565
+﻿clientVersion: 0.1
+maxPlayers: 1
+serverPort: 25565
+apiPort: 8888
+apiMaxConnections: 1000

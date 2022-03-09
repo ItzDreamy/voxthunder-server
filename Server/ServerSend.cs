@@ -195,25 +195,6 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void SendPlayersOnline(int client)
-        {
-            using (Packet packet = new Packet((int) ServerPackets.PlayersOnlineCount))
-            {
-                int counter = 0;
-                for (int i = 1; i <= Server.MaxPlayers; i++)
-                {
-                    if (Server.Clients[i].Tcp.Socket != null)
-                    {
-                        counter++;
-                    }
-                }
-                
-                packet.Write(counter);
-                
-                SendTCPData(client, packet);
-            }
-        }
-        
         #endregion
     }
 }

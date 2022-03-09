@@ -18,8 +18,18 @@ namespace VoxelTanksServer
         TakeDamage,
         PlayerDead,
         LoadGame,
-        AbleToReconnect,
-        PlayersOnlineCount
+        AbleToReconnect
+    }
+    
+    /// <summary>
+    /// Sent from api to client
+    /// </summary>
+    public enum ServerApiPackets
+    {
+        SendPlayersCount = 1,
+        SendServerState,
+        Welcome,
+        Ping
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -38,8 +48,16 @@ namespace VoxelTanksServer
         LeaveRoom,
         CheckAbleToReconnect,
         ReconnectRequest,
-        CancelReconnect,
-        RequestPlayersCount
+        CancelReconnect
+    }
+
+    /// <summary>
+    /// Sent from client to api
+    /// </summary>
+    public enum ClientApiPackets
+    {
+        GetPlayersCount = 1,
+        GetServerState
     }
 
     public class Packet : IDisposable

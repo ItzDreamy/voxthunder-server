@@ -19,24 +19,21 @@ namespace VoxelTanksServer
                     $"Player (ID: {fromClient}) has the wrong client ID ({clientIdCheck})");
             }
         }
-        
+
         public static void ReadyToSpawnReceived(int fromClient, Packet packet)
         {
-            
             Server.Clients[fromClient]
                 .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
         }
 
         public static void ChangeTank(int fromClient, Packet packet)
         {
-            
             string tankName = packet.ReadString();
             Server.Clients[fromClient].SelectedTank = tankName;
         }
 
         public static void PlayerMovement(int fromClient, Packet packet)
         {
-            
             Vector3 playerPosition = packet.ReadVector3();
             Quaternion playerRotation = packet.ReadQuaternion();
             Quaternion barrelRotation = packet.ReadQuaternion();
@@ -65,11 +62,13 @@ namespace VoxelTanksServer
             string username = packet.ReadString();
             string password = packet.ReadString();
             bool correctData = AuthorizationHandler.ClientAuthRequest(username, password,
-                Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient, out string message);
+                Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient,
+                out string message);
             if (correctData)
             {
                 Server.Clients[fromClient].Username = username;
             }
+
             ServerSend.LoginResult(fromClient, correctData, message);
         }
 
@@ -79,7 +78,8 @@ namespace VoxelTanksServer
             Vector3 position = packet.ReadVector3();
             Quaternion rotation = packet.ReadQuaternion();
 
-            ServerSend.InstantiateObject(name, position, rotation, fromClient, Server.Clients[fromClient].ConnectedRoom);
+            ServerSend.InstantiateObject(name, position, rotation, fromClient,
+                Server.Clients[fromClient].ConnectedRoom);
         }
 
         public static void ShootBullet(int fromClient, Packet packet)
@@ -109,7 +109,7 @@ namespace VoxelTanksServer
                 }
 
                 Server.Clients[fromClient].Player.TakeDamage(calculatedDamage);
-                enemy.TotalDamage += calculatedDamage;   
+                enemy.TotalDamage += calculatedDamage;
             }
         }
 
@@ -128,20 +128,21 @@ namespace VoxelTanksServer
                             room.IsOpen = false;
                             ServerSend.LoadScene(room, "FirstMap");
                         }
+
                         return;
                     }
                 }
             }
+
             Room newRoom = new Room(1);
             newRoom.Players[fromClient] = Server.Clients[fromClient];
             Server.Clients[fromClient].ConnectedRoom = newRoom;
-            
+
             if (newRoom.PlayersCount == newRoom.MaxPlayers)
             {
                 newRoom.IsOpen = false;
                 ServerSend.LoadScene(newRoom, "FirstMap");
             }
-
         }
 
         public static void LeaveRoom(int fromClient, Packet packet)
@@ -165,16 +166,6 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void OnPlayersOnlineCountRequest(int fromClient, Packet packet)
-        {
-            if (!Server.Clients[fromClient].IsAuth)
-            {
-                Log.Information("Попытка взлома");
-                Server.Clients[fromClient].Disconnect();
-                return;
-            }
-            ServerSend.SendPlayersOnline(fromClient);
-        }
 
         public static void Reconnect(int fromClient, Packet packet)
         {

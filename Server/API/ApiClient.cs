@@ -3,23 +3,16 @@ using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.API
 {
-    public class Client
+    public class ApiClient
     {
         public static int DataBufferSize = 4096;
 
         public int Id;
-        public bool IsAuth = false;
-        public Player Player;
-        public string Username;
-        public string SelectedTank;
-
-        public Room ConnectedRoom = null;
-
         public TCP Tcp;
 
-        public Client(int clientId)
+        public ApiClient(int clientId)
         {
             Id = clientId;
             Tcp = new TCP(Id);
@@ -52,7 +45,7 @@ namespace VoxelTanksServer
 
                 _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
 
-                ServerSend.Welcome(_id, "You have been successfully connected to server");
+                ApiSend.WelcomePacket(_id);
             }
 
             private bool HandleData(byte[] data)
@@ -78,7 +71,7 @@ namespace VoxelTanksServer
                         using (Packet packet = new Packet(packetBytes))
                         {
                             int packetId = packet.ReadInt();
-                            Server.PacketHandlers[packetId](_id, packet);
+                            ApiServer.PacketHandlers[packetId](_id, packet);
                         }
                     });
 
@@ -118,7 +111,7 @@ namespace VoxelTanksServer
                     int byteLength = _stream.EndRead(result);
                     if (byteLength <= 0)
                     {
-                        Server.Clients[_id].Disconnect();
+                        ApiServer.Clients[_id].Disconnect();
                         return;
                     }
 
@@ -131,7 +124,7 @@ namespace VoxelTanksServer
                 catch (Exception e)
                 {
                     Log.Error($"Error receiving TCP data: {e.Message}");
-                    Server.Clients[_id].Disconnect();
+                    ApiServer.Clients[_id].Disconnect();
                 }
             }
 
@@ -147,31 +140,7 @@ namespace VoxelTanksServer
                 catch (Exception e)
                 {
                     Log.Error($"Error sending data to player {_id} via TCP {e.Message}");
-                    Server.Clients[_id].Disconnect();
-                }
-            }
-        }
-
-        public void SendIntoGame(string playerName, string tankName)
-        {
-            Player ??= new Player(Id, playerName, new Vector3(0, 0, 0), tankName, ConnectedRoom);
-            
-            foreach (var client in ConnectedRoom.Players.Values)
-            {
-                if (client.Player != null)
-                {
-                    if (client.Id != Id)
-                    {
-                        ServerSend.SpawnPlayer(Id, client.Player);
-                    }
-                }
-            }
-
-            foreach (var client in ConnectedRoom.Players.Values)
-            {
-                if (client.Player != null)
-                {
-                    ServerSend.SpawnPlayer(client.Id, Player);
+                    ApiServer.Clients[_id].Disconnect();
                 }
             }
         }
@@ -180,28 +149,7 @@ namespace VoxelTanksServer
         {
             if (Tcp.Socket == null)
                 return;
-            Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} отключился.");
-            LeaveRoom();
-            Player = null;
-            Username = null;
-            SelectedTank = null;
-            IsAuth = false;
             Tcp.Disconnect();
-            ServerSend.PlayerDisconnected(Id, false);
-        }
-
-        public void LeaveRoom()
-        {
-            if (ConnectedRoom == null) return;
-
-            Log.Information($"Client {Id} left the room");
-            ConnectedRoom.Players.Remove(Id);
-            if (ConnectedRoom.PlayersCount == 0)
-            {
-                Server.Rooms.Remove(ConnectedRoom);
-            }
-
-            ConnectedRoom = null;
         }
     }
 }
