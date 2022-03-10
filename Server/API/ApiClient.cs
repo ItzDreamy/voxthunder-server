@@ -45,6 +45,15 @@ namespace VoxelTanksServer.API
 
                 _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
 
+                int players = 0;
+
+                foreach (var client in Server.Clients.Values)
+                {
+                    if (client.Tcp.Socket != null)
+                    {
+                        players++;
+                    }
+                }
                 ApiSend.WelcomePacket(_id);
             }
 
@@ -108,22 +117,25 @@ namespace VoxelTanksServer.API
             {
                 try
                 {
-                    int byteLength = _stream.EndRead(result);
-                    if (byteLength <= 0)
+                    if (_stream != null && _stream.CanRead)
                     {
-                        ApiServer.Clients[_id].Disconnect();
-                        return;
+                        int byteLength = _stream.EndRead(result);
+                        if (byteLength <= 0)
+                        {
+                            ApiServer.Clients[_id].Disconnect();
+                            return;
+                        }
+
+                        byte[] data = new byte[byteLength];
+                        Array.Copy(_receiveBuffer, data, byteLength);
+
+                        _receivedData.Reset(HandleData(data));
+                        _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);   
                     }
-
-                    byte[] data = new byte[byteLength];
-                    Array.Copy(_receiveBuffer, data, byteLength);
-
-                    _receivedData.Reset(HandleData(data));
-                    _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Error receiving TCP data: {e.Message}");
+                    Log.Error($"Error receiving TCP data: {e}");
                     ApiServer.Clients[_id].Disconnect();
                 }
             }
@@ -132,7 +144,7 @@ namespace VoxelTanksServer.API
             {
                 try
                 {
-                    if (Socket != null)
+                    if (_stream.CanWrite && Socket != null)
                     {
                         _stream.BeginWrite(packet.ToArray(), 0, packet.Length(), null, null);
                     }

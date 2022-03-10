@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Numerics;
 using Serilog;
 
 namespace VoxelTanksServer
@@ -11,12 +12,28 @@ namespace VoxelTanksServer
     public static class Server
     {
         public static bool IsOnline = false;
-        
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static Dictionary<int, Client> Clients = new Dictionary<int, Client>();
 
-        public static List<Room> Rooms = new List<Room>();
+        public static List<Room?> Rooms = new List<Room?>();
+
+        public static List<Map> Maps = new List<Map>
+        {
+            new Map("FirstMap", new List<Vector3>
+            {
+                new Vector3(9f, 1, -50), new Vector3(3.5f, 1, -50), new Vector3(-3.5f, 1, -50)
+            }, new List<Vector3>
+            {
+                new Vector3(11, 1, 45), new Vector3(3, 1, 45), new Vector3(-5, 1, 45)
+            })
+        };
+
+        public static List<Tank> Tanks = new()
+        {
+            new Tank("raider"),
+            new Tank("mamont")
+        };
 
         public delegate void PacketHandler(int fromClient, Packet packet);
 
@@ -34,12 +51,9 @@ namespace VoxelTanksServer
                 Log.Information("Starting server...");
                 InitializeServerData();
                 _tcpListener = new TcpListener(IPAddress.Any, Port);
-                _tcpListener.Start();
-                _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
                 Log.Information($"Server started on {Port}");
                 Log.Information($"Max players: {MaxPlayers}");
-                IsOnline = true;
             }
             catch (Exception e)
             {
@@ -47,6 +61,13 @@ namespace VoxelTanksServer
             }
         }
 
+        public static void BeginListenConnections()
+        {
+            _tcpListener.Start();
+            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
+            IsOnline = true;
+        }
+        
         private static void TCPConnectCallback(IAsyncResult result)
         {
             TcpClient? client = _tcpListener.EndAcceptTcpClient(result);

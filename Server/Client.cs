@@ -11,11 +11,12 @@ namespace VoxelTanksServer
 
         public int Id;
         public bool IsAuth = false;
-        public Player Player;
-        public string Username;
-        public string SelectedTank;
+        public Player? Player;
+        public string? Username;
+        public string? SelectedTank;
 
-        public Room ConnectedRoom = null;
+        public Room? ConnectedRoom = null;
+        public Team? Team = null;
 
         public TCP Tcp;
 
@@ -115,22 +116,25 @@ namespace VoxelTanksServer
             {
                 try
                 {
-                    int byteLength = _stream.EndRead(result);
-                    if (byteLength <= 0)
+                    if (_stream != null)
                     {
-                        Server.Clients[_id].Disconnect();
-                        return;
+                        int byteLength = _stream.EndRead(result);
+                        if (byteLength <= 0)
+                        {
+                            Server.Clients[_id].Disconnect();
+                            return;
+                        }
+
+                        byte[] data = new byte[byteLength];
+                        Array.Copy(_receiveBuffer, data, byteLength);
+
+                        _receivedData.Reset(HandleData(data));
+                        _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);   
                     }
-
-                    byte[] data = new byte[byteLength];
-                    Array.Copy(_receiveBuffer, data, byteLength);
-
-                    _receivedData.Reset(HandleData(data));
-                    _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Error receiving TCP data: {e.Message}");
+                    Log.Error($"Error receiving TCP data: {e}");
                     Server.Clients[_id].Disconnect();
                 }
             }
@@ -152,10 +156,10 @@ namespace VoxelTanksServer
             }
         }
 
-        public void SendIntoGame(string playerName, string tankName)
+        public void SendIntoGame(string? playerName, string? tankName)
         {
             Player ??= new Player(Id, playerName, new Vector3(0, 0, 0), tankName, ConnectedRoom);
-            
+            Player.Team = Team;
             foreach (var client in ConnectedRoom.Players.Values)
             {
                 if (client.Player != null)
@@ -181,26 +185,28 @@ namespace VoxelTanksServer
             if (Tcp.Socket == null)
                 return;
             Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} отключился.");
+            ServerSend.PlayerDisconnected(Id, ConnectedRoom,false);
             LeaveRoom();
             Player = null;
             Username = null;
             SelectedTank = null;
             IsAuth = false;
             Tcp.Disconnect();
-            ServerSend.PlayerDisconnected(Id, false);
         }
 
         public void LeaveRoom()
         {
             if (ConnectedRoom == null) return;
-
-            Log.Information($"Client {Id} left the room");
             ConnectedRoom.Players.Remove(Id);
+            if (Team != null)
+            {
+                Team.Players.Remove(this);
+                Team = null;
+            }
             if (ConnectedRoom.PlayersCount == 0)
             {
                 Server.Rooms.Remove(ConnectedRoom);
             }
-
             ConnectedRoom = null;
         }
     }

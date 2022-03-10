@@ -28,7 +28,7 @@ namespace VoxelTanksServer
 
         public static void ChangeTank(int fromClient, Packet packet)
         {
-            string tankName = packet.ReadString();
+            string? tankName = packet.ReadString();
             Server.Clients[fromClient].SelectedTank = tankName;
         }
 
@@ -40,7 +40,7 @@ namespace VoxelTanksServer
             bool isForward = packet.ReadBool();
             float speed = packet.ReadFloat();
 
-            Player player = Server.Clients[fromClient].Player;
+            Player? player = Server.Clients[fromClient].Player;
             if (player != null)
             {
                 player.Move(playerPosition, playerRotation, barrelRotation, speed, isForward);
@@ -50,7 +50,7 @@ namespace VoxelTanksServer
         public static void RotateTurret(int fromClient, Packet packet)
         {
             Quaternion turretRotation = packet.ReadQuaternion();
-            Player player = Server.Clients[fromClient].Player;
+            Player? player = Server.Clients[fromClient].Player;
             if (player != null)
             {
                 player.RotateTurret(turretRotation);
@@ -59,11 +59,11 @@ namespace VoxelTanksServer
 
         public static void TryLogin(int fromClient, Packet packet)
         {
-            string username = packet.ReadString();
-            string password = packet.ReadString();
+            string? username = packet.ReadString();
+            string? password = packet.ReadString();
             bool correctData = AuthorizationHandler.ClientAuthRequest(username, password,
                 Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient,
-                out string message);
+                out string? message);
             if (correctData)
             {
                 Server.Clients[fromClient].Username = username;
@@ -74,7 +74,13 @@ namespace VoxelTanksServer
 
         public static void InstantiateObject(int fromClient, Packet packet)
         {
-            string name = packet.ReadString();
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
+            string? name = packet.ReadString();
             Vector3 position = packet.ReadVector3();
             Quaternion rotation = packet.ReadQuaternion();
 
@@ -84,20 +90,34 @@ namespace VoxelTanksServer
 
         public static void ShootBullet(int fromClient, Packet packet)
         {
-            string name = packet.ReadString();
-            string particlePrefab = packet.ReadString();
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
+            string? name = packet.ReadString();
+            string? particlePrefab = packet.ReadString();
             Vector3 position = packet.ReadVector3();
             Quaternion rotation = packet.ReadQuaternion();
 
-            Player player = Server.Clients[fromClient].Player;
-            player.Shoot(name, particlePrefab, position, rotation);
+            Player? player = Server.Clients[fromClient].Player;
+            if (player != null)
+                player.Shoot(name, particlePrefab, position, rotation);
         }
 
         public static void TakeDamage(int fromClient, Packet packet)
         {
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
             int enemyId = packet.ReadInt();
-            Player enemy = Server.Clients[enemyId].Player;
-            if (enemy != null)
+            Player? enemy = Server.Clients[enemyId].Player;
+            Player? hitPlayer = Server.Clients[fromClient].Player;
+            if (enemy != null && hitPlayer != null)
             {
                 int damage = enemy.Damage;
                 float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
@@ -108,25 +128,34 @@ namespace VoxelTanksServer
                     calculatedDamage = damage;
                 }
 
-                Server.Clients[fromClient].Player.TakeDamage(calculatedDamage);
-                enemy.TotalDamage += calculatedDamage;
+                hitPlayer.TakeDamage(calculatedDamage, enemy);
+                enemy.TotalDamage += calculatedDamage < hitPlayer.Health ? calculatedDamage : hitPlayer.Health;
             }
         }
 
         public static void JoinOrCreateRoom(int fromClient, Packet packet)
         {
+            Client packetSender = Server.Clients[fromClient];
+            if (!packetSender.IsAuth)
+            {
+                packetSender.Disconnect();
+            }
+
             if (Server.Rooms.Count > 0)
             {
                 foreach (var room in Server.Rooms)
                 {
                     if (room.IsOpen)
                     {
-                        room.Players[fromClient] = Server.Clients[fromClient];
-                        Server.Clients[fromClient].ConnectedRoom = room;
+                        Client client = Server.Clients[fromClient];
+                        if (client == null) return;
+
+                        room.Players[fromClient] = client;
+                        client.ConnectedRoom = room;
                         if (room.PlayersCount == room.MaxPlayers)
                         {
                             room.IsOpen = false;
-                            ServerSend.LoadScene(room, "FirstMap");
+                            room.BalanceTeams();
                         }
 
                         return;
@@ -134,25 +163,43 @@ namespace VoxelTanksServer
                 }
             }
 
-            Room newRoom = new Room(1);
-            newRoom.Players[fromClient] = Server.Clients[fromClient];
+            Room? newRoom = new Room(2)
+            {
+                Players =
+                {
+                    [fromClient] = Server.Clients[fromClient]
+                }
+            };
             Server.Clients[fromClient].ConnectedRoom = newRoom;
 
             if (newRoom.PlayersCount == newRoom.MaxPlayers)
             {
                 newRoom.IsOpen = false;
-                ServerSend.LoadScene(newRoom, "FirstMap");
+                newRoom.BalanceTeams();
             }
         }
 
         public static void LeaveRoom(int fromClient, Packet packet)
         {
-            Room playerRoom = Server.Clients[fromClient].ConnectedRoom;
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
+            Room? playerRoom = Server.Clients[fromClient].ConnectedRoom;
+            if (!playerRoom.IsOpen) return;
             Server.Clients[fromClient].LeaveRoom();
         }
 
         public static void CheckAbleToReconnect(int fromClient, Packet packet)
         {
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
             foreach (var room in Server.Rooms)
             {
                 foreach (var cachedPlayer in room.CachedPlayers)
@@ -170,6 +217,11 @@ namespace VoxelTanksServer
         public static void Reconnect(int fromClient, Packet packet)
         {
             Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
             foreach (var room in Server.Rooms)
             {
                 foreach (var cachedPlayer in room.CachedPlayers)
@@ -178,8 +230,9 @@ namespace VoxelTanksServer
                     {
                         room.Players[fromClient] = client;
                         client.ConnectedRoom = room;
+                        client.Team = cachedPlayer.Team;
                         Log.Information($"Client {fromClient} connected to room");
-                        ServerSend.LoadScene(fromClient, "FirstMap");
+                        ServerSend.LoadScene(fromClient, room.Map.Name);
                         client.Player = new Player(cachedPlayer, fromClient);
                         return;
                     }
@@ -189,6 +242,12 @@ namespace VoxelTanksServer
 
         public static void CancelReconnect(int fromClient, Packet packet)
         {
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect();
+            }
+
             foreach (var room in Server.Rooms)
             {
                 foreach (var cachedPlayer in room.CachedPlayers)

@@ -8,8 +8,8 @@ namespace VoxelTanksServer
 {
     internal static class AuthorizationHandler
     {
-        public static bool ClientAuthRequest(string username, string password, string? ip, int playerId,
-            out string message)
+        public static bool ClientAuthRequest(string? username, string? password, string? ip, int playerId,
+            out string? message)
         {
             message = "";
             foreach (var client in Server.Clients.Values)

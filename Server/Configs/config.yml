@@ -1,5 +1,5 @@
 ﻿clientVersion: 0.1
-maxPlayers: 1
-serverPort: 25565
-apiPort: 8888
-apiMaxConnections: 1000
+maxPlayers: 100
+serverPort: 44839
+apiPort: 59483
+apiMaxConnections: 10000

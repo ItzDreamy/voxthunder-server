@@ -22,17 +22,20 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void SendTCPDataToRoom(Room room, Packet packet)
+        public static void SendTCPDataToRoom(Room? room, Packet packet)
         {
             packet.WriteLength();
 
-            foreach (var player in room.Players.Values)
+            if (room != null)
             {
-                player.Tcp.SendData(packet);
+                foreach (var player in room.Players.Values)
+                {
+                    player.Tcp.SendData(packet);
+                }   
             }
         }
 
-        public static void SendTCPDataToRoom(Room room, int exceptId, Packet packet)
+        public static void SendTCPDataToRoom(Room? room, int exceptId, Packet packet)
         {
             packet.WriteLength();
 
@@ -57,7 +60,7 @@ namespace VoxelTanksServer
 
         #region Packets
 
-        public static void Welcome(int toClient, string message)
+        public static void Welcome(int toClient, string? message)
         {
             using (Packet packet = new Packet((int) ServerPackets.Welcome))
             {
@@ -68,7 +71,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void SpawnPlayer(int toClient, Player player)
+        public static void SpawnPlayer(int toClient, Player? player)
         {
             using (Packet packet = new Packet((int) ServerPackets.SpawnPlayer))
             {
@@ -88,7 +91,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void MovePlayer(Room room, Player player)
+        public static void MovePlayer(Room? room, Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.PlayerMovement))
             {
@@ -112,7 +115,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void LoginResult(int toClient, bool result, string message)
+        public static void LoginResult(int toClient, bool result, string? message)
         {
             using (Packet packet = new Packet((int) ServerPackets.LoginResult))
             {
@@ -123,8 +126,8 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, int fromClient,
-            Room room)
+        public static void InstantiateObject(string? name, Vector3 position, Quaternion rotation, int fromClient,
+            Room? room)
         {
             using (Packet packet = new Packet((int) ServerPackets.InstantiateObject))
             {
@@ -137,7 +140,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void LoadScene(Room room, string sceneName)
+        public static void LoadScene(Room? room, string? sceneName)
         {
             using (Packet packet = new Packet((int) ServerPackets.LoadGame))
             {
@@ -146,7 +149,7 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void LoadScene(int toClient, string sceneName)
+        public static void LoadScene(int toClient, string? sceneName)
         {
             using (Packet packet = new Packet((int) ServerPackets.LoadGame))
             {
@@ -155,13 +158,13 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void PlayerDisconnected(int playerId, bool isReconnected)
+        public static void PlayerDisconnected(int playerId, Room? room, bool isReconnected)
         {
             using (Packet packet = new Packet((int) ServerPackets.PlayerDisconnected))
             {
                 packet.Write(playerId);
                 packet.Write(isReconnected);
-                SendTCPDataToAll(packet);
+                SendTCPDataToRoom(room, packet);
             }
         }
 

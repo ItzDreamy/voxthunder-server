@@ -4,9 +4,9 @@ namespace VoxelTanksServer
 {
     public class CachedPlayer
     {
-        public string Username;
-        public string TankName = "";
-
+        public string? Username;
+        public string? TankName = "";
+        public Team Team;
         public Vector3 Position;
         public Quaternion Rotation;
         public Quaternion BarrelRotation;
@@ -17,18 +17,20 @@ namespace VoxelTanksServer
         public bool CanShoot;
         public bool IsAlive;
 
-        public CachedPlayer(string username, string tankName, Vector3 position, Quaternion rotation, Quaternion barrelRotation, Quaternion turretRotation, int health, int totalDamage, bool canShoot, bool isAlive)
+        public CachedPlayer(Player player)
         {
-            Username = username;
-            TankName = tankName;
-            Position = position;
-            Rotation = rotation;
-            BarrelRotation = barrelRotation;
-            TurretRotation = turretRotation;
-            CanShoot = canShoot;
-            IsAlive = isAlive;
-            Health = health;
-            TotalDamage = totalDamage;
+            Username = player.Username;
+            TankName = player.TankName;
+            Team = player.Team;
+            Position = player.Position;
+            Rotation = player.Rotation;
+            BarrelRotation = player.BarrelRotation;
+            TurretRotation = player.TurretRotation;
+            CanShoot = player.CanShoot;
+            IsAlive = player.IsAlive;
+            Health = player.Health;
+            TotalDamage = player.TotalDamage;
+            Kills = player.Kills;
         }
     }
 }

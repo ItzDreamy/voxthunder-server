@@ -207,7 +207,7 @@ namespace VoxelTanksServer
         
         /// <summary>Adds a string to the packet.</summary>
         /// <param name="value">The string to add.</param>
-        public void Write(string value)
+        public void Write(string? value)
         {
             Write(value.Length); // Add the length of the string to the packet
             _buffer.AddRange(Encoding.ASCII.GetBytes(value)); // Add the string itself
@@ -394,12 +394,12 @@ namespace VoxelTanksServer
 
         /// <summary>Reads a string from the packet.</summary>
         /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
-        public string ReadString(bool moveReadPos = true)
+        public string? ReadString(bool moveReadPos = true)
         {
             try
             {
                 int length = ReadInt(); // Get the length of the string
-                string value =
+                string? value =
                     Encoding.ASCII.GetString(_readableBuffer, _readPos, length); // Convert the bytes to a string
                 if (moveReadPos && value.Length > 0)
                 {

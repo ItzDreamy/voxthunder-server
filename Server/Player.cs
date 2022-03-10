@@ -1,17 +1,16 @@
-﻿using System.Data;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using Serilog;
 
 namespace VoxelTanksServer
 {
     public class Player
     {
-        public int Id;
-        public string Username;
-        public string TankName = "";
-        public Room ConnectedRoom = null;
+        public readonly int Id;
+        public readonly string? Username;
+        public string? TankName = "";
+        public readonly Room? ConnectedRoom = null;
+        public Team? Team;
 
         public Vector3 Position;
         public Quaternion Rotation;
@@ -29,7 +28,7 @@ namespace VoxelTanksServer
         public bool CanShoot;
         public bool IsAlive;
 
-        public Player(int id, string username, Vector3 spawnPosition, string tankName, Room room)
+        public Player(int id, string? username, Vector3 spawnPosition, string? tankName, Room? room)
         {
             Id = id;
             Username = username;
@@ -39,11 +38,12 @@ namespace VoxelTanksServer
             IsAlive = true;
             ConnectedRoom = room;
 
-            MaxHealth = (int) Database.RequestData("health", "tanksstats", "tankname", tankName.ToLower());
-            Damage = (int) Database.RequestData("damage", "tanksstats", "tankname", tankName.ToLower());
-            MaxSpeed = (float) Database.RequestData("maxSpeed", "tanksstats", "tankname", tankName.ToLower());
-            MaxBackSpeed = (float) Database.RequestData("backSpeed", "tanksstats", "tankname", tankName.ToLower());
-            Cooldown = (float) Database.RequestData("cooldown", "tanksstats", "tankname", tankName.ToLower());
+            Tank tank = Server.Tanks.Find(tank => tank.Name == TankName.ToLower());
+            MaxHealth = tank.MaxHealth;
+            Damage = tank.Damage;
+            MaxSpeed = tank.MaxSpeed;
+            MaxBackSpeed = tank.MaxBackSpeed;
+            Cooldown = tank.Cooldown;
 
             Health = MaxHealth;
 
@@ -67,7 +67,8 @@ namespace VoxelTanksServer
             Id = id;
             Username = cachedPlayer.Username;
             TankName = cachedPlayer.TankName;
-
+            Team = cachedPlayer.Team;
+            
             Position = cachedPlayer.Position;
             Rotation = cachedPlayer.Rotation;
             BarrelRotation = cachedPlayer.BarrelRotation;
@@ -76,15 +77,18 @@ namespace VoxelTanksServer
             IsAlive = cachedPlayer.IsAlive;
             Health = cachedPlayer.Health;
             TotalDamage = cachedPlayer.TotalDamage;
+            Kills = cachedPlayer.Kills;
             ConnectedRoom = Server.Clients[Id].ConnectedRoom;
             
-            MaxHealth = (int) Database.RequestData("health", "tanksstats", "tankname", TankName.ToLower());
-            Damage = (int) Database.RequestData("damage", "tanksstats", "tankname", TankName.ToLower());
-            MaxSpeed = (float) Database.RequestData("maxSpeed", "tanksstats", "tankname", TankName.ToLower());
-            MaxBackSpeed = (float) Database.RequestData("backSpeed", "tanksstats", "tankname", TankName.ToLower());
-            Cooldown = (float) Database.RequestData("cooldown", "tanksstats", "tankname", TankName.ToLower());
+            Tank tank = Server.Tanks.Find(tank => tank.Name == cachedPlayer.TankName.ToLower());
+            Log.Information(cachedPlayer.TankName);
+            MaxHealth = tank.MaxHealth;
+            Damage = tank.Damage;
+            MaxSpeed = tank.MaxSpeed;
+            MaxBackSpeed = tank.MaxBackSpeed;
+            Cooldown = tank.Cooldown;
             
-            ServerSend.PlayerDisconnected(Id, true);
+            ServerSend.PlayerDisconnected(Id, ConnectedRoom,true);
             ConnectedRoom.CachedPlayers.Remove(cachedPlayer);
             ConnectedRoom.CachedPlayers.Add(CachePlayer());
 
@@ -107,12 +111,20 @@ namespace VoxelTanksServer
                 {
                     Position = nextPos;
                 }
+                else
+                {
+                    //Server.Clients[Id].Disconnect();
+                }
             }
             else
             {
                 if (speed < MaxBackSpeed && IsAlive)
                 {
                     Position = nextPos;
+                }
+                else
+                {
+                    //Server.Clients[Id].Disconnect();
                 }
             }
 
@@ -136,7 +148,7 @@ namespace VoxelTanksServer
             ServerSend.RotateTurret(this);
         }
 
-        public void TakeDamage(int damage)
+        public void TakeDamage(int damage, Player? enemy)
         {
             if (Health <= 0)
             {
@@ -148,6 +160,7 @@ namespace VoxelTanksServer
             if (Health <= 0)
             {
                 Health = 0;
+                enemy.Kills++;
                 Die();
             }
 
@@ -161,7 +174,7 @@ namespace VoxelTanksServer
             ServerSend.PlayerDead(Id);
         }
 
-        public void Shoot(string bulletPrefab, string particlePrefab, Vector3 position, Quaternion rotation)
+        public void Shoot(string? bulletPrefab, string? particlePrefab, Vector3 position, Quaternion rotation)
         {
             if (!CanShoot && !IsAlive)
                 return;
@@ -181,8 +194,7 @@ namespace VoxelTanksServer
         public CachedPlayer? CachePlayer()
         {
             CachedPlayer? cachedPlayer =
-                new CachedPlayer(Username, TankName, Position, Rotation, BarrelRotation, TurretRotation, Health,
-                    TotalDamage, CanShoot, IsAlive);
+                new CachedPlayer(this);
             return cachedPlayer;
         }
     }
