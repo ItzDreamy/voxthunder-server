@@ -117,7 +117,8 @@ namespace VoxelTanksServer
             int enemyId = packet.ReadInt();
             Player? enemy = Server.Clients[enemyId].Player;
             Player? hitPlayer = Server.Clients[fromClient].Player;
-            if (enemy != null && hitPlayer != null)
+            
+            if (enemy != null && hitPlayer != null && enemy.Team.ID != hitPlayer.Team.ID)
             {
                 int damage = enemy.Damage;
                 float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
@@ -127,9 +128,15 @@ namespace VoxelTanksServer
                 {
                     calculatedDamage = damage;
                 }
+                else if (calculatedDamage > hitPlayer.Health)
+                {
+                    calculatedDamage = hitPlayer.Health;
+                }
 
                 hitPlayer.TakeDamage(calculatedDamage, enemy);
-                enemy.TotalDamage += calculatedDamage < hitPlayer.Health ? calculatedDamage : hitPlayer.Health;
+                enemy.TotalDamage += calculatedDamage;
+                
+                ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer.Position);
             }
         }
 
@@ -231,7 +238,6 @@ namespace VoxelTanksServer
                         room.Players[fromClient] = client;
                         client.ConnectedRoom = room;
                         client.Team = cachedPlayer.Team;
-                        Log.Information($"Client {fromClient} connected to room");
                         ServerSend.LoadScene(fromClient, room.Map.Name);
                         client.Player = new Player(cachedPlayer, fromClient);
                         return;

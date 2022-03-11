@@ -18,7 +18,8 @@ namespace VoxelTanksServer
         TakeDamage,
         PlayerDead,
         LoadGame,
-        AbleToReconnect
+        AbleToReconnect,
+        ShowDamage
     }
     
     /// <summary>

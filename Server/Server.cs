@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
@@ -14,18 +12,22 @@ namespace VoxelTanksServer
         public static bool IsOnline = false;
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
-        public static Dictionary<int, Client> Clients = new Dictionary<int, Client>();
+        public static Dictionary<int, Client> Clients = new();
 
-        public static List<Room?> Rooms = new List<Room?>();
+        public static List<Room?> Rooms = new();
 
-        public static List<Map> Maps = new List<Map>
+        public static List<Map> Maps = new ()
         {
-            new Map("FirstMap", new List<Vector3>
+            new Map("FirstMap", new List<SpawnPoint>
             {
-                new Vector3(9f, 1, -50), new Vector3(3.5f, 1, -50), new Vector3(-3.5f, 1, -50)
-            }, new List<Vector3>
+                new(new Vector3(9f, 1, -50)),
+                new(new Vector3(3.5f, 1, -50)),
+                new(new Vector3(-3.5f, 1, -50))
+            }, new List<SpawnPoint>
             {
-                new Vector3(11, 1, 45), new Vector3(3, 1, 45), new Vector3(-5, 1, 45)
+                new(new Vector3(11, 1, 45), new Quaternion(0, 180, 0, 0)),
+                new(new Vector3(3, 1, 45), new Quaternion(0, 180, 0, 0)),
+                new(new Vector3(-5, 1, 45), new Quaternion(0, 180, 0, 0))
             })
         };
 
@@ -57,21 +59,21 @@ namespace VoxelTanksServer
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Log.Error(e.ToString());
             }
         }
 
         public static void BeginListenConnections()
         {
             _tcpListener.Start();
-            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
+            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
             IsOnline = true;
         }
-        
-        private static void TCPConnectCallback(IAsyncResult result)
+
+        private static void TcpConnectCallback(IAsyncResult result)
         {
             TcpClient? client = _tcpListener.EndAcceptTcpClient(result);
-            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
+            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
             Log.Information($"Trying to connect {client.Client.RemoteEndPoint}");
             for (int i = 1; i <= MaxPlayers; i++)
             {
@@ -87,7 +89,7 @@ namespace VoxelTanksServer
 
         private static void InitializeServerData()
         {
-            for (int i = 1; i <= MaxPlayers; i++)
+            for (var i = 1; i <= MaxPlayers; i++)
             {
                 Clients.Add(i, new Client(i));
             }

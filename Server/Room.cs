@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
-using Serilog;
-using Serilog.Core;
+using System.Linq;
 
 namespace VoxelTanksServer
 {
@@ -10,24 +8,30 @@ namespace VoxelTanksServer
     {
         public bool IsOpen = true;
         public int MaxPlayers;
-        public int PlayersPerTeam;
+        private int PlayersPerTeam;
         public List<Team?> Teams;
         public Map Map;
 
         public int PlayersCount => Players.Count;
 
-        public Dictionary<int, Client?> Players = new Dictionary<int, Client?>();
+        public Dictionary<int, Client?> Players = new();
 
-        public List<CachedPlayer?> CachedPlayers = new List<CachedPlayer?>();
+        public List<CachedPlayer?> CachedPlayers = new();
 
         public Room(int maxPlayers)
         {
             MaxPlayers = maxPlayers;
             PlayersPerTeam = 1;
             Map = Server.Maps[new Random().Next(Server.Maps.Count)];
+
+            SpawnPoint[] firstTeamSpawns = new SpawnPoint[Map.FirstTeamSpawns.Count];
+            SpawnPoint[] secondTeamSpawns = new SpawnPoint[Map.SecondTeamSpawns.Count];
+            Map.FirstTeamSpawns.CopyTo(firstTeamSpawns);
+            Map.SecondTeamSpawns.CopyTo(secondTeamSpawns);
+            
             Teams = new List<Team?>
             {
-                new Team(1), new Team(2)
+                new(1, firstTeamSpawns.ToList()), new(2, secondTeamSpawns.ToList())
             };
             Server.Rooms.Add(this);
         }
@@ -45,11 +49,15 @@ namespace VoxelTanksServer
                     playerTeam = Teams.Find(team => team != null && team.ID == randomTeam);
                 } while (playerTeam != null && playerTeam.Players.Count == PlayersPerTeam);
                 
-                //client.Player = new Player(client.Id, client.Username, new Vector3(0, 0, 0), client.SelectedTank, this);
-                
-                Log.Information($"Player team: {randomTeam}");
-                playerTeam.Players.Add(client);
+                playerTeam?.Players.Add(client);
                 client.Team = playerTeam;
+
+                var openPoints = playerTeam.SpawnPoints.FindAll(point => point.IsOpen);
+                var point = openPoints[new Random().Next(openPoints.Count)];
+                point.IsOpen = false;
+
+                client.Position = point.Position;
+                client.Rotation = point.Rotation;
             }
 
             ServerSend.LoadScene(this, Map.Name);

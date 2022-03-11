@@ -6,7 +6,7 @@ namespace VoxelTanksServer
     internal class Database
     {
         private readonly MySqlConnection _connection =
-            new MySqlConnection("Server=31.31.198.105;Port=3306;Database=u1447827_default;Uid=u1447827;Pwd=uE0wA7oI4rvX4e;Charset=utf8");
+            new("Server=31.31.198.105;Port=3306;Database=u1447827_default;Uid=u1447827;Pwd=uE0wA7oI4rvX4e;Charset=utf8");
 
         public MySqlConnection GetConnection()
         {
@@ -17,11 +17,11 @@ namespace VoxelTanksServer
         {
             var db = new Database();
             MySqlCommand myCommand =
-                new MySqlCommand(
+                new(
                     $"SELECT `{neededColumn}` FROM `{tableName}` WHERE `{column}` = '{columnValue}'",
                     db.GetConnection());
-            MySqlDataAdapter adapter = new MySqlDataAdapter();
-            DataTable table = new DataTable();
+            MySqlDataAdapter adapter = new();
+            DataTable table = new();
             adapter.SelectCommand = myCommand;
             adapter.Fill(table);
             return table.Rows[0][0];

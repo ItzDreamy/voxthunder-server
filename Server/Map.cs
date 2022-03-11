@@ -7,11 +7,11 @@ namespace VoxelTanksServer
     {
         public string? Name;
 
-        public List<Vector3> FirstTeamSpawns;
+        public List<SpawnPoint> FirstTeamSpawns;
 
-        public List<Vector3> SecondTeamSpawns;
+        public List<SpawnPoint> SecondTeamSpawns;
 
-        public Map(string? name, List<Vector3> firstTeamSpawns, List<Vector3> secondTeamSpawns)
+        public Map(string? name, List<SpawnPoint> firstTeamSpawns, List<SpawnPoint> secondTeamSpawns)
         {
             Name = name;
             FirstTeamSpawns = firstTeamSpawns;

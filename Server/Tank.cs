@@ -26,7 +26,7 @@ namespace VoxelTanksServer
         {
             Log.Debug("Start initialize");
             Name = name;
-            Thread databaseThread = new Thread(GetStats);
+            Thread databaseThread = new(GetStats);
             databaseThread.Start();
         }
 
@@ -36,11 +36,11 @@ namespace VoxelTanksServer
             {
                 var db = new Database();
                 MySqlCommand myCommand =
-                    new MySqlCommand(
+                    new(
                         $"SELECT * FROM `tanksstats` WHERE `tankname` = '{Name.ToLower()}'",
                         db.GetConnection());
-                MySqlDataAdapter adapter = new MySqlDataAdapter();
-                DataTable table = new DataTable();
+                MySqlDataAdapter adapter = new();
+                DataTable table = new();
                 adapter.SelectCommand = myCommand;
                 adapter.Fill(table);
                 Damage = (int) table.Rows[0][2];

@@ -24,13 +24,13 @@ namespace VoxelTanksServer
 
             try
             {
-                Database db = new Database();
+                Database db = new();
                 MySqlCommand myCommand =
-                    new MySqlCommand(
+                    new(
                         $"SELECT Count(*) FROM `authdata` WHERE `login` = '{username}' AND `password` = '{password}'",
                         db.GetConnection());
-                MySqlDataAdapter adapter = new MySqlDataAdapter();
-                DataTable table = new DataTable();
+                MySqlDataAdapter adapter = new();
+                DataTable table = new();
                 adapter.SelectCommand = myCommand;
                 adapter.Fill(table);
                 if (table.Rows[0][0].ToString() == "1")
@@ -47,7 +47,7 @@ namespace VoxelTanksServer
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Log.Error(e.ToString());
             }
 
             return false;

@@ -12,6 +12,9 @@ namespace VoxelTanksServer
         public int Id;
         public bool IsAuth = false;
         public Player? Player;
+        public Vector3 Position { get; set; }
+        public Quaternion Rotation { get; set; }
+
         public string? Username;
         public string? SelectedTank;
 
@@ -76,7 +79,7 @@ namespace VoxelTanksServer
                     byte[] packetBytes = _receivedData.ReadBytes(packetLength);
                     ThreadManager.ExecuteInMainThread(() =>
                     {
-                        using (Packet packet = new Packet(packetBytes))
+                        using (Packet packet = new(packetBytes))
                         {
                             int packetId = packet.ReadInt();
                             Server.PacketHandlers[packetId](_id, packet);
@@ -150,7 +153,7 @@ namespace VoxelTanksServer
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Error sending data to player {_id} via TCP {e.Message}");
+                    Log.Error($"Error sending data to player {_id} via TCP {e}");
                     Server.Clients[_id].Disconnect();
                 }
             }
@@ -158,7 +161,7 @@ namespace VoxelTanksServer
 
         public void SendIntoGame(string? playerName, string? tankName)
         {
-            Player ??= new Player(Id, playerName, new Vector3(0, 0, 0), tankName, ConnectedRoom);
+            Player ??= new Player(Id, playerName, Position, Rotation, tankName, ConnectedRoom);
             Player.Team = Team;
             foreach (var client in ConnectedRoom.Players.Values)
             {
@@ -184,11 +187,13 @@ namespace VoxelTanksServer
         {
             if (Tcp.Socket == null)
                 return;
-            Log.Information($"{Tcp.Socket.Client.RemoteEndPoint} отключился.");
+            Log.Information($"{Tcp.Socket?.Client.RemoteEndPoint} отключился.");
             ServerSend.PlayerDisconnected(Id, ConnectedRoom,false);
             LeaveRoom();
             Player = null;
             Username = null;
+            Position = Vector3.Zero;
+            Rotation = Quaternion.Identity;
             SelectedTank = null;
             IsAuth = false;
             Tcp.Disconnect();
@@ -196,18 +201,15 @@ namespace VoxelTanksServer
 
         public void LeaveRoom()
         {
-            if (ConnectedRoom == null) return;
-            ConnectedRoom.Players.Remove(Id);
-            if (Team != null)
-            {
-                Team.Players.Remove(this);
-                Team = null;
-            }
-            if (ConnectedRoom.PlayersCount == 0)
+            ConnectedRoom?.Players.Remove(Id);
+            Team?.Players.Remove(this);
+            
+            if (ConnectedRoom?.PlayersCount == 0)
             {
                 Server.Rooms.Remove(ConnectedRoom);
             }
             ConnectedRoom = null;
+            Team = null;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace VoxelTanksServer.API
     {
         public static int MaxConnections { get; private set; }
         public static int Port { get; private set; }
-        public static readonly Dictionary<int, ApiClient> Clients = new Dictionary<int, ApiClient>();
+        public static readonly Dictionary<int, ApiClient> Clients = new();
         
         public delegate void PacketHandler(int fromClient, Packet packet);
 
@@ -36,7 +36,7 @@ namespace VoxelTanksServer.API
             }
             catch (Exception e)
             {
-                Log.Error(e.Message);
+                Log.Error(e.ToString());
             }
         }
 

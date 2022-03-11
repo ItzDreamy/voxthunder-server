@@ -15,7 +15,7 @@ namespace VoxelTanksServer.API
 
         public static void WelcomePacket(int toClient)
         {
-            using (Packet packet = new Packet((int) ServerApiPackets.Welcome))
+            using (Packet packet = new((int) ServerApiPackets.Welcome))
             {
                 int players = 0;
 
@@ -39,7 +39,7 @@ namespace VoxelTanksServer.API
         
         public static void SendPlayersCount(int toClient, int playersCount, int maxPlayers)
         {
-            using (Packet packet = new Packet((int) ServerApiPackets.SendPlayersCount))
+            using (Packet packet = new((int) ServerApiPackets.SendPlayersCount))
             {
                 packet.Write(playersCount);
                 packet.Write(maxPlayers);
@@ -49,7 +49,7 @@ namespace VoxelTanksServer.API
 
         public static void SendServerState(int toClient, bool isOnline)
         {
-            using (Packet packet = new Packet((int) ServerApiPackets.SendServerState))
+            using (Packet packet = new((int) ServerApiPackets.SendServerState))
             {
                 packet.Write(isOnline);
                 
@@ -59,9 +59,9 @@ namespace VoxelTanksServer.API
 
         public static void SendPing(int toClient, int pingOfClient)
         {
-            using (Packet packet = new Packet((int) ServerApiPackets.Ping))
+            using (Packet packet = new((int) ServerApiPackets.Ping))
             {
-                Ping ping = new Ping();
+                Ping ping = new();
                 PingReply reply = ping.Send((Server.Clients[pingOfClient].Tcp.Socket.Client.RemoteEndPoint as IPEndPoint).Address.ToString());
                 packet.Write(reply.RoundtripTime);
                 

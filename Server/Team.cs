@@ -5,13 +5,14 @@ namespace VoxelTanksServer
 {
     public class Team
     {
-        public List<Client?> Players = new List<Client?>();
-        public List<Vector3> SpawnPoints;
+        public List<Client?> Players = new();
+        public List<SpawnPoint> SpawnPoints;
         public byte ID;
         
-        public Team(byte id)
+        public Team(byte id, List<SpawnPoint> spawnPoints)
         {
             ID = id;
+            SpawnPoints = spawnPoints;
         }
     }
 }

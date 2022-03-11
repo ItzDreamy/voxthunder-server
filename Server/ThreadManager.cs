@@ -7,8 +7,8 @@ namespace VoxelTanksServer
 {
     public class ThreadManager
     {
-        private static readonly List<Action> ExecuteOnMainThread = new List<Action>();
-        private static readonly List<Action> ExecuteCopiedOnMainThread = new List<Action>();
+        private static readonly List<Action> ExecuteOnMainThread = new();
+        private static readonly List<Action> ExecuteCopiedOnMainThread = new();
         private static bool _actionToExecuteOnMainThread = false;
         
         /// <summary>Sets an action to be executed on the main thread.</summary>

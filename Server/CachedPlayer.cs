@@ -2,6 +2,9 @@
 
 namespace VoxelTanksServer
 {
+    /// <summary>
+    /// Class for cache players that used for reconnect
+    /// </summary>
     public class CachedPlayer
     {
         public string? Username;

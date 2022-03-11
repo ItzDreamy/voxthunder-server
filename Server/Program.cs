@@ -34,8 +34,8 @@ namespace VoxelTanksServer
                 Console.Title = "VoxelTanksServer";
 
                 _isRunning = true;
-                Thread mainThread = new Thread(new ThreadStart(MainThread));
-                Thread commandsThread = new Thread(() =>
+                Thread mainThread = new(new ThreadStart(MainThread));
+                Thread commandsThread = new(() =>
                 {
                     while (_isRunning)
                     {
@@ -45,7 +45,8 @@ namespace VoxelTanksServer
                 });
                 commandsThread.Start();
                 mainThread.Start();
-
+                
+                
                 Server.Start(config.MaxPlayers, config.ServerPort);
                 ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
 
@@ -53,7 +54,7 @@ namespace VoxelTanksServer
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Log.Error(e.ToString());
             }
         }
 

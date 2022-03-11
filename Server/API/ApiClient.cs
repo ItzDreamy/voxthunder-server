@@ -77,7 +77,7 @@ namespace VoxelTanksServer.API
                     byte[] packetBytes = _receivedData.ReadBytes(packetLength);
                     ThreadManager.ExecuteInMainThread(() =>
                     {
-                        using (Packet packet = new Packet(packetBytes))
+                        using (Packet packet = new(packetBytes))
                         {
                             int packetId = packet.ReadInt();
                             ApiServer.PacketHandlers[packetId](_id, packet);
@@ -151,7 +151,7 @@ namespace VoxelTanksServer.API
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Error sending data to player {_id} via TCP {e.Message}");
+                    Log.Error($"Error sending data to player {_id} via TCP {e}");
                     ApiServer.Clients[_id].Disconnect();
                 }
             }
