@@ -1,2 +1,2 @@
 # VoxelTanksServer
-The game server for VoxelTanks
+The game server for VoxThunder
