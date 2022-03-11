@@ -211,7 +211,7 @@ namespace VoxelTanksServer
         public void Write(string? value)
         {
             Write(value.Length); // Add the length of the string to the packet
-            _buffer.AddRange(Encoding.ASCII.GetBytes(value)); // Add the string itself
+            _buffer.AddRange(Encoding.GetEncoding(1251).GetBytes(value)); // Add the string itself
         }
         
         /// <summary>Adds a Vector3 to the packet.</summary>
@@ -401,7 +401,7 @@ namespace VoxelTanksServer
             {
                 int length = ReadInt(); // Get the length of the string
                 string? value =
-                    Encoding.ASCII.GetString(_readableBuffer, _readPos, length); // Convert the bytes to a string
+                    Encoding.GetEncoding(1251).GetString(_readableBuffer, _readPos, length); // Convert the bytes to a string
                 if (moveReadPos && value.Length > 0)
                 {
                     // If _moveReadPos is true string is not empty
