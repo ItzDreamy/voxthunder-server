@@ -1,2 +1,5 @@
-# VoxelTanksServer
-The game server for VoxelTanks
+# VoxThunderServer
+The game server for VoxThunder
+
+**State:**
+In development
