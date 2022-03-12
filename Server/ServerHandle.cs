@@ -102,8 +102,7 @@ namespace VoxelTanksServer
             Quaternion rotation = packet.ReadQuaternion();
 
             Player? player = Server.Clients[fromClient].Player;
-            if (player != null)
-                player.Shoot(name, particlePrefab, position, rotation);
+            player?.Shoot(name, particlePrefab, position, rotation);
         }
 
         public static void TakeDamage(int fromClient, Packet packet)
@@ -135,8 +134,10 @@ namespace VoxelTanksServer
 
                 hitPlayer.TakeDamage(calculatedDamage, enemy);
                 enemy.TotalDamage += calculatedDamage;
-                
-                ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer.Position);
+                if (hitPlayer.Health > 0)
+                {
+                    ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer.Position);
+                }
             }
         }
 
@@ -206,12 +207,12 @@ namespace VoxelTanksServer
             {
                 client.Disconnect();
             }
-
+            
             foreach (var room in Server.Rooms)
             {
                 foreach (var cachedPlayer in room.CachedPlayers)
                 {
-                    if (cachedPlayer?.Username == Server.Clients[fromClient].Username && cachedPlayer.IsAlive)
+                    if (cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Username?.ToLower() && cachedPlayer.IsAlive)
                     {
                         ServerSend.AbleToReconnect(fromClient);
                         Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
@@ -231,13 +232,14 @@ namespace VoxelTanksServer
 
             foreach (var room in Server.Rooms)
             {
-                foreach (var cachedPlayer in room.CachedPlayers)
+                foreach (var cachedPlayer in room?.CachedPlayers!)
                 {
-                    if (cachedPlayer?.Username == Server.Clients[fromClient].Username)
+                    if (cachedPlayer?.Username?.ToLower() == Server.Clients[fromClient].Username?.ToLower())
                     {
                         room.Players[fromClient] = client;
                         client.ConnectedRoom = room;
                         client.Team = cachedPlayer.Team;
+                        client.Team.Players.Add(client);
                         ServerSend.LoadScene(fromClient, room.Map.Name);
                         client.Player = new Player(cachedPlayer, fromClient);
                         return;

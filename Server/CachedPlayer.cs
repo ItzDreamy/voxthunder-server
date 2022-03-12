@@ -9,7 +9,7 @@ namespace VoxelTanksServer
     {
         public string? Username;
         public string? TankName = "";
-        public Team Team;
+        public Team? Team;
         public Vector3 Position;
         public Quaternion Rotation;
         public Quaternion BarrelRotation;

@@ -20,14 +20,14 @@ namespace VoxelTanksServer
         {
             new Map("FirstMap", new List<SpawnPoint>
             {
-                new(new Vector3(9f, 1, -50)),
-                new(new Vector3(3.5f, 1, -50)),
-                new(new Vector3(-3.5f, 1, -50))
+                new(new Vector3(9f, 0, -50)),
+                new(new Vector3(3.5f, 0, -50)),
+                new(new Vector3(-3.5f, 0, -50))
             }, new List<SpawnPoint>
             {
-                new(new Vector3(11, 1, 45), new Quaternion(0, 180, 0, 0)),
-                new(new Vector3(3, 1, 45), new Quaternion(0, 180, 0, 0)),
-                new(new Vector3(-5, 1, 45), new Quaternion(0, 180, 0, 0))
+                new(new Vector3(11, 0, 45), new Quaternion(0, 180, 0, 0)),
+                new(new Vector3(3, 0, 45), new Quaternion(0, 180, 0, 0)),
+                new(new Vector3(-5, 0, 45), new Quaternion(0, 180, 0, 0))
             })
         };
 

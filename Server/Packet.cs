@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using System.Text;
 
@@ -19,7 +20,8 @@ namespace VoxelTanksServer
         PlayerDead,
         LoadGame,
         AbleToReconnect,
-        ShowDamage
+        ShowDamage,
+        ShowKillFeed
     }
     
     /// <summary>
@@ -212,6 +214,14 @@ namespace VoxelTanksServer
         {
             Write(value.Length); // Add the length of the string to the packet
             _buffer.AddRange(Encoding.GetEncoding(1251).GetBytes(value)); // Add the string itself
+        }
+
+        public void Write(Color color)
+        {
+            Write(color.R);
+            Write(color.G);
+            Write(color.B);
+            Write(color.A);
         }
         
         /// <summary>Adds a Vector3 to the packet.</summary>

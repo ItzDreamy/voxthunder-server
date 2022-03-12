@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Threading.Tasks;
 using Serilog;
 
@@ -157,30 +158,33 @@ namespace VoxelTanksServer
             {
                 return;
             }
-
-
+            
             Health -= damage;
 
             if (Health <= 0)
             {
                 Health = 0;
-                enemy.Kills++;
-                Die();
+                Die(enemy);
             }
 
             ServerSend.TakeDamage(Id, MaxHealth, Health);
         }
 
-        private void Die()
+        private void Die(Player enemy)
         {
-            Log.Information($"Client {Id} with name {Username} died");
+            enemy.Kills++;
+            
             IsAlive = false;
             ServerSend.PlayerDead(Id);
+            
+            //Send kill feed for each team
+            ServerSend.ShowKillFeed(Team, Color.Red, enemy.Username, Username);
+            ServerSend.ShowKillFeed(enemy.Team, Color.Lime, enemy.Username, Username);
         }
 
         public void Shoot(string? bulletPrefab, string? particlePrefab, Vector3 position, Quaternion rotation)
         {
-            if (!CanShoot && !IsAlive)
+            if (!CanShoot || !IsAlive)
                 return;
 
             CanShoot = false;

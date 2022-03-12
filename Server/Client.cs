@@ -176,7 +176,7 @@ namespace VoxelTanksServer
 
             foreach (var client in ConnectedRoom.Players.Values)
             {
-                if (client.Player != null)
+                if(client.Player != null)
                 {
                     ServerSend.SpawnPlayer(client.Id, Player);
                 }

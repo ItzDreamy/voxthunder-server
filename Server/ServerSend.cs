@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Numerics;
 using Org.BouncyCastle.Crypto.Tls;
 using Serilog;
@@ -38,7 +39,7 @@ namespace VoxelTanksServer
         public static void SendTCPDataToTeam(Team? team, Packet packet)
         {
             packet.WriteLength();
-
+            
             foreach (var client in team.Players)
             {
                 client.Tcp.SendData(packet);
@@ -227,8 +228,19 @@ namespace VoxelTanksServer
             {
                 packet.Write(damage);
                 packet.Write(position);
-                
                 SendTCPData(playerId, packet);
+            }
+        }
+        
+        public static void ShowKillFeed(Team team, Color color, string enemyUsername, string killedUsername)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.ShowKillFeed))
+            {
+                packet.Write(enemyUsername);
+                packet.Write(killedUsername);
+                packet.Write(color);
+                
+                SendTCPDataToTeam(team, packet);
             }
         }
         
