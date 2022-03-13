@@ -41,6 +41,12 @@ namespace VoxelTanksServer
             ConnectedRoom = room;
 
             Tank tank = Server.Tanks.Find(tank => tank.Name == TankName.ToLower());
+            
+            if (tank == null)
+            {
+                Server.Clients[Id].Disconnect();
+            }
+            
             MaxHealth = tank.MaxHealth;
             Damage = tank.Damage;
             MaxSpeed = tank.MaxSpeed;
