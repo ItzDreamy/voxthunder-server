@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -25,7 +24,7 @@ namespace VoxelTanksServer
         public float Cooldown;
         public int TotalDamage;
         public int Kills;
-
+        public bool ReadyToSpawn;
         public bool CanShoot;
         public bool IsAlive;
 

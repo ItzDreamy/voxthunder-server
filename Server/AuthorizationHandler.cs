@@ -2,7 +2,6 @@
 using MySql.Data.MySqlClient;
 using System.Data;
 using Serilog;
-using Serilog.Core;
 
 namespace VoxelTanksServer
 {

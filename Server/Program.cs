@@ -1,11 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Text.Json;
 using System.Threading;
 using Serilog;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Serilog.Core;
 using VoxelTanksServer.API;
 using YamlDotNet.Serialization.NamingConventions;
 

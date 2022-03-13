@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Serilog;
-using Serilog.Core;
 
 namespace VoxelTanksServer
 {
@@ -22,10 +21,33 @@ namespace VoxelTanksServer
 
         public static void ReadyToSpawnReceived(int fromClient, Packet packet)
         {
+            var player = Server.Clients[fromClient].Player;
+            if (player == null) return;
+            
+            player.ReadyToSpawn = true;
+
+            if (CheckPlayersReady(player.ConnectedRoom))
+            {
+                //TODO: Send players into game
+            }
+            
             Server.Clients[fromClient]
                 .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
         }
 
+        private static bool CheckPlayersReady(Room room)
+        {
+            foreach (var client in room.Players.Values)
+            {
+                if (!client.Player.ReadyToSpawn)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        
         public static void ChangeTank(int fromClient, Packet packet)
         {
             string? tankName = packet.ReadString();
@@ -220,8 +242,7 @@ namespace VoxelTanksServer
                 }
             }
         }
-
-
+        
         public static void Reconnect(int fromClient, Packet packet)
         {
             Client client = Server.Clients[fromClient];
@@ -238,8 +259,8 @@ namespace VoxelTanksServer
                     {
                         room.Players[fromClient] = client;
                         client.ConnectedRoom = room;
-                        client.Team = cachedPlayer.Team;
-                        client.Team.Players.Add(client);
+                        client.Team = cachedPlayer?.Team;
+                        client?.Team?.Players.Add(client);
                         ServerSend.LoadScene(fromClient, room.Map.Name);
                         client.Player = new Player(cachedPlayer, fromClient);
                         return;
@@ -262,7 +283,7 @@ namespace VoxelTanksServer
                 {
                     if (cachedPlayer?.Username == Server.Clients[fromClient].Username)
                     {
-                        Log.Information($"{cachedPlayer.Username} canceled reconnect");
+                        Log.Information($"{cachedPlayer?.Username} canceled reconnect");
                         room.CachedPlayers[room.CachedPlayers.IndexOf(cachedPlayer)] = null;
                         return;
                     }
