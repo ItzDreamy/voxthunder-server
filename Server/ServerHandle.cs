@@ -28,11 +28,14 @@ namespace VoxelTanksServer
 
             if (CheckPlayersReady(player.ConnectedRoom))
             {
-                //TODO: Send players into game
+                foreach(Client client in Server.Clients.Values)
+                {
+                    client.SendIntoGame(client.Username, client.SelectedTank);
+                }
             }
             
-            Server.Clients[fromClient]
-                .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
+            // Server.Clients[fromClient]
+            //     .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
         }
 
         private static bool CheckPlayersReady(Room room)
@@ -156,6 +159,7 @@ namespace VoxelTanksServer
 
                 hitPlayer.TakeDamage(calculatedDamage, enemy);
                 enemy.TotalDamage += calculatedDamage;
+                
                 if (hitPlayer.Health > 0)
                 {
                     ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer.Position);
