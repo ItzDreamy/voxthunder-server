@@ -28,7 +28,7 @@ namespace VoxelTanksServer
 
             if (CheckPlayersReady(player.ConnectedRoom))
             {
-                foreach(Client client in Server.Clients.Values)
+                foreach(Client client in player.ConnectedRoom.Players.Values)
                 {
                     client.SendIntoGame(client.Username, client.SelectedTank);
                 }

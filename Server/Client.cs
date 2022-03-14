@@ -188,7 +188,17 @@ namespace VoxelTanksServer
             if (Tcp.Socket == null)
                 return;
             Log.Information($"{Tcp.Socket?.Client.RemoteEndPoint} отключился.");
-            ServerSend.PlayerDisconnected(Id, ConnectedRoom,false);
+            ServerSend.PlayerDisconnected(Id, ConnectedRoom, false);
+
+            if(ConnectedRoom != null && Player != null)
+            {
+                //Cache player
+                Player.ConnectedRoom.CachedPlayers[
+                    Player.ConnectedRoom.CachedPlayers.IndexOf(
+                            Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer => cachedPlayer?.Username == Username))] =
+                Player.CachePlayer();
+            }
+
             LeaveRoom();
             Player = null;
             Username = null;

@@ -141,12 +141,6 @@ namespace VoxelTanksServer
                 BarrelRotation = barrelRotation;
             }
 
-            //Cache player
-            ConnectedRoom.CachedPlayers[
-                    ConnectedRoom.CachedPlayers.IndexOf(
-                        ConnectedRoom.CachedPlayers.Find(cachedPlayer => cachedPlayer?.Username == Username))] =
-                CachePlayer();
-
             ServerSend.MovePlayer(ConnectedRoom, this);
         }
 
