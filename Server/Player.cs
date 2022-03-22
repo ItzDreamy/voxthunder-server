@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
-using System.Threading.Tasks;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -8,7 +8,7 @@ namespace VoxelTanksServer
     {
         public readonly int Id;
         public readonly string? Username;
-        public string? TankName = "";
+        public string? TankName;
         public readonly Room? ConnectedRoom = null;
         public Team? Team;
 
@@ -24,7 +24,6 @@ namespace VoxelTanksServer
         public float Cooldown;
         public int TotalDamage;
         public int Kills;
-        public bool ReadyToSpawn;
         public bool CanShoot;
         public bool IsAlive;
 
@@ -40,12 +39,13 @@ namespace VoxelTanksServer
             ConnectedRoom = room;
 
             Tank tank = Server.Tanks.Find(tank => tank.Name == TankName.ToLower());
-            
+
             if (tank == null)
             {
-                Server.Clients[Id].Disconnect();
+                Server.Clients[Id].Disconnect("Танк игрока не проинициализирован");
+                return;
             }
-            
+
             MaxHealth = tank.MaxHealth;
             Damage = tank.Damage;
             MaxSpeed = tank.MaxSpeed;
@@ -88,13 +88,18 @@ namespace VoxelTanksServer
             ConnectedRoom = Server.Clients[Id].ConnectedRoom;
 
             Tank tank = Server.Tanks.Find(tank => tank.Name == cachedPlayer.TankName.ToLower());
-            MaxHealth = tank.MaxHealth;
-            Damage = tank.Damage;
-            MaxSpeed = tank.MaxSpeed;
-            MaxBackSpeed = tank.MaxBackSpeed;
-            Cooldown = tank.Cooldown;
+            if(tank != null)
+            {
+                MaxHealth = tank.MaxHealth;
+                Damage = tank.Damage;
+                MaxSpeed = tank.MaxSpeed;
+                MaxBackSpeed = tank.MaxBackSpeed;
+                Cooldown = tank.Cooldown;
+            }
 
-            ServerSend.PlayerDisconnected(Id, ConnectedRoom, true);
+
+            ServerSend.PlayerReconnected(Username, ConnectedRoom);
+
             ConnectedRoom.CachedPlayers.Remove(cachedPlayer);
             ConnectedRoom.CachedPlayers.Add(CachePlayer());
 
@@ -120,7 +125,8 @@ namespace VoxelTanksServer
                 }
                 else if (speed > MaxSpeed + 2)
                 {
-                    Server.Clients[Id].Disconnect();
+                    Server.Clients[Id].Disconnect("Подозревание в спидкахе");
+                    return;
                 }
             }
             else
@@ -131,7 +137,8 @@ namespace VoxelTanksServer
                 }
                 else if (speed > MaxBackSpeed + 2)
                 {
-                    Server.Clients[Id].Disconnect();
+                    Server.Clients[Id].Disconnect("Подозревание в спидхаке");
+                    return;
                 }
             }
 
@@ -157,7 +164,7 @@ namespace VoxelTanksServer
             {
                 return;
             }
-            
+
             Health -= damage;
 
             if (Health <= 0)
@@ -172,10 +179,15 @@ namespace VoxelTanksServer
         private void Die(Player enemy)
         {
             enemy.Kills++;
-            
+
             IsAlive = false;
             ServerSend.PlayerDead(Id);
-            
+
+            if (Team.PlayersDeathCheck())
+            {
+                //TODO: End game
+            }
+
             //Send kill feed for each team
             ServerSend.ShowKillFeed(Team, Color.Red, enemy.Username, Username);
             ServerSend.ShowKillFeed(enemy.Team, Color.Lime, enemy.Username, Username);
@@ -200,9 +212,7 @@ namespace VoxelTanksServer
 
         public CachedPlayer? CachePlayer()
         {
-            CachedPlayer? cachedPlayer =
-                new CachedPlayer(this);
-            return cachedPlayer;
+            return new CachedPlayer(this);
         }
     }
 }

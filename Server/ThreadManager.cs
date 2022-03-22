@@ -41,9 +41,9 @@ namespace VoxelTanksServer
                     _actionToExecuteOnMainThread = false;
                 }
 
-                for (int i = 0; i < ExecuteCopiedOnMainThread.Count; i++)
+                foreach (var mainThread in ExecuteCopiedOnMainThread)
                 {
-                    ExecuteCopiedOnMainThread[i]();
+                    mainThread();
                 }
             }
         }

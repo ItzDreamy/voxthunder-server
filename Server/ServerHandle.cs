@@ -21,8 +21,8 @@ namespace VoxelTanksServer
 
         public static void ReadyToSpawnReceived(int fromClient, Packet packet)
         {
-            var player = Server.Clients[fromClient].Player;
-            if (player == null) return;
+            var player = Server.Clients[fromClient];
+            if (player.Tcp.Socket == null) return;
             
             player.ReadyToSpawn = true;
 
@@ -33,27 +33,24 @@ namespace VoxelTanksServer
                     client.SendIntoGame(client.Username, client.SelectedTank);
                 }
             }
-            
-            // Server.Clients[fromClient]
-            //     .SendIntoGame(Server.Clients[fromClient].Username, Server.Clients[fromClient].SelectedTank);
         }
 
         private static bool CheckPlayersReady(Room room)
         {
             foreach (var client in room.Players.Values)
             {
-                if (!client.Player.ReadyToSpawn)
+                if (!client.ReadyToSpawn)
                 {
                     return false;
                 }
             }
-
             return true;
         }
         
         public static void ChangeTank(int fromClient, Packet packet)
         {
             string? tankName = packet.ReadString();
+            //TODO: Check owned tanks
             Server.Clients[fromClient].SelectedTank = tankName;
         }
 
@@ -102,7 +99,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
 
             string? name = packet.ReadString();
@@ -118,7 +115,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
 
             string? name = packet.ReadString();
@@ -135,7 +132,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
 
             int enemyId = packet.ReadInt();
@@ -172,7 +169,7 @@ namespace VoxelTanksServer
             Client packetSender = Server.Clients[fromClient];
             if (!packetSender.IsAuth)
             {
-                packetSender.Disconnect();
+                packetSender.Disconnect("Игрок не вошел в аккаунт");
             }
 
             if (Server.Rooms.Count > 0)
@@ -218,7 +215,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
 
             Room? playerRoom = Server.Clients[fromClient].ConnectedRoom;
@@ -231,7 +228,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
             
             foreach (var room in Server.Rooms)
@@ -252,7 +249,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
 
             foreach (var room in Server.Rooms)
@@ -278,7 +275,7 @@ namespace VoxelTanksServer
             Client client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
-                client.Disconnect();
+                client.Disconnect("Игрок не вошел в аккаунт");
             }
 
             foreach (var room in Server.Rooms)

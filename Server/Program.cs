@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using Serilog;
+﻿using Serilog;
 using VoxelTanksServer.API;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -36,7 +33,13 @@ namespace VoxelTanksServer
                     while (_isRunning)
                     {
                         string? command = Console.ReadLine();
-                        //TODO: Some console commands
+
+                        switch (command)
+                        {
+                            case "kick":
+                                break;
+                        }
+
                     }
                 });
                 commandsThread.Start();
@@ -58,6 +61,7 @@ namespace VoxelTanksServer
         {
             Log.Information($"Main thread started. Tickrate: {Constants.Tickrate}");
             DateTime nextLoop = DateTime.Now;
+
             while (_isRunning)
             {
                 while (nextLoop < DateTime.Now)

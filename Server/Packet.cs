@@ -21,7 +21,8 @@ namespace VoxelTanksServer
         LoadGame,
         AbleToReconnect,
         ShowDamage,
-        ShowKillFeed
+        ShowKillFeed, 
+        PlayerReconnected,
     }
     
     /// <summary>
@@ -425,6 +426,8 @@ namespace VoxelTanksServer
                 throw new Exception("Could not read value of type 'string'!");
             }
         }
+
+       
 
         /// <summary>Reads a Vector3 from the packet.</summary>
         /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>

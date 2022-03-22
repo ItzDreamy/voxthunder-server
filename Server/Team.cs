@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace VoxelTanksServer
+﻿namespace VoxelTanksServer
 {
     public class Team
     {
@@ -12,6 +10,19 @@ namespace VoxelTanksServer
         {
             ID = id;
             SpawnPoints = spawnPoints;
+        }
+
+        public bool PlayersDeathCheck() 
+        {
+            foreach (var client in Players)
+            {
+                if (client.Player.IsAlive)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

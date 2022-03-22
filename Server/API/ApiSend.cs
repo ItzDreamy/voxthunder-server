@@ -17,20 +17,13 @@ namespace VoxelTanksServer.API
         {
             using (Packet packet = new((int) ServerApiPackets.Welcome))
             {
-                int players = 0;
-
-                foreach (var client in Server.Clients.Values)
-                {
-                    if (client.Tcp.Socket != null)
-                    {
-                        players++;
-                    }
-                }
-                packet.Write(players);
-                packet.Write(Server.MaxPlayers);
+                int onlinePlayersCount = Server.Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count;
+                int maxPlayers = Server.MaxPlayers;
+                packet.Write(onlinePlayersCount);
+                packet.Write(maxPlayers);
                 SendTcpData(toClient, packet);
                 
-                if (players == Server.MaxPlayers)
+                if (onlinePlayersCount == maxPlayers)
                 {
                     ApiServer.Clients[toClient].Disconnect();
                 }

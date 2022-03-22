@@ -179,15 +179,25 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void PlayerDisconnected(int playerId, Room? room, bool isReconnected)
+        public static void PlayerDisconnected(int playerId, Room? room)
         {
             using (Packet packet = new((int) ServerPackets.PlayerDisconnected))
             {
                 packet.Write(playerId);
-                packet.Write(isReconnected);
                 SendTCPDataToRoom(room, packet);
             }
         }
+
+        public static void PlayerReconnected(string username, Room? room)
+        {
+            using (Packet packet = new((int)ServerPackets.PlayerReconnected))
+            {
+                packet.Write(username);
+
+                SendTCPDataToRoom(room, packet);
+            }
+        }
+
 
         public static void TakeDamage(int playerId, int maxHealth, int currentHealth)
         {

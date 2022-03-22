@@ -12,8 +12,9 @@ namespace VoxelTanksServer
         public int Id;
         public bool IsAuth = false;
         public Player? Player;
-        public Vector3 Position { get; set; }
-        public Quaternion Rotation { get; set; }
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public bool ReadyToSpawn;
 
         public string? Username;
         public string? SelectedTank;
@@ -43,7 +44,7 @@ namespace VoxelTanksServer
                 _id = id;
             }
 
-            public void Connect(TcpClient? socket)
+            public void Connect(TcpClient socket)
             {
                 Socket = socket;
                 Socket.ReceiveBufferSize = DataBufferSize;
@@ -108,7 +109,7 @@ namespace VoxelTanksServer
 
             public void Disconnect()
             {
-                Socket.Close();
+                Socket?.Close();
                 _stream = null;
                 _receivedData = null;
                 _receiveBuffer = null;
@@ -124,7 +125,7 @@ namespace VoxelTanksServer
                         int byteLength = _stream.EndRead(result);
                         if (byteLength <= 0)
                         {
-                            Server.Clients[_id].Disconnect();
+                            Server.Clients[_id].Disconnect("Ошибка получения данных клиента");
                             return;
                         }
 
@@ -138,7 +139,7 @@ namespace VoxelTanksServer
                 catch (Exception e)
                 {
                     Log.Error($"Error receiving TCP data: {e}");
-                    Server.Clients[_id].Disconnect();
+                    Server.Clients[_id].Disconnect("Ошибка получения данных клиента");
                 }
             }
 
@@ -154,7 +155,7 @@ namespace VoxelTanksServer
                 catch (Exception e)
                 {
                     Log.Error($"Error sending data to player {_id} via TCP {e}");
-                    Server.Clients[_id].Disconnect();
+                    Server.Clients[_id].Disconnect("Ошибка отправки данных клиенту");
                 }
             }
         }
@@ -183,29 +184,32 @@ namespace VoxelTanksServer
             }
         }
 
-        public void Disconnect()
+        public void Disconnect(string reason)
         {
             if (Tcp.Socket == null)
                 return;
-            Log.Information($"{Tcp.Socket?.Client.RemoteEndPoint} отключился.");
-            ServerSend.PlayerDisconnected(Id, ConnectedRoom, false);
+
+            Log.Information($"{Tcp.Socket?.Client.RemoteEndPoint} отключился. Причина: {reason}");
+            ServerSend.PlayerDisconnected(Id, ConnectedRoom);
 
             if(ConnectedRoom != null && Player != null)
             {
                 //Cache player
-                Player.ConnectedRoom.CachedPlayers[
-                    Player.ConnectedRoom.CachedPlayers.IndexOf(
-                            Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer => cachedPlayer?.Username == Username))] =
-                Player.CachePlayer();
+                int playerIndex = Player.ConnectedRoom.CachedPlayers.IndexOf(
+                            Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer => cachedPlayer?.Username.ToLower() == Username.ToLower()));
+                if (playerIndex != -1)
+                    Player.ConnectedRoom.CachedPlayers[playerIndex] = Player.CachePlayer();
             }
-
+            
             LeaveRoom();
+
             Player = null;
             Username = null;
             Position = Vector3.Zero;
             Rotation = Quaternion.Identity;
             SelectedTank = null;
             IsAuth = false;
+            ReadyToSpawn = false;
             Tcp.Disconnect();
         }
 

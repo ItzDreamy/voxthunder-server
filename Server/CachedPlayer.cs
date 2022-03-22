@@ -8,7 +8,7 @@ namespace VoxelTanksServer
     public class CachedPlayer
     {
         public string? Username;
-        public string? TankName = "";
+        public string TankName;
         public Team? Team;
         public Vector3 Position;
         public Quaternion Rotation;
@@ -29,11 +29,11 @@ namespace VoxelTanksServer
             Rotation = player.Rotation;
             BarrelRotation = player.BarrelRotation;
             TurretRotation = player.TurretRotation;
-            CanShoot = player.CanShoot;
-            IsAlive = player.IsAlive;
             Health = player.Health;
             TotalDamage = player.TotalDamage;
             Kills = player.Kills;
+            CanShoot = player.CanShoot;
+            IsAlive = player.IsAlive;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using System.Threading;
 using MySql.Data.MySqlClient;
 using Serilog;
 
@@ -7,20 +6,20 @@ namespace VoxelTanksServer
 {
     public class Tank
     {
-        public bool Initialized = false;
+        public bool Initialized { get; private set; }
 
-        public string Name;
-        public int Damage;
-        public int MaxHealth;
-        public float TowerRotateSpeed;
-        public float TankRotateSpeed;
-        public float AngleUp;
-        public float AngleDown;
-        public float MaxSpeed;
-        public float Acceleration;
-        public float MaxBackSpeed;
-        public float BackAcceleration;
-        public float Cooldown;
+        public string Name { get; private set; }
+        public int Damage { get; private set; }
+        public int MaxHealth { get; private set; }
+        public float TowerRotateSpeed { get; private set; }
+        public float TankRotateSpeed { get; private set; }
+        public float AngleUp { get; private set; }
+        public float AngleDown { get; private set; }
+        public float MaxSpeed { get; private set; }
+        public float Acceleration { get; private set; }
+        public float MaxBackSpeed { get; private set; }
+        public float BackAcceleration { get; private set; }
+        public float Cooldown { get; private set; }
 
         public Tank(string name)
         {
@@ -56,7 +55,7 @@ namespace VoxelTanksServer
                 BackAcceleration =
                     (float) table.Rows[0][11];
                 Cooldown = (float) table.Rows[0][12];
-                Log.Information($"{Name.ToUpper()} initialized");
+                Log.Information($"Tank {Name.ToUpper()} initialized");
 
                 Initialized = true;
                 
