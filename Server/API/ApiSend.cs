@@ -17,7 +17,7 @@ namespace VoxelTanksServer.API
         {
             using (Packet packet = new((int) ServerApiPackets.Welcome))
             {
-                int onlinePlayersCount = Server.Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count;
+                int onlinePlayersCount = Server.OnlinePlayers;
                 int maxPlayers = Server.MaxPlayers;
                 packet.Write(onlinePlayersCount);
                 packet.Write(maxPlayers);

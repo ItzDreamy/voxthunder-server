@@ -10,24 +10,29 @@ namespace VoxelTanksServer
 
         public static void Main(string[] args)
         {
+            Console.Title = "VoxelTanksServer";
+
             try
             {
+                //Инициализация логгера
                 Log.Logger = new LoggerConfiguration()
                     .MinimumLevel.Debug()
                     .WriteTo.Console()
                     .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
                     .CreateLogger();
 
+                //Чтение конфига
                 var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-
                 var config = deserializer.Deserialize<Config>(File.ReadAllText("Configs/config.yml"));
 
-                Console.Title = "VoxelTanksServer";
-
                 _isRunning = true;
+
+                //Запуск основного потока сервера
                 Thread mainThread = new(new ThreadStart(MainThread));
+
+                //Запуск потока для выполнения консольных команд
                 Thread commandsThread = new(() =>
                 {
                     while (_isRunning)
@@ -36,7 +41,8 @@ namespace VoxelTanksServer
 
                         switch (command)
                         {
-                            case "kick":
+                            case "online":
+                                Console.WriteLine($"Current online: {Server.OnlinePlayers} / {Server.MaxPlayers}");
                                 break;
                         }
 
@@ -45,7 +51,7 @@ namespace VoxelTanksServer
                 commandsThread.Start();
                 mainThread.Start();
                 
-                
+                //Запуск сервера + апи
                 Server.Start(config.MaxPlayers, config.ServerPort);
                 ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
 
@@ -54,9 +60,14 @@ namespace VoxelTanksServer
             catch (Exception e)
             {
                 Log.Error(e.ToString());
+                Console.ReadLine();
             }
         }
 
+
+        /// <summary>
+        /// Обновление сервера
+        /// </summary>
         private static void MainThread()
         {
             Log.Information($"Main thread started. Tickrate: {Constants.Tickrate}");
@@ -66,15 +77,13 @@ namespace VoxelTanksServer
             {
                 while (nextLoop < DateTime.Now)
                 {
-                    // If the time for the next loop is in the past, aka it's time to execute another tick
-                    GameLogic.Update(); // Execute game logic
+                    GameLogic.Update();
 
-                    nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick); // Calculate at what point in time the next tick should be executed
+                    nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
 
                     if (nextLoop > DateTime.Now)
                     {
-                        // If the execution time for the next tick is in the future, aka the server is NOT running behind
-                        Thread.Sleep(nextLoop - DateTime.Now); // Let the thread sleep until it's needed again.
+                        Thread.Sleep(nextLoop - DateTime.Now);
                     }
                 }
             }

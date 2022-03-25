@@ -7,6 +7,11 @@ namespace VoxelTanksServer
 {
     public class Client
     {
+        public delegate void RoomHandler(Room room);
+        public event RoomHandler OnJoinedRoom;
+        public event RoomHandler OnLeftRoom;
+
+        //Размер принимающих/отправляемых данных
         public static int DataBufferSize = 4096;
 
         public int Id;
@@ -17,19 +22,26 @@ namespace VoxelTanksServer
         public bool ReadyToSpawn;
 
         public string? Username;
-        public string? SelectedTank;
+        public Tank SelectedTank;
 
         public Room? ConnectedRoom = null;
         public Team? Team = null;
 
         public TCP Tcp;
 
+        /// <summary>
+        /// Создание экземпляра клиента
+        /// </summary>
+        /// <param name="clientId"></param>
         public Client(int clientId)
         {
             Id = clientId;
             Tcp = new TCP(Id);
         }
 
+        /// <summary>
+        /// Класс для взаимодействия с клиентом по сети
+        /// </summary>
         public class TCP
         {
             public TcpClient? Socket;
@@ -44,28 +56,46 @@ namespace VoxelTanksServer
                 _id = id;
             }
 
+            /// <summary>
+            /// Подключение клиента к серверу
+            /// </summary>
+            /// <param name="socket">Сокет клиента</param>
             public void Connect(TcpClient socket)
             {
+                //Инициализация сокета
                 Socket = socket;
                 Socket.ReceiveBufferSize = DataBufferSize;
                 Socket.SendBufferSize = DataBufferSize;
 
+                //Получение потока данных
                 _stream = Socket.GetStream();
 
+                //Создания буфера для получаемых данных
                 _receivedData = new Packet();
                 _receiveBuffer = new byte[DataBufferSize];
 
+                //Начать чтения данных клиента
                 _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
+                
+                //Подписка на необходимые события
+                Server.Clients[_id].OnJoinedRoom += ServerSend.ShowPlayersCountInRoom;
+                Server.Clients[_id].OnLeftRoom += ServerSend.ShowPlayersCountInRoom;
 
                 ServerSend.Welcome(_id, "You have been successfully connected to server");
             }
 
+            /// <summary>
+            /// Обработка получаемых данных
+            /// </summary>
+            /// <param name="data">Данные</param>
+            /// <returns>Сбрасывать ли настройки экземпляр пакета для повторного использования?</returns>
             private bool HandleData(byte[] data)
             {
                 int packetLength = 0;
 
                 _receivedData.SetBytes(data);
 
+                //Считывать id пакета, если id < 0, то сбрасывать пакет 
                 if (_receivedData.UnreadLength() >= 4)
                 {
                     packetLength = _receivedData.ReadInt();
@@ -75,9 +105,12 @@ namespace VoxelTanksServer
                     }
                 }
 
+                //Считывание данных из пакета
                 while (packetLength > 0 && packetLength <= _receivedData.UnreadLength())
                 {
                     byte[] packetBytes = _receivedData.ReadBytes(packetLength);
+
+                    //Считывание id пакета и вызов соответствующего ему метод
                     ThreadManager.ExecuteInMainThread(() =>
                     {
                         using (Packet packet = new(packetBytes))
@@ -107,15 +140,24 @@ namespace VoxelTanksServer
                 return false;
             }
 
+            /// <summary>
+            /// Отключение клиента от сервера
+            /// </summary>
             public void Disconnect()
             {
+                //Закрытие сокета
                 Socket?.Close();
+                //Сброс сетевых настроек
                 _stream = null;
                 _receivedData = null;
                 _receiveBuffer = null;
                 Socket = null;
             }
 
+            /// <summary>
+            /// Отклик на получение данных
+            /// </summary>
+            /// <param name="result"></param>
             private void ReceiveCallback(IAsyncResult result)
             {
                 try
@@ -123,12 +165,13 @@ namespace VoxelTanksServer
                     if (_stream != null)
                     {
                         int byteLength = _stream.EndRead(result);
+                        //Если данные пустые, то отключать клиент от сервера
                         if (byteLength <= 0)
                         {
                             Server.Clients[_id].Disconnect("Ошибка получения данных клиента");
                             return;
                         }
-
+                        //Обработка данных и повторный запуск чтения
                         byte[] data = new byte[byteLength];
                         Array.Copy(_receiveBuffer, data, byteLength);
 
@@ -136,6 +179,7 @@ namespace VoxelTanksServer
                         _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);   
                     }
                 }
+                //При ошибке отключать клиент от сервера
                 catch (Exception e)
                 {
                     Log.Error($"Error receiving TCP data: {e}");
@@ -143,15 +187,21 @@ namespace VoxelTanksServer
                 }
             }
 
+            /// <summary>
+            /// Отправка данных клиенту
+            /// </summary>
+            /// <param name="packet">Пакет данных</param>
             public void SendData(Packet packet)
             {
                 try
                 {
                     if (Socket != null)
                     {
+                        //Запись данных в поток
                         _stream.BeginWrite(packet.ToArray(), 0, packet.Length(), null, null);
                     }
                 }
+                //При ошибке отключать клиент от сервера
                 catch (Exception e)
                 {
                     Log.Error($"Error sending data to player {_id} via TCP {e}");
@@ -160,10 +210,18 @@ namespace VoxelTanksServer
             }
         }
 
-        public void SendIntoGame(string? playerName, string? tankName)
+        /// <summary>
+        /// Отправление клиента в игру (спавн всех игроков)
+        /// </summary>
+        /// <param name="playerName">Никнейм игрока</param>
+        /// <param name="tank">Выбранный танк игрока</param>
+        public void SendIntoGame(string? playerName, Tank tank)
         {
-            Player ??= new Player(Id, playerName, Position, Rotation, tankName, ConnectedRoom);
+            //Создавать новый экземпляр игрока, если он не существует
+            Player ??= new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
             Player.Team = Team;
+
+            //Спавн остальных игроков в комнате для данного клиента
             foreach (var client in ConnectedRoom.Players.Values)
             {
                 if (client.Player != null)
@@ -174,7 +232,7 @@ namespace VoxelTanksServer
                     }
                 }
             }
-
+            //Спавн клиента в комнате для других игроков
             foreach (var client in ConnectedRoom.Players.Values)
             {
                 if(client.Player != null)
@@ -184,6 +242,10 @@ namespace VoxelTanksServer
             }
         }
 
+        /// <summary>
+        /// Отключение клиента от сервера
+        /// </summary>
+        /// <param name="reason">Причина отключения</param>
         public void Disconnect(string reason)
         {
             if (Tcp.Socket == null)
@@ -192,17 +254,26 @@ namespace VoxelTanksServer
             Log.Information($"{Tcp.Socket?.Client.RemoteEndPoint} отключился. Причина: {reason}");
             ServerSend.PlayerDisconnected(Id, ConnectedRoom);
 
-            if(ConnectedRoom != null && Player != null)
+            //Кешировать игрока и покидать комнату, если он находился в ней
+            if(ConnectedRoom != null)
             {
-                //Cache player
-                int playerIndex = Player.ConnectedRoom.CachedPlayers.IndexOf(
+                if (Player != null)
+                {
+                    int playerIndex = Player.ConnectedRoom.CachedPlayers.IndexOf(
                             Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer => cachedPlayer?.Username.ToLower() == Username.ToLower()));
-                if (playerIndex != -1)
-                    Player.ConnectedRoom.CachedPlayers[playerIndex] = Player.CachePlayer();
+                    //Cache player
+                    if (playerIndex != -1)
+                        Player.ConnectedRoom.CachedPlayers[playerIndex] = Player.CachePlayer();
+                }
+                
+                LeaveRoom();
             }
-            
-            LeaveRoom();
 
+            //Отписка от событий
+            OnJoinedRoom -= ServerSend.ShowPlayersCountInRoom;
+            OnLeftRoom -= ServerSend.ShowPlayersCountInRoom;
+
+            //Сброс клиента для дальнейшего использования
             Player = null;
             Username = null;
             Position = Vector3.Zero;
@@ -210,18 +281,43 @@ namespace VoxelTanksServer
             SelectedTank = null;
             IsAuth = false;
             ReadyToSpawn = false;
+
+            //Отключение от сети
             Tcp.Disconnect();
         }
 
+        /// <summary>
+        /// Подключится к указаной комнате
+        /// </summary>
+        /// <param name="room">Комната</param>
+        public void JoinRoom(Room room)
+        {
+            room.Players[Id] = this;
+            this.ConnectedRoom = room;
+
+            //Вызов события
+            OnJoinedRoom?.Invoke(ConnectedRoom);
+        }
+
+        /// <summary>
+        /// Покинуть комнату
+        /// </summary>
         public void LeaveRoom()
         {
+            //Удаление игрока из комнаты и команды
             ConnectedRoom?.Players.Remove(Id);
             Team?.Players.Remove(this);
             
+            //Если в комнате не осталось игроков - удалять её
             if (ConnectedRoom?.PlayersCount == 0)
             {
                 Server.Rooms.Remove(ConnectedRoom);
             }
+
+            //Вызов события
+            OnLeftRoom?.Invoke(ConnectedRoom);
+
+            //Сброс комнаты и команды у клиента
             ConnectedRoom = null;
             Team = null;
         }

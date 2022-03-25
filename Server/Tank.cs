@@ -4,10 +4,11 @@ using Serilog;
 
 namespace VoxelTanksServer
 {
+    /// <summary>
+    /// Класс для хранения данных о танке
+    /// </summary>
     public class Tank
     {
-        public bool Initialized { get; private set; }
-
         public string Name { get; private set; }
         public int Damage { get; private set; }
         public int MaxHealth { get; private set; }
@@ -21,18 +22,24 @@ namespace VoxelTanksServer
         public float BackAcceleration { get; private set; }
         public float Cooldown { get; private set; }
 
+        private bool _initialized;
+
         public Tank(string name)
         {
-            Log.Debug("Start initialize");
             Name = name;
+            //Запуск потока для инициализации танка
             Thread databaseThread = new(GetStats);
             databaseThread.Start();
         }
 
+        /// <summary>
+        /// Получать данные о танке каждый час
+        /// </summary>
         private void GetStats()
         {
             while (true)
             {
+                //Запрос к БД
                 var db = new Database();
                 MySqlCommand myCommand =
                     new(
@@ -42,6 +49,8 @@ namespace VoxelTanksServer
                 DataTable table = new();
                 adapter.SelectCommand = myCommand;
                 adapter.Fill(table);
+
+                //Установка значений
                 Damage = (int) table.Rows[0][2];
                 MaxHealth = (int) table.Rows[0][3];
                 TowerRotateSpeed =
@@ -55,9 +64,9 @@ namespace VoxelTanksServer
                 BackAcceleration =
                     (float) table.Rows[0][11];
                 Cooldown = (float) table.Rows[0][12];
-                Log.Information($"Tank {Name.ToUpper()} initialized");
 
-                Initialized = true;
+                Log.Information($"Tank {Name.ToUpper()} initialized");
+                _initialized = true;
                 
                 if (!Server.IsOnline)
                 {
@@ -68,11 +77,14 @@ namespace VoxelTanksServer
             }
         }
 
+        /// <summary>
+        /// Запускать слушатель клиентов, если танки проинциализированы
+        /// </summary>
         private void CheckForInitialize()
         {
             foreach (var tank in Server.Tanks)
             {
-                if (!tank.Initialized)
+                if (!tank._initialized)
                 {
                     return;
                 }

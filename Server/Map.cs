@@ -1,14 +1,18 @@
-﻿using System.Collections.Generic;
-
-namespace VoxelTanksServer
+﻿namespace VoxelTanksServer
 {
-    public class Map
+    /// <summary>
+    /// Хранение данных карты
+    /// </summary>
+    public struct Map
     {
+        //Название карты
         public string? Name;
 
-        public List<SpawnPoint> FirstTeamSpawns;
+        //Спавнпоинты первой команды
+        public readonly List<SpawnPoint> FirstTeamSpawns;
 
-        public List<SpawnPoint> SecondTeamSpawns;
+        //Спавнпоинты второй команды
+        public readonly List<SpawnPoint> SecondTeamSpawns;
 
         public Map(string? name, List<SpawnPoint> firstTeamSpawns, List<SpawnPoint> secondTeamSpawns)
         {

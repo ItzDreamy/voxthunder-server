@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
@@ -10,12 +8,23 @@ namespace VoxelTanksServer
     public static class Server
     {
         public static bool IsOnline = false;
+        
+        public static int OnlinePlayers 
+        {   
+            //Возвращает кол-во онлайн игроков на сервере
+            get
+            {
+                return Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count;
+            }
+        }
+
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static Dictionary<int, Client> Clients = new();
 
         public static List<Room?> Rooms = new();
 
+        //Инициализация карт
         public static List<Map> Maps = new ()
         {
             new Map("FirstMap", new List<SpawnPoint>
@@ -31,6 +40,8 @@ namespace VoxelTanksServer
             })
         };
 
+        
+        // Инициализация танков
         public static List<Tank> Tanks = new()
         {
             new Tank("raider"),
@@ -43,6 +54,11 @@ namespace VoxelTanksServer
 
         private static TcpListener _tcpListener;
 
+        /// <summary>
+        /// Запуск сервера
+        /// </summary>
+        /// <param name="maxPlayers">Максимальное кол-во игроков на сервере</param>
+        /// <param name="port">Порт сервера, с помощью которого клиенты подключаются</param>
         public static void Start(int maxPlayers, int port)
         {
             try
@@ -63,6 +79,9 @@ namespace VoxelTanksServer
             }
         }
 
+        /// <summary>
+        /// Начать слушать подключения клиентов и подключать их
+        /// </summary>
         public static void BeginListenConnections()
         {
             _tcpListener.Start();
@@ -70,11 +89,18 @@ namespace VoxelTanksServer
             IsOnline = true;
         }
 
+        /// <summary>
+        /// Отклик на подключение клиента
+        /// </summary>
+        /// <param name="result"></param>
         private static void TcpConnectCallback(IAsyncResult result)
         {
             TcpClient? client = _tcpListener.EndAcceptTcpClient(result);
+
             _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+
             Log.Information($"Trying to connect {client.Client.RemoteEndPoint}");
+
             for (int i = 1; i <= MaxPlayers; i++)
             {
                 if (Clients[i].Tcp.Socket == null)
@@ -87,13 +113,18 @@ namespace VoxelTanksServer
             Log.Information($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
         }
 
+        /// <summary>
+        /// Инициализация серверных данных и обработчика пакетов
+        /// </summary>
         private static void InitializeServerData()
         {
+            //Добавление всех клиентов в словарь для дальнейшего использования
             for (var i = 1; i <= MaxPlayers; i++)
             {
                 Clients.Add(i, new Client(i));
             }
 
+            //Инициализация обработчика пакетов, приходящих от клиента
             PacketHandlers = new Dictionary<int, PacketHandler>()
             {
                 {(int) ClientPackets.WelcomeReceived, ServerHandle.WelcomePacketReceived},

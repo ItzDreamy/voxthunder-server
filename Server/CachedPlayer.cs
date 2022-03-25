@@ -3,11 +3,12 @@
 namespace VoxelTanksServer
 {
     /// <summary>
-    /// Class for cache players that used for reconnect
+    /// Класс для хранения данных отключившегося игрока
     /// </summary>
     public class CachedPlayer
     {
         public string? Username;
+        public Tank SelectedTank;
         public string TankName;
         public Team? Team;
         public Vector3 Position;
@@ -20,10 +21,14 @@ namespace VoxelTanksServer
         public bool CanShoot;
         public bool IsAlive;
 
+        /// <summary>
+        /// Создание кеша игрока
+        /// </summary>
+        /// <param name="player">Отключившийся игрок</param>
         public CachedPlayer(Player player)
         {
             Username = player.Username;
-            TankName = player.TankName;
+            SelectedTank = player.SelectedTank;
             Team = player.Team;
             Position = player.Position;
             Rotation = player.Rotation;
