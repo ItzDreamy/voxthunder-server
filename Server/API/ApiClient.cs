@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using Serilog;
 
 namespace VoxelTanksServer.API

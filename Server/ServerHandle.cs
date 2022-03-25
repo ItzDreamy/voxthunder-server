@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Data;
+using System.Numerics;
+using MySql.Data.MySqlClient;
 using Serilog;
 
 namespace VoxelTanksServer
@@ -132,6 +134,7 @@ namespace VoxelTanksServer
         /// <param name="packet"></param>
         public static void RotateTurret(int fromClient, Packet packet)
         {
+            var client = Server.Clients[fromClient];
             if (!client.IsAuth)
             {
                 client.Disconnect("Игрок не вошел в аккаунт");
@@ -159,12 +162,67 @@ namespace VoxelTanksServer
             string? password = packet.ReadString();
 
             //Проверка на корректность логина и пароля
-            bool authSuccess = AuthorizationHandler.ClientAuthRequest(username, password,
-                Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient,
-                out string? message);
+            Task.Run(async () =>
+            {
+                string message = "";
+                int playerId = fromClient;
+                string ip = Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString();
 
-            //Отправка результата
-            ServerSend.LoginResult(fromClient, authSuccess, message);
+                //Проверка на наличие игрока с таким же ником
+                foreach (var client in Server.Clients.Values)
+                {
+                    if (client.Username?.ToLower() == username.ToLower())
+                    {
+                        Log.Information($"[{ip}] Игрок с логином {client.Username} уже в сети!");
+                        message = $"Игрок с логином {username} уже в сети!";
+                        ServerSend.LoginResult(fromClient, false, message);
+                        return;
+                    }
+                }
+
+                try
+                {
+                    //Создание запроса к БД
+                    Database db = new();
+                    MySqlCommand myCommand =
+                        new(
+                            $"SELECT `login` FROM `authdata` WHERE `login` = '{username}' AND `password` = '{password}'",
+                            db.GetConnection());
+                    MySqlDataAdapter adapter = new();
+                    DataTable table = new();
+                    adapter.SelectCommand = myCommand;
+
+                    //Ассинхронный запрос в БД для того, что бы не блокировался поток сервера
+                    await adapter.FillAsync(table);
+                    try
+                    {
+                        //Если игрок с такими ником и паролем существует, то запускать в игру
+                        string nickname = table.Rows[0][0].ToString();
+
+                        Log.Information($"[{ip}] {nickname} успешно зашел в аккаунт");
+                        message = "Авторизация прошла успешно";
+                        Server.Clients[playerId].Username = table.Rows[0][0].ToString();
+                        Server.Clients[playerId].IsAuth = true;
+                        ServerSend.LoginResult(fromClient, true, message);
+                        return;
+
+                    }
+                    catch (Exception ex)
+                    {
+                        //Иначе говорить игроку, что данные некорректные
+                        Log.Information($"[{ip}] {username} ввел некорректные данные.");
+                        message = $"Неправильный логин или пароль";
+                        ServerSend.LoginResult(fromClient, false, message);
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.ToString());
+                    ServerSend.LoginResult(fromClient, false, message);
+                    return;
+                }
+            });
         }
 
         /// <summary>
