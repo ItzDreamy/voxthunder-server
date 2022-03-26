@@ -142,7 +142,7 @@ namespace VoxelTanksServer.API
             {
                 try
                 {
-                    if (_stream.CanWrite && Socket != null)
+                    if (_stream != null && _stream.CanWrite && Socket != null)
                     {
                         _stream.BeginWrite(packet.ToArray(), 0, packet.Length(), null, null);
                     }

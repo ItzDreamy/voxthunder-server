@@ -38,11 +38,27 @@ namespace VoxelTanksServer
                     while (_isRunning)
                     {
                         string? command = Console.ReadLine();
-
+                        
                         switch (command)
                         {
                             case "online":
                                 Console.WriteLine($"Current online: {Server.OnlinePlayers} / {Server.MaxPlayers}");
+                                break;
+                            case "kick":
+                                Console.WriteLine("Введите никнейм который нужно кикнуть");
+                                var client = Server.Clients.Values.ToList().Find(c => c.Username.ToLower() == Console.ReadLine().ToLower());
+
+                                if (client == null) return;
+                                client.Disconnect("Решение администратора");
+                                break;
+                            case "ban-nickname":
+                                Console.WriteLine("Введите никнейм который нужно заблокировать");
+                                string input = Console.ReadLine().ToLower();
+                                var client1 = Server.Clients.Values.ToList().Find(c => c.Username.ToLower() == input);
+
+                                if (client1 == null) return;
+                                client1.Disconnect("Блокировка пользователя");
+
                                 break;
                         }
 
