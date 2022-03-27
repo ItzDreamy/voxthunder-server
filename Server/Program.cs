@@ -1,4 +1,7 @@
-﻿using Serilog;
+﻿using System;
+using System.IO;
+using System.Threading;
+using Serilog;
 using VoxelTanksServer.API;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -42,23 +45,15 @@ namespace VoxelTanksServer
                         switch (command)
                         {
                             case "online":
-                                Console.WriteLine($"Current online: {Server.OnlinePlayers} / {Server.MaxPlayers}");
+                                Commands.ShowOnline();
                                 break;
                             case "kick":
-                                Console.WriteLine("Введите никнейм который нужно кикнуть");
-                                var client = Server.Clients.Values.ToList().Find(c => c.Username.ToLower() == Console.ReadLine().ToLower());
-
-                                if (client == null) return;
-                                client.Disconnect("Решение администратора");
+                                Console.WriteLine("Player name: ");
+                                Commands.KickPlayer(Console.ReadLine());
                                 break;
-                            case "ban-nickname":
-                                Console.WriteLine("Введите никнейм который нужно заблокировать");
-                                string input = Console.ReadLine().ToLower();
-                                var client1 = Server.Clients.Values.ToList().Find(c => c.Username.ToLower() == input);
-
-                                if (client1 == null) return;
-                                client1.Disconnect("Блокировка пользователя");
-
+                            case "ban":
+                                Console.WriteLine("Player name: ");
+                                Commands.BanPlayer(Console.ReadLine());
                                 break;
                         }
 

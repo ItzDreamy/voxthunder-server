@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
+using System.Linq;
 using System.Numerics;
 using MySql.Data.MySqlClient;
 using Serilog;
@@ -19,7 +21,7 @@ namespace VoxelTanksServer
         {
             int clientIdCheck = packet.ReadInt();
             Log.Information(
-                $"{Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint} connected successfully with ID {fromClient}");
+                $"{Server.Clients[fromClient]?.Tcp?.Socket?.Client.RemoteEndPoint} connected successfully with ID {fromClient}");
 
             if (fromClient != clientIdCheck)
             {
@@ -155,74 +157,14 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="fromClient"></param>
         /// <param name="packet"></param>
-        public static void TryLogin(int fromClient, Packet packet)
+        public static async void TryLogin(int fromClient, Packet packet)
         {
             //Чтение ника и пароля
             string? username = packet.ReadString();
             string? password = packet.ReadString();
 
             //Проверка на корректность логина и пароля
-            Task.Run(async () =>
-            {
-                string message = "";
-                int playerId = fromClient;
-                string ip = Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString();
-
-                //Проверка на наличие игрока с таким же ником
-                foreach (var client in Server.Clients.Values)
-                {
-                    if (client.Username?.ToLower() == username.ToLower())
-                    {
-                        Log.Information($"[{ip}] Игрок с логином {client.Username} уже в сети!");
-                        message = $"Игрок с логином {username} уже в сети!";
-                        ServerSend.LoginResult(fromClient, false, message);
-                        return;
-                    }
-                }
-
-                try
-                {
-                    //Создание запроса к БД
-                    Database db = new();
-                    MySqlCommand myCommand =
-                        new(
-                            $"SELECT `login` FROM `authdata` WHERE `login` = '{username}' AND `password` = '{password}'",
-                            db.GetConnection());
-                    MySqlDataAdapter adapter = new();
-                    DataTable table = new();
-                    adapter.SelectCommand = myCommand;
-
-                    //Ассинхронный запрос в БД для того, что бы не блокировался поток сервера
-                    await adapter.FillAsync(table);
-                    try
-                    {
-                        //Если игрок с такими ником и паролем существует, то запускать в игру
-                        string nickname = table.Rows[0][0].ToString();
-
-                        Log.Information($"[{ip}] {nickname} успешно зашел в аккаунт");
-                        message = "Авторизация прошла успешно";
-                        Server.Clients[playerId].Username = table.Rows[0][0].ToString();
-                        Server.Clients[playerId].IsAuth = true;
-                        ServerSend.LoginResult(fromClient, true, message);
-                        return;
-
-                    }
-                    catch (Exception ex)
-                    {
-                        //Иначе говорить игроку, что данные некорректные
-                        Log.Information($"[{ip}] {username} ввел некорректные данные.");
-                        message = $"Неправильный логин или пароль";
-                        ServerSend.LoginResult(fromClient, false, message);
-                        return;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e.ToString());
-                    ServerSend.LoginResult(fromClient, false, message);
-                    return;
-                }
-            });
+            await AuthorizationHandler.TryLogin(username, password, Server.Clients[fromClient].Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient);
         }
 
         /// <summary>
@@ -452,9 +394,8 @@ namespace VoxelTanksServer
             }
         }
 
-
         /// <summary>
-        /// Отмена переподключения к комнате
+        /// Отмена переподключения к игре
         /// </summary>
         /// <param name="fromClient"></param>
         /// <param name="packet"></param>
@@ -479,6 +420,21 @@ namespace VoxelTanksServer
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Собирает данные о боевой статистике игроков и отсылает клиенту
+        /// </summary>
+        public static void RequestPlayersStats(int fromClient, Packet packet)
+        {
+            Room room = Server.Clients[fromClient].ConnectedRoom;
+
+            if (room == null || room.Players == null)
+            {
+                return;
+            }
+
+            ServerSend.SendPlayersStats(room);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 
 namespace VoxelTanksServer
@@ -382,6 +383,15 @@ namespace VoxelTanksServer
             {
                 packet.Write(room.PlayersCount);
                 packet.Write(room.MaxPlayers);
+                SendTCPDataToRoom(room, packet);
+            }
+        }
+
+        public static void SendPlayersStats(Room room)
+        {
+            using (Packet packet = new Packet((int)ServerPackets.PlayersStats))
+            {
+                packet.Write(room);
                 SendTCPDataToRoom(room, packet);
             }
         }

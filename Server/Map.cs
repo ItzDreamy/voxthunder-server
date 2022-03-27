@@ -1,4 +1,6 @@
-﻿namespace VoxelTanksServer
+﻿using System.Collections.Generic;
+
+namespace VoxelTanksServer
 {
     /// <summary>
     /// Хранение данных карты

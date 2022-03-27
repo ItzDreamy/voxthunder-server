@@ -1,4 +1,7 @@
-﻿namespace VoxelTanksServer
+﻿using System;
+using System.Collections.Generic;
+
+namespace VoxelTanksServer
 {
     /// <summary>
     /// Игровая комната

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using System.Threading.Tasks;
 
 namespace VoxelTanksServer
 {
@@ -155,12 +156,8 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="damage">Урон</param>
         /// <param name="enemy">Враг</param>
-        public void TakeDamage(int damage, Player? enemy)
+        public void TakeDamage(int damage, Player enemy)
         {
-            //Эти две строки для отладки:
-            ServerSend.ShowKillFeed(Team, Color.Red, enemy.Username, Username, enemy.SelectedTank.Name, SelectedTank.Name);
-            ServerSend.ShowKillFeed(enemy.Team, Color.Lime, enemy.Username, Username, enemy.SelectedTank.Name, SelectedTank.Name);
-
             if (Health <= 0)
             {
                 return;
@@ -228,7 +225,7 @@ namespace VoxelTanksServer
         }
 
         /// <summary>
-        /// Кеширование игрока
+        /// Кеширование игрока память комнаты
         /// </summary>
         /// <returns></returns>
         public CachedPlayer? CachePlayer()

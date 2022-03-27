@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Linq;
+using System.Net.Sockets;
 using Serilog;
 
 namespace VoxelTanksServer.API
@@ -160,6 +162,19 @@ namespace VoxelTanksServer.API
             if (Tcp.Socket == null)
                 return;
             Tcp.Disconnect();
+
+            var client = Server.Clients.Values.ToList().Find(client => 
+            {
+                if(client.Tcp.Socket != null && Tcp.Socket != null)
+                    return client.Tcp.Socket.Client.RemoteEndPoint.ToString() == Tcp.Socket.Client.RemoteEndPoint.ToString();
+
+                return false;
+             });
+
+            if (client != null)
+            {
+                client.Disconnect("Api отключен");
+            }
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -19,12 +22,12 @@ namespace VoxelTanksServer
         LoadGame,
         AbleToReconnect,
         ShowDamage,
-        ShowKillFeed, 
+        ShowKillFeed,
         PlayerReconnected,
         ShowPlayersCountInRoom,
-
+        PlayersStats
     }
-    
+
     /// <summary>
     /// Sent from api to client
     /// </summary>
@@ -52,7 +55,8 @@ namespace VoxelTanksServer
         LeaveRoom,
         CheckAbleToReconnect,
         ReconnectRequest,
-        CancelReconnect
+        CancelReconnect,
+        RequestPlayersStats
     }
 
     /// <summary>
@@ -208,7 +212,7 @@ namespace VoxelTanksServer
         {
             _buffer.AddRange(BitConverter.GetBytes(value));
         }
-        
+
         /// <summary>Adds a string to the packet.</summary>
         /// <param name="value">The string to add.</param>
         public void Write(string? value)
@@ -224,7 +228,7 @@ namespace VoxelTanksServer
             Write(color.B);
             Write(color.A);
         }
-        
+
         /// <summary>Adds a Vector3 to the packet.</summary>
         /// <param name="value">The Vector3 to add.</param>
         public void Write(Vector3 value)
@@ -233,7 +237,7 @@ namespace VoxelTanksServer
             Write(value.Y);
             Write(value.Z);
         }
-        
+
         /// <summary>Adds a Quaternion to the packet.</summary>
         /// <param name="value">The Quaternion to add.</param>
         public void Write(Quaternion value)
@@ -243,6 +247,29 @@ namespace VoxelTanksServer
             Write(value.Z);
             Write(value.W);
         }
+
+        /// <summary>
+        /// Adds a player stats to the packet.
+        /// </summary>
+        /// <param name="room"></param>
+        public void Write(Room room)
+        {
+            Write(room.Players.Values.ToList().FindAll(client => client.Player != null).Count);
+            
+            foreach (var client in room.Players.Values)
+            {
+                Player player = client.Player;
+                if (player != null)
+                {
+                    Write(player.Id);
+                    Write(player.Kills);
+                    Write(player.TotalDamage);
+                    Write(player.SelectedTank.Name);
+                    Write(player.IsAlive ? "Alive" : "Dead");
+                }
+            }
+        }
+
         #endregion
 
         #region Read Data
@@ -412,7 +439,8 @@ namespace VoxelTanksServer
             {
                 int length = ReadInt(); // Get the length of the string
                 string? value =
-                    Encoding.GetEncoding(1251).GetString(_readableBuffer, _readPos, length); // Convert the bytes to a string
+                    Encoding.GetEncoding(1251)
+                        .GetString(_readableBuffer, _readPos, length); // Convert the bytes to a string
                 if (moveReadPos && value.Length > 0)
                 {
                     // If _moveReadPos is true string is not empty
@@ -427,7 +455,6 @@ namespace VoxelTanksServer
             }
         }
 
-       
 
         /// <summary>Reads a Vector3 from the packet.</summary>
         /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
@@ -440,9 +467,10 @@ namespace VoxelTanksServer
         /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
         public Quaternion ReadQuaternion(bool moveReadPos = true)
         {
-            return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
+            return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos),
+                ReadFloat(moveReadPos));
         }
-        
+
         #endregion
 
         private bool _disposed = false;

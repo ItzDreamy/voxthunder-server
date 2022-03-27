@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
@@ -44,8 +47,8 @@ namespace VoxelTanksServer
         // Инициализация танков
         public static List<Tank> Tanks = new()
         {
-            new Tank("raider"),
-            new Tank("mamont")
+            new Tank("Raider"),
+            new Tank("Mamont")
         };
 
         public delegate void PacketHandler(int fromClient, Packet packet);
@@ -141,6 +144,7 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.CheckAbleToReconnect, ServerHandle.CheckAbleToReconnect},
                 {(int) ClientPackets.ReconnectRequest, ServerHandle.Reconnect},
                 {(int) ClientPackets.CancelReconnect, ServerHandle.CancelReconnect},
+                {(int) ClientPackets.RequestPlayersStats, ServerHandle.RequestPlayersStats}
             };
             Log.Information("Packets initialized");
         }
