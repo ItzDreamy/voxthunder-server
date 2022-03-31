@@ -10,7 +10,7 @@ namespace VoxelTanksServer
     /// <summary>
     /// Обработчик пакетов сервера
     /// </summary>
-    public static class ServerHandle
+    public static class PacketsHandler
     {
         /// <summary>
         /// Успешное подключения клиента к серверу
@@ -299,7 +299,7 @@ namespace VoxelTanksServer
             }
 
             //Создание новой комнаты
-            Room? newRoom = new Room(2);
+            Room? newRoom = new Room(1);
             //Присоединение к комнате
             Server.Clients[fromClient].JoinRoom(newRoom);
 

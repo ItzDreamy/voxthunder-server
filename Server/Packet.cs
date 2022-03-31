@@ -25,7 +25,8 @@ namespace VoxelTanksServer
         ShowKillFeed,
         PlayerReconnected,
         ShowPlayersCountInRoom,
-        PlayersStats
+        PlayersStats,
+        EndGame
     }
 
     /// <summary>
@@ -251,22 +252,18 @@ namespace VoxelTanksServer
         /// <summary>
         /// Adds a player stats to the packet.
         /// </summary>
-        /// <param name="room"></param>
-        public void Write(Room room)
+        /// <param name="players">The clients to get players stats</param>
+        public void Write(List<Player> players)
         {
-            Write(room.Players.Values.ToList().FindAll(client => client.Player != null).Count);
-            
-            foreach (var client in room.Players.Values)
+            Write(players.Count);
+
+            foreach (var player in players)
             {
-                Player player = client.Player;
-                if (player != null)
-                {
-                    Write(player.Id);
-                    Write(player.Kills);
-                    Write(player.TotalDamage);
-                    Write(player.SelectedTank.Name);
-                    Write(player.IsAlive ? "Alive" : "Dead");
-                }
+                Write(player.Id);
+                Write(player.Kills);
+                Write(player.TotalDamage);
+                Write(player.SelectedTank.Name);
+                Write(player.IsAlive ? "Alive" : "Dead");
             }
         }
 

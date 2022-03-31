@@ -260,7 +260,7 @@ namespace VoxelTanksServer
                 if (Player != null)
                 {
                     int playerIndex = Player.ConnectedRoom.CachedPlayers.IndexOf(
-                            Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer => cachedPlayer?.Username.ToLower() == Username.ToLower()));
+                            Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer => string.Equals(cachedPlayer?.Username, Username, StringComparison.CurrentCultureIgnoreCase)));
                     //Cache player
                     if (playerIndex != -1)
                         Player.ConnectedRoom.CachedPlayers[playerIndex] = Player.CachePlayer();

@@ -130,21 +130,21 @@ namespace VoxelTanksServer
             //Инициализация обработчика пакетов, приходящих от клиента
             PacketHandlers = new Dictionary<int, PacketHandler>()
             {
-                {(int) ClientPackets.WelcomeReceived, ServerHandle.WelcomePacketReceived},
-                {(int) ClientPackets.ReadyToSpawn, ServerHandle.ReadyToSpawnReceived},
-                {(int) ClientPackets.SelectTank, ServerHandle.ChangeTank},
-                {(int) ClientPackets.PlayerMovement, ServerHandle.PlayerMovement},
-                {(int) ClientPackets.RotateTurret, ServerHandle.RotateTurret},
-                {(int) ClientPackets.TryLogin, ServerHandle.TryLogin},
-                {(int) ClientPackets.TakeDamage, ServerHandle.TakeDamage},
-                {(int) ClientPackets.InstantiateObject, ServerHandle.InstantiateObject},
-                {(int) ClientPackets.ShootBullet, ServerHandle.ShootBullet},
-                {(int) ClientPackets.JoinRoom, ServerHandle.JoinOrCreateRoom},
-                {(int) ClientPackets.LeaveRoom, ServerHandle.LeaveRoom},
-                {(int) ClientPackets.CheckAbleToReconnect, ServerHandle.CheckAbleToReconnect},
-                {(int) ClientPackets.ReconnectRequest, ServerHandle.Reconnect},
-                {(int) ClientPackets.CancelReconnect, ServerHandle.CancelReconnect},
-                {(int) ClientPackets.RequestPlayersStats, ServerHandle.RequestPlayersStats}
+                {(int) ClientPackets.WelcomeReceived, PacketsHandler.WelcomePacketReceived},
+                {(int) ClientPackets.ReadyToSpawn, PacketsHandler.ReadyToSpawnReceived},
+                {(int) ClientPackets.SelectTank, PacketsHandler.ChangeTank},
+                {(int) ClientPackets.PlayerMovement, PacketsHandler.PlayerMovement},
+                {(int) ClientPackets.RotateTurret, PacketsHandler.RotateTurret},
+                {(int) ClientPackets.TryLogin, PacketsHandler.TryLogin},
+                {(int) ClientPackets.TakeDamage, PacketsHandler.TakeDamage},
+                {(int) ClientPackets.InstantiateObject, PacketsHandler.InstantiateObject},
+                {(int) ClientPackets.ShootBullet, PacketsHandler.ShootBullet},
+                {(int) ClientPackets.JoinRoom, PacketsHandler.JoinOrCreateRoom},
+                {(int) ClientPackets.LeaveRoom, PacketsHandler.LeaveRoom},
+                {(int) ClientPackets.CheckAbleToReconnect, PacketsHandler.CheckAbleToReconnect},
+                {(int) ClientPackets.ReconnectRequest, PacketsHandler.Reconnect},
+                {(int) ClientPackets.CancelReconnect, PacketsHandler.CancelReconnect},
+                {(int) ClientPackets.RequestPlayersStats, PacketsHandler.RequestPlayersStats}
             };
             Log.Information("Packets initialized");
         }

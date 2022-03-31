@@ -1,6 +1,8 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -22,6 +24,8 @@ namespace VoxelTanksServer
         public bool CanShoot { get; private set; }
         public bool IsAlive { get; private set; }
 
+        private DateTime _previousMoveTime;
+
         public Player(int id, string? username, Vector3 spawnPosition, Quaternion rotation, Tank tank,
             Room? room)
         {
@@ -29,7 +33,7 @@ namespace VoxelTanksServer
             Username = username;
             Position = spawnPosition;
             Rotation = rotation;
-            SelectedTank = tank;    
+            SelectedTank = tank;
             IsAlive = true;
             ConnectedRoom = room;
 
@@ -38,7 +42,6 @@ namespace VoxelTanksServer
                 Server.Clients[Id].Disconnect("Неизвестный танк");
                 return;
             }
-
 
             Health = tank.MaxHealth;
 
@@ -85,7 +88,7 @@ namespace VoxelTanksServer
             {
                 Task.Run(async () =>
                 {
-                    await Task.Delay((int)(SelectedTank.Cooldown * 1000));
+                    await Task.Delay((int) (SelectedTank.Cooldown * 1000));
                     CanShoot = true;
                     return Task.CompletedTask;
                 });
@@ -103,40 +106,26 @@ namespace VoxelTanksServer
         /// <param name="isForward">Направление движения</param>
         public void Move(Vector3 nextPos, Quaternion rotation, Quaternion barrelRotation, float speed, bool isForward)
         {
-            //Anti-speedhack
-            if (isForward)
-            {
-                if (speed < SelectedTank.MaxSpeed && IsAlive)
-                {
-                    Position = nextPos;
-                }
-                else if (speed > SelectedTank.MaxSpeed + 2)
-                {
-                    Server.Clients[Id].Disconnect("Подозревание в спидкахе");
-                    return;
-                }
-            }
-            else
-            {
-                if (speed < SelectedTank.MaxBackSpeed && IsAlive)
-                {
-                    Position = nextPos;
-                }
-                else if (speed > SelectedTank.MaxBackSpeed + 2)
-                {
-                    Server.Clients[Id].Disconnect("Подозревание в спидхаке");
-                    return;
-                }
-            }
+            if (!IsAlive || CheckAndHandleSpeedHack(speed, nextPos,
+                isForward ? SelectedTank.MaxSpeed : SelectedTank.MaxBackSpeed)) return;
 
-            if (IsAlive)
-            {
-                Rotation = rotation;
-                BarrelRotation = barrelRotation;
-            }
+            Rotation = rotation;
+            BarrelRotation = barrelRotation;
 
             //Отправка данных о позиции и повороте игрока всем игрокам комнаты
             ServerSend.MovePlayer(ConnectedRoom, this);
+        }
+
+        private bool CheckAndHandleSpeedHack(float speed, Vector3 nextPos, float maxSpeed)
+        {
+            if (speed > maxSpeed)
+            {
+                Server.Clients[Id].Disconnect("Подозрение в спидкахе");
+                return true;
+            }
+
+            Position = nextPos;
+            return false;
         }
 
         /// <summary>
@@ -189,12 +178,15 @@ namespace VoxelTanksServer
             //Если все игроки команды мертвы - заканчивать игру
             if (!Team.PlayersAliveCheck())
             {
-                //TODO: End game
+                ServerSend.SendPlayersStats(ConnectedRoom);
+                ServerSend.EndGame(ConnectedRoom);
             }
 
             //Показывать килфид обеим командам
-            ServerSend.ShowKillFeed(Team, Color.Red, enemy.Username, Username, enemy.SelectedTank.Name, SelectedTank.Name);
-            ServerSend.ShowKillFeed(enemy.Team, Color.Lime, enemy.Username, Username, enemy.SelectedTank.Name, SelectedTank.Name);
+            ServerSend.ShowKillFeed(Team, Color.Red, enemy.Username, Username, enemy.SelectedTank.Name,
+                SelectedTank.Name);
+            ServerSend.ShowKillFeed(enemy.Team, Color.Lime, enemy.Username, Username, enemy.SelectedTank.Name,
+                SelectedTank.Name);
         }
 
         /// <summary>

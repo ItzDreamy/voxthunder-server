@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 
 namespace VoxelTanksServer
@@ -387,15 +388,26 @@ namespace VoxelTanksServer
             }
         }
 
+        /// <summary>
+        /// Отправить статистику всех игроков в комнате клиенту
+        /// </summary>
+        /// <param name="room">Комната в которой находятся игроки</param>
         public static void SendPlayersStats(Room room)
         {
             using (Packet packet = new Packet((int)ServerPackets.PlayersStats))
             {
-                packet.Write(room);
+                packet.Write(room.Players.Values.ToList().Where(client => client.Player != null).Select(client => client.Player).ToList());
                 SendTCPDataToRoom(room, packet);
             }
         }
 
+        public static void EndGame(Room room)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.EndGame))
+            {
+                SendTCPDataToRoom(room, packet);
+            }
+        }
         #endregion
     }
 }
