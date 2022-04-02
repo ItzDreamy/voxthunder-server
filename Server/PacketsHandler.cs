@@ -91,15 +91,15 @@ namespace VoxelTanksServer
             }
 
             //TODO: Check owned tanks
-
-            var tank = Server.Tanks.Find(tank => tank.Name.ToLower() == tankName.ToLower());
+            
+            var tank = Server.Tanks.Find(tank => string.Equals(tank.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
             if (tank == null)
             {
                 client.Disconnect("Неизвестный танк");
                 return;
             }
-            //Установка танка
-            client.SelectedTank = tank;
+            
+            ServerSend.SwitchTank(client, tank);
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace VoxelTanksServer
             }
 
             //Создание новой комнаты
-            Room? newRoom = new Room(1);
+            Room? newRoom = new Room(2);
             //Присоединение к комнате
             Server.Clients[fromClient].JoinRoom(newRoom);
 
@@ -323,11 +323,10 @@ namespace VoxelTanksServer
             {
                 client.Disconnect("Игрок не вошел в аккаунт");
             }
-           
+            
             Room? playerRoom = Server.Clients[fromClient].ConnectedRoom;
-            if (playerRoom != null)
+            if (playerRoom is {IsOpen: true})
             {
-                //if (!playerRoom.IsOpen) return;
                 Server.Clients[fromClient].LeaveRoom();
             }
         }

@@ -153,15 +153,57 @@ namespace VoxelTanksServer
                 packet.Write(player.TurretRotation);
                 packet.Write(player.BarrelRotation);
                 packet.Write(player.SelectedTank.Name);
-                packet.Write(player.SelectedTank.Cooldown);
+                
+                SendTCPData(toClient, packet);
+                
+                InitializeTankStats(toClient, player);
+            }
+        }
+
+        public static void InitializeTankStats(int toClient, Player? player)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.InitializeTankStats))
+            {
+                packet.Write(player.Id);
                 packet.Write(!player.CanShoot);
+                packet.Write(player.SelectedTank.Cooldown);
                 packet.Write(player.Health);
                 packet.Write(player.SelectedTank.MaxHealth);
-
+                packet.Write(player.SelectedTank.MaxSpeed);
+                packet.Write(player.SelectedTank.MaxBackSpeed);
+                packet.Write(player.SelectedTank.Acceleration);
+                packet.Write(player.SelectedTank.BackAcceleration);
+                packet.Write(player.SelectedTank.TankRotateSpeed);
+                packet.Write(player.SelectedTank.TowerRotateSpeed);
+                packet.Write(player.SelectedTank.AngleUp);
+                packet.Write(player.SelectedTank.AngleDown);
+                
                 SendTCPData(toClient, packet);
             }
         }
 
+        public static void SwitchTank(Client client, Tank tank)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.SwitchTank))
+            {
+                client.SelectedTank = tank;
+
+                var topHealth = Server.Tanks.Max(t => t.MaxHealth);
+                var topDamage = Server.Tanks.Max(t => t.Damage);
+                var topSpeed = Server.Tanks.Max(t => t.MaxSpeed);
+                
+                packet.Write(tank.Name);
+                packet.Write(tank.MaxHealth);
+                packet.Write(topHealth);
+                packet.Write(tank.Damage);
+                packet.Write(topDamage);
+                packet.Write(tank.MaxSpeed);
+                packet.Write(topSpeed);
+                
+                SendTCPData(client.Id, packet);
+            }
+        }
+        
         /// <summary>
         /// Движение игрока
         /// </summary>

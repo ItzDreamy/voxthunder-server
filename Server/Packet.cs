@@ -26,7 +26,9 @@ namespace VoxelTanksServer
         PlayerReconnected,
         ShowPlayersCountInRoom,
         PlayersStats,
-        EndGame
+        EndGame,
+        InitializeTankStats,
+        SwitchTank
     }
 
     /// <summary>
