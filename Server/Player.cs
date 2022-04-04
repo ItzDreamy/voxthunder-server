@@ -15,7 +15,8 @@ namespace VoxelTanksServer
         public string? Username { get; private set; }
         public Tank SelectedTank { get; private set; }
         public Room? ConnectedRoom { get; private set; }
-        public Vector3 Position { get; private set; }
+        public Vector3 Position { get; set; }
+        public Vector3 Velocity { get; private set; }
         public Quaternion Rotation { get; private set; }
         public Quaternion BarrelRotation { get; private set; }
         public Quaternion TurretRotation { get; private set; }
@@ -24,7 +25,7 @@ namespace VoxelTanksServer
         public bool CanShoot { get; private set; }
         public bool IsAlive { get; private set; }
 
-        private DateTime _previousMoveTime;
+        public DateTime PreviousMoveTime;
 
         public Player(int id, string? username, Vector3 spawnPosition, Quaternion rotation, Tank tank,
             Room? room)
@@ -104,27 +105,23 @@ namespace VoxelTanksServer
         /// <param name="barrelRotation">Следующий поворот дула клиента</param>
         /// <param name="speed">Скорость клиента</param>
         /// <param name="isForward">Направление движения</param>
-        public void Move(Vector3 nextPos, Quaternion rotation, Quaternion barrelRotation, float speed, bool isForward)
+        public void Move(Vector3 velocity, Quaternion rotation, Quaternion barrelRotation, float speed, bool isForward)
         {
-            if (!IsAlive || CheckAndHandleSpeedHack(speed, nextPos,
+            if (!IsAlive || CheckSpeedHack(speed,
                 isForward ? SelectedTank.MaxSpeed : SelectedTank.MaxBackSpeed)) return;
 
             Rotation = rotation;
+            Velocity = velocity;
             BarrelRotation = barrelRotation;
 
             //Отправка данных о позиции и повороте игрока всем игрокам комнаты
             ServerSend.MovePlayer(ConnectedRoom, this);
         }
 
-        private bool CheckAndHandleSpeedHack(float speed, Vector3 nextPos, float maxSpeed)
+        private bool CheckSpeedHack(float speed, float maxSpeed)
         {
-            if (speed > maxSpeed)
-            {
-                Server.Clients[Id].Disconnect("Подозрение в спидкахе");
-                return true;
-            }
-
-            Position = nextPos;
+            if (speed < maxSpeed) return false;
+            //Server.Clients[Id].Disconnect("Подозрение в спидкахе");
             return false;
         }
 

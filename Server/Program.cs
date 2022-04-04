@@ -55,6 +55,13 @@ namespace VoxelTanksServer
                                 Console.WriteLine("Player name: ");
                                 Commands.BanPlayer(Console.ReadLine());
                                 break;
+                            case "stop":
+                                Console.WriteLine("Server stopped...");
+                                Commands.StopServer();
+                                break;
+                            default:
+                                Console.WriteLine("Command doesnt exists");
+                                break;
                         }
 
                     }

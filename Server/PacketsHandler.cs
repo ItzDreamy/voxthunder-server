@@ -115,18 +115,34 @@ namespace VoxelTanksServer
             }
 
             //Чтение данных о позиции, повороте, скорости, направлении
-            Vector3 playerPosition = packet.ReadVector3();
+            Vector3 playerVelocity = packet.ReadVector3();
             Quaternion playerRotation = packet.ReadQuaternion();
             Quaternion barrelRotation = packet.ReadQuaternion();
             bool isForward = packet.ReadBool();
-            float speed = packet.ReadFloat();
 
             Player? player = Server.Clients[fromClient].Player;
-            if (player != null)
+            //Движение
+            player?.Move(playerVelocity, playerRotation, barrelRotation,  (float) Math.Sqrt((double) playerVelocity.X * (double) playerVelocity.X + (double) playerVelocity.Y * (double) playerVelocity.Y + (double) playerVelocity.Z * (double) playerVelocity.Z), isForward);
+        }
+        
+        public static void SetPlayerPosition(int fromClient, Packet packet)
+        {
+            if (!Server.Clients[fromClient].IsAuth)
             {
-                //Движение
-                player.Move(playerPosition, playerRotation, barrelRotation, speed, isForward);
+                Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
+                return;
             }
+
+            Vector3 position = packet.ReadVector3();
+            
+            Player? player = Server.Clients[fromClient].Player;
+            if (player == null)
+            {
+                return;
+            }
+            player.Position = position + player.Velocity * ((float) (DateTime.Now - player.PreviousMoveTime).Milliseconds / 1000);
+            
+            ServerSend.SendPlayerPosition(player.ConnectedRoom, player);
         }
 
         /// <summary>
@@ -435,5 +451,7 @@ namespace VoxelTanksServer
 
             ServerSend.SendPlayersStats(room);
         }
+
+        
     }
 }

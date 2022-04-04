@@ -13,6 +13,7 @@ namespace VoxelTanksServer
         Welcome = 1,
         SpawnPlayer,
         PlayerMovement,
+        PlayerPosition,
         RotateTurret,
         LoginResult,
         PlayerDisconnected,
@@ -47,6 +48,7 @@ namespace VoxelTanksServer
     {
         WelcomeReceived = 1,
         PlayerMovement,
+        PlayerPosition,
         RotateTurret,
         ReadyToSpawn,
         SelectTank,
@@ -267,6 +269,17 @@ namespace VoxelTanksServer
                 Write(player.SelectedTank.Name);
                 Write(player.IsAlive ? "Alive" : "Dead");
             }
+        }
+
+        public void Write(DateTime timestamp)
+        {
+            Write(timestamp.Year);
+            Write(timestamp.Month);
+            Write(timestamp.Day);
+            Write(timestamp.Hour);
+            Write(timestamp.Minute);
+            Write(timestamp.Second);
+            Write(timestamp.Millisecond);
         }
 
         #endregion

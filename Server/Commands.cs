@@ -12,32 +12,37 @@ namespace VoxelTanksServer
 
         public static void KickPlayer(string nickname)
         {
-            var client = Server.Clients.Values.ToList().Find(c => c?.Username?.ToLower() == nickname.ToLower());
-
-            if (CheckPlayerForExist(client))
+            if (TryGetClient(nickname, out var client))
             {
-                client.Disconnect("User banned");
+                client.Disconnect("User kicked");
             }
         }
 
         public static void BanPlayer(string nickname)
         {
-            var client = Server.Clients.Values.ToList().Find(c => c?.Username?.ToLower() == nickname.ToLower());
-
-            if (CheckPlayerForExist(client))
+            if (TryGetClient(nickname, out var client))
             {
                 client.Disconnect("User banned");
             }
         }
 
-        private static bool CheckPlayerForExist(Client client)
+        public static void StopServer()
         {
-            if (client == null)
+            Environment.Exit(0);
+        }
+
+        private static bool TryGetClient(string username, out Client client)
+        {
+            var foundedClient = Server.Clients.Values.ToList().Find(c => c?.Username?.ToLower() == username.ToLower());
+            
+            if (foundedClient == null)
             {
                 Console.WriteLine("Player not found");
+                client = null;
                 return false;
             }
 
+            client = foundedClient;
             return true;
         }
     }

@@ -95,7 +95,7 @@ namespace VoxelTanksServer
 
                 _receivedData.SetBytes(data);
 
-                //Считывать id пакета, если id < 0, то сбрасывать пакет 
+                //Считывать id пакета, если длина пакета <= 0, то сбрасывать пакет 
                 if (_receivedData.UnreadLength() >= 4)
                 {
                     packetLength = _receivedData.ReadInt();
@@ -116,7 +116,8 @@ namespace VoxelTanksServer
                         using (Packet packet = new(packetBytes))
                         {
                             int packetId = packet.ReadInt();
-                            Server.PacketHandlers[packetId](_id, packet);
+                            if(Server.PacketHandlers.ContainsKey(packetId))
+                                Server.PacketHandlers[packetId](_id, packet);
                         }
                     });
 
@@ -162,7 +163,7 @@ namespace VoxelTanksServer
             {
                 try
                 {
-                    if (_stream != null)
+                    if (_stream is {CanRead: true})
                     {
                         int byteLength = _stream.EndRead(result);
                         //Если данные пустые, то отключать клиент от сервера
@@ -248,10 +249,10 @@ namespace VoxelTanksServer
         /// <param name="reason">Причина отключения</param>
         public void Disconnect(string reason)
         {
-            if (Tcp.Socket == null)
+            if (Tcp?.Socket == null)
                 return;
 
-            Log.Information($"{Tcp.Socket?.Client.RemoteEndPoint} отключился. Причина: {reason}");
+            Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. Причина: {reason}");
             ServerSend.PlayerDisconnected(Id, ConnectedRoom);
 
             //Кешировать игрока и покидать комнату, если он находился в ней

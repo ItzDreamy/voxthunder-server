@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -214,14 +215,27 @@ namespace VoxelTanksServer
             using (Packet packet = new((int) ServerPackets.PlayerMovement))
             {
                 packet.Write(player.Id);
-                packet.Write(player.Position);
+                packet.Write(player.Velocity);
                 packet.Write(player.Rotation);
                 packet.Write(player.BarrelRotation);
+                packet.Write(DateTime.Now);
 
                 SendTCPDataToRoom(room, packet);
             }
         }
 
+        public static void SendPlayerPosition(Room? room, Player player)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.PlayerPosition))
+            {
+                packet.Write(player.Id);
+                packet.Write(player.Position);
+                packet.Write(DateTime.Now);
+                
+                SendTCPDataToRoom(room, packet);
+            }
+        }
+        
         /// <summary>
         /// Поворот башни
         /// </summary>
