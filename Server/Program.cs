@@ -59,6 +59,9 @@ namespace VoxelTanksServer
                                 Console.WriteLine("Server stopped...");
                                 Commands.StopServer();
                                 break;
+                            case "info":
+                                //инфа о сервере
+                                break;
                             default:
                                 Console.WriteLine("Command doesnt exists");
                                 break;
