@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Serilog;
@@ -10,6 +11,15 @@ namespace VoxelTanksServer
     public static class Program
     {
         private static bool _isRunning;
+        
+        private static readonly Dictionary<string, Action> Commands = new()
+        {
+            {"online", VoxelTanksServer.Commands.ShowOnline},
+            {"kick", VoxelTanksServer.Commands.KickPlayer},
+            {"ban", VoxelTanksServer.Commands.BanPlayer},
+            {"stop", VoxelTanksServer.Commands.StopServer},
+            {"info", VoxelTanksServer.Commands.ShowInfo}
+        };
 
         public static void Main(string[] args)
         {
@@ -40,33 +50,15 @@ namespace VoxelTanksServer
                 {
                     while (_isRunning)
                     {
-                        string? command = Console.ReadLine();
-                        
-                        switch (command)
+                        string? command = Console.ReadLine()?.ToLower();
+                        if (Commands.ContainsKey(command))
                         {
-                            case "online":
-                                Commands.ShowOnline();
-                                break;
-                            case "kick":
-                                Console.WriteLine("Player name: ");
-                                Commands.KickPlayer(Console.ReadLine());
-                                break;
-                            case "ban":
-                                Console.WriteLine("Player name: ");
-                                Commands.BanPlayer(Console.ReadLine());
-                                break;
-                            case "stop":
-                                Console.WriteLine("Server stopped...");
-                                Commands.StopServer();
-                                break;
-                            case "info":
-                                //инфа о сервере
-                                break;
-                            default:
-                                Console.WriteLine("Command doesnt exists");
-                                break;
+                            Commands[command]();
                         }
-
+                        else
+                        {
+                            Console.WriteLine("Command doesnt exists");
+                        }
                     }
                 });
                 commandsThread.Start();

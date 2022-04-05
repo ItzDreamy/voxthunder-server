@@ -12,16 +12,18 @@ namespace VoxelTanksServer
             Console.WriteLine($"Current online: {Server.OnlinePlayers} / {Server.MaxPlayers}");
         }
 
-        public static void KickPlayer(string nickname)
+        public static void KickPlayer()
         {
+            string nickname = Console.ReadLine();
             if (TryGetClient(nickname, out var client))
             {
                 client.Disconnect("User kicked");
             }
         }
 
-        public static void BanPlayer(string nickname)
+        public static void BanPlayer()
         {
+            string nickname = Console.ReadLine();
             if (TryGetClient(nickname, out var client))
             {
                 client.Disconnect("User banned");
@@ -33,6 +35,11 @@ namespace VoxelTanksServer
             Environment.Exit(0);
         }
 
+        public static void ShowInfo()
+        {
+            //Info
+        }
+        
         private static bool TryGetClient(string username, out Client client)
         {
             client = Server.Clients.Values.ToList().Find(c => c?.Username?.ToLower() == username.ToLower());
