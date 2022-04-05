@@ -135,6 +135,7 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.SelectTank, PacketsHandler.ChangeTank},
                 {(int) ClientPackets.PlayerMovement, PacketsHandler.PlayerMovement},
                 {(int) ClientPackets.PlayerPosition, PacketsHandler.SetPlayerPosition},
+                {(int) ClientPackets.PlayerInput, PacketsHandler.GetPlayerInput},
                 {(int) ClientPackets.RotateTurret, PacketsHandler.RotateTurret},
                 {(int) ClientPackets.TryLogin, PacketsHandler.TryLogin},
                 {(int) ClientPackets.TakeDamage, PacketsHandler.TakeDamage},

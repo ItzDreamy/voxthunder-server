@@ -134,15 +134,37 @@ namespace VoxelTanksServer
             }
 
             Vector3 position = packet.ReadVector3();
+            Quaternion rotation = packet.ReadQuaternion();
             
             Player? player = Server.Clients[fromClient].Player;
             if (player == null)
             {
                 return;
             }
-            player.Position = position + player.Velocity * ((float) (DateTime.Now - player.PreviousMoveTime).Milliseconds / 1000);
-            
+            player.Position = position;
+            player.Rotation = rotation;
             ServerSend.SendPlayerPosition(player.ConnectedRoom, player);
+        }
+
+        public static void GetPlayerInput(int fromClient, Packet packet)
+        {
+            if (!Server.Clients[fromClient].IsAuth)
+            {
+                Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
+                return;
+            }
+
+            var client = Server.Clients[fromClient];
+            if (client?.ConnectedRoom == null)
+            {
+                return;
+            }
+            
+            bool accelerate = packet.ReadBool();
+            bool brake = packet.ReadBool();
+            float turn = packet.ReadFloat();
+            
+            ServerSend.SendInput(client?.ConnectedRoom, client.Id, accelerate, brake, turn);
         }
 
         /// <summary>
@@ -158,13 +180,15 @@ namespace VoxelTanksServer
                 client.Disconnect("Игрок не вошел в аккаунт");
             }
 
-            //Чтение поворота башни
+            //Чтение поворота башни и ствола
             Quaternion turretRotation = packet.ReadQuaternion();
+            Quaternion barrelRotation = packet.ReadQuaternion();
+            
             Player? player = Server.Clients[fromClient].Player;
             if (player != null)
             {
-                //Поворот башни
-                player.RotateTurret(turretRotation);
+                //Поворот башни и ствола
+                player.RotateTurret(turretRotation, barrelRotation);
             }
         }
 

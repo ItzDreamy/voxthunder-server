@@ -230,7 +230,8 @@ namespace VoxelTanksServer
             {
                 packet.Write(player.Id);
                 packet.Write(player.Position);
-                packet.Write(DateTime.Now);
+                packet.Write(player.Rotation);
+                //packet.Write(DateTime.Now);
                 
                 SendTCPDataToRoom(room, packet);
             }
@@ -246,6 +247,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(player.Id);
                 packet.Write(player.TurretRotation);
+                packet.Write(player.BarrelRotation);
 
                 SendTCPDataToRoom(player.ConnectedRoom, player.Id, packet);
             }
@@ -461,6 +463,19 @@ namespace VoxelTanksServer
         {
             using (Packet packet = new Packet((int) ServerPackets.EndGame))
             {
+                SendTCPDataToRoom(room, packet);
+            }
+        }
+        
+        public static void SendInput(Room room, int playerId, bool accelerate, bool brake, float turn)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.PlayerInput))
+            {
+                packet.Write(playerId);
+                packet.Write(accelerate);
+                packet.Write(brake);
+                packet.Write(turn);
+                
                 SendTCPDataToRoom(room, packet);
             }
         }

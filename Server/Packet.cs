@@ -14,6 +14,7 @@ namespace VoxelTanksServer
         SpawnPlayer,
         PlayerMovement,
         PlayerPosition,
+        PlayerInput,
         RotateTurret,
         LoginResult,
         PlayerDisconnected,
@@ -38,9 +39,9 @@ namespace VoxelTanksServer
     public enum ServerApiPackets
     {
         SendPlayersCount = 1,
+        Ping,
         SendServerState,
-        Welcome,
-        Ping
+        Welcome
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -49,6 +50,7 @@ namespace VoxelTanksServer
         WelcomeReceived = 1,
         PlayerMovement,
         PlayerPosition,
+        PlayerInput,
         RotateTurret,
         ReadyToSpawn,
         SelectTank,

@@ -17,7 +17,7 @@ namespace VoxelTanksServer
         public Room? ConnectedRoom { get; private set; }
         public Vector3 Position { get; set; }
         public Vector3 Velocity { get; private set; }
-        public Quaternion Rotation { get; private set; }
+        public Quaternion Rotation { get; set; }
         public Quaternion BarrelRotation { get; private set; }
         public Quaternion TurretRotation { get; private set; }
         public int Health { get; private set; }
@@ -129,10 +129,13 @@ namespace VoxelTanksServer
         /// Поворот башни
         /// </summary>
         /// <param name="turretRotation"></param>
-        public void RotateTurret(Quaternion turretRotation)
+        public void RotateTurret(Quaternion turretRotation, Quaternion barrelRotation)
         {
             if (IsAlive)
+            {
                 TurretRotation = turretRotation;
+                BarrelRotation = barrelRotation;
+            }
             //Отправка данных о повороте башни игрока всем игрокам комнаты
             ServerSend.RotateTurret(this);
         }
