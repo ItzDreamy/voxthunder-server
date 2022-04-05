@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Data;
-using System.Linq;
 using System.Numerics;
-using MySql.Data.MySqlClient;
 using Serilog;
 
 namespace VoxelTanksServer
@@ -51,9 +48,9 @@ namespace VoxelTanksServer
             //Если все игроки готовы - спавн игроков
             if (CheckPlayersReady(player.ConnectedRoom))
             {
-                foreach(Client client in player.ConnectedRoom.Players.Values)
+                foreach(var client in player.ConnectedRoom.Players.Values)
                 {
-                    client.SendIntoGame(client.Username, client.SelectedTank);
+                    client?.SendIntoGame(client.Username, client.SelectedTank);
                 }
             }
         }
@@ -288,10 +285,11 @@ namespace VoxelTanksServer
                     calculatedDamage = hitPlayer.Health;
                 }
 
-                //Нанесение урона
-                hitPlayer.TakeDamage(calculatedDamage, enemy);
                 //Подсчет суммарного урона врага
                 enemy.TotalDamage += calculatedDamage;
+                
+                //Нанесение урона
+                hitPlayer.TakeDamage(calculatedDamage, enemy);
                 
                 if (hitPlayer.Health > 0)
                 {

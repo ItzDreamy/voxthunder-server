@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -175,18 +174,26 @@ namespace VoxelTanksServer
 
             ServerSend.PlayerDead(Id);
 
+            foreach (var team in ConnectedRoom.Teams)
+            {
+                ServerSend.ShowKillFeed(team, team == Team ? Color.Red : Color.Lime, enemy.Username, Username, enemy.SelectedTank.Name,
+                    SelectedTank.Name);
+            }
+            
             //Если все игроки команды мертвы - заканчивать игру
             if (!Team.PlayersAliveCheck())
             {
-                ServerSend.SendPlayersStats(ConnectedRoom);
-                ServerSend.EndGame(ConnectedRoom);
+                Task.Run(async () =>
+                {
+                    await Task.Delay(3000);
+                    ServerSend.SendPlayersStats(ConnectedRoom);
+                
+                    foreach (var team in ConnectedRoom.Teams)
+                    {
+                        ServerSend.EndGame(team, team != Team, false);
+                    }
+                });
             }
-
-            //Показывать килфид обеим командам
-            ServerSend.ShowKillFeed(Team, Color.Red, enemy.Username, Username, enemy.SelectedTank.Name,
-                SelectedTank.Name);
-            ServerSend.ShowKillFeed(enemy.Team, Color.Lime, enemy.Username, Username, enemy.SelectedTank.Name,
-                SelectedTank.Name);
         }
 
         /// <summary>

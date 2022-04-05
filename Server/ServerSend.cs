@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -459,11 +458,13 @@ namespace VoxelTanksServer
             }
         }
 
-        public static void EndGame(Room room)
+        public static void EndGame(Team team, bool isWinner, bool isDraw)
         {
             using (Packet packet = new Packet((int) ServerPackets.EndGame))
             {
-                SendTCPDataToRoom(room, packet);
+                packet.Write(isWinner);
+                packet.Write(isDraw);
+                SendTCPDataToTeam(team, packet);
             }
         }
         

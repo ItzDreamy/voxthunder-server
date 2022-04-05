@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using Serilog;
 using VoxelTanksServer.API;
+using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoxelTanksServer
@@ -11,14 +12,14 @@ namespace VoxelTanksServer
     public static class Program
     {
         private static bool _isRunning;
-        
-        private static readonly Dictionary<string, Action> Commands = new()
+
+        private static readonly Dictionary<string, Action> ServerCommands = new()
         {
-            {"online", VoxelTanksServer.Commands.ShowOnline},
-            {"kick", VoxelTanksServer.Commands.KickPlayer},
-            {"ban", VoxelTanksServer.Commands.BanPlayer},
-            {"stop", VoxelTanksServer.Commands.StopServer},
-            {"info", VoxelTanksServer.Commands.ShowInfo}
+            {"online", Commands.ShowOnline},
+            {"kick", Commands.KickPlayer},
+            {"ban", Commands.BanPlayer},
+            {"stop", Commands.StopServer},
+            {"info", Commands.ShowInfo}
         };
 
         public static void Main(string[] args)
@@ -35,7 +36,7 @@ namespace VoxelTanksServer
                     .CreateLogger();
 
                 //Чтение конфига
-                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
                 var config = deserializer.Deserialize<Config>(File.ReadAllText("Configs/config.yml"));
@@ -43,17 +44,17 @@ namespace VoxelTanksServer
                 _isRunning = true;
 
                 //Запуск основного потока сервера
-                Thread mainThread = new(new ThreadStart(MainThread));
+                Thread mainThread = new(MainThread);
 
                 //Запуск потока для выполнения консольных команд
                 Thread commandsThread = new(() =>
                 {
                     while (_isRunning)
                     {
-                        string? command = Console.ReadLine()?.ToLower();
-                        if (Commands.ContainsKey(command))
+                        var command = Console.ReadLine()?.ToLower();
+                        if (command != null && ServerCommands.ContainsKey(command))
                         {
-                            Commands[command]();
+                            ServerCommands[command]();
                         }
                         else
                         {
@@ -63,7 +64,7 @@ namespace VoxelTanksServer
                 });
                 commandsThread.Start();
                 mainThread.Start();
-                
+
                 //Запуск сервера + апи
                 Server.Start(config.MaxPlayers, config.ServerPort);
                 ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
@@ -76,7 +77,6 @@ namespace VoxelTanksServer
                 Console.ReadLine();
             }
         }
-
 
         /// <summary>
         /// Обновление сервера
@@ -94,7 +94,7 @@ namespace VoxelTanksServer
 
                     nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
 
-                    if (nextLoop > DateTime.Now)
+                    if (nextLoop > DateTime.Now && nextLoop - DateTime.Now >= TimeSpan.Zero)
                     {
                         Thread.Sleep(nextLoop - DateTime.Now);
                     }

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Linq;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoxelTanksServer
 {
-    public class Commands
+    public static class Commands
     {
-
         public static void ShowOnline()
         {
             Console.WriteLine($"Current online: {Server.OnlinePlayers} / {Server.MaxPlayers}");
@@ -14,7 +12,8 @@ namespace VoxelTanksServer
 
         public static void KickPlayer()
         {
-            string nickname = Console.ReadLine();
+            Console.Write("Player name: ");
+            var nickname = Console.ReadLine();
             if (TryGetClient(nickname, out var client))
             {
                 client.Disconnect("User kicked");
@@ -23,7 +22,8 @@ namespace VoxelTanksServer
 
         public static void BanPlayer()
         {
-            string nickname = Console.ReadLine();
+            Console.Write("Player name: ");
+            var nickname = Console.ReadLine();
             if (TryGetClient(nickname, out var client))
             {
                 client.Disconnect("User banned");
@@ -40,10 +40,10 @@ namespace VoxelTanksServer
             //Info
         }
         
-        private static bool TryGetClient(string username, out Client client)
+        private static bool TryGetClient(string? username, out Client client)
         {
             client = Server.Clients.Values.ToList().Find(c => c?.Username?.ToLower() == username.ToLower());
-            Console.Write(client == null ? "Player not found" : null);
+            Console.Write(client == null ? "Player not found\n" : null);
             return client != null;
         }
     }
