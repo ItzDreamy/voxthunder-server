@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -178,7 +179,7 @@ namespace VoxelTanksServer
             }
             
             //Если все игроки команды мертвы - заканчивать игру
-            if (!Team.PlayersAliveCheck())
+            if (Team.PlayersDeadCheck() && !ConnectedRoom.GameEnded)
             {
                 ConnectedRoom.GameEnded = true;
                 Task.Run(async () =>

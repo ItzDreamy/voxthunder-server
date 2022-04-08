@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace VoxelTanksServer
 {
@@ -8,33 +9,25 @@ namespace VoxelTanksServer
     public class Team
     {
         //Все игроки команды
-        public List<Client?> Players = new();
+        public readonly List<Client?> Players = new();
         //Спавнпоинты команды
-        public List<SpawnPoint> SpawnPoints;
+        public readonly List<SpawnPoint> SpawnPoints;
         //ID команды
-        public byte ID;
+        public readonly byte Id;
         
         public Team(byte id, List<SpawnPoint> spawnPoints)
         {
-            ID = id;
+            Id = id;
             SpawnPoints = spawnPoints;
         }
 
         /// <summary>
-        /// Проверка: жива ли команда
+        /// Проверка: мертва ли команда
         /// </summary>
-        /// <returns>Жива ли команда</returns>
-        public bool PlayersAliveCheck() 
+        /// <returns>Мертва ли команда</returns>
+        public bool PlayersDeadCheck()
         {
-            foreach (var client in Players)
-            {
-                if (!client.Player.IsAlive)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return Players.All(client => client?.Player is not {IsAlive: true});
         }
     }
 }

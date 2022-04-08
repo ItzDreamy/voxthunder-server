@@ -53,6 +53,7 @@ namespace VoxelTanksServer
                 {
                     client?.SendIntoGame(client.Username, client.SelectedTank);
                 }
+                player.ConnectedRoom.StartTimer(Server.Timers.Preparative, player.ConnectedRoom.PreparationTime);
             }
         }
 
@@ -99,35 +100,19 @@ namespace VoxelTanksServer
             
             ServerSend.SwitchTank(client, tank);
         }
-
-        /// <summary>
-        /// Движение игрока
-        /// </summary>
-        /// <param name="fromClient"></param>
-        /// <param name="packet"></param>
-        public static void PlayerMovement(int fromClient, Packet packet)
-        {
-            if (!Server.Clients[fromClient].IsAuth)
-            {
-                Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
-            }
-
-            //Чтение данных о позиции, повороте, скорости, направлении
-            Vector3 playerVelocity = packet.ReadVector3();
-            Quaternion playerRotation = packet.ReadQuaternion();
-            Quaternion barrelRotation = packet.ReadQuaternion();
-            bool isForward = packet.ReadBool();
-
-            Player? player = Server.Clients[fromClient].Player;
-            //Движение
-            player?.Move(playerVelocity, playerRotation, barrelRotation,  (float) Math.Sqrt((double) playerVelocity.X * (double) playerVelocity.X + (double) playerVelocity.Y * (double) playerVelocity.Y + (double) playerVelocity.Z * (double) playerVelocity.Z), isForward);
-        }
         
         public static void SetPlayerPosition(int fromClient, Packet packet)
         {
             if (!Server.Clients[fromClient].IsAuth)
             {
                 Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
+                return;
+            }
+
+            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
+            if (connectedRoom is {PlayersLocked: true})
+            {
+                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента");
                 return;
             }
 
@@ -141,7 +126,7 @@ namespace VoxelTanksServer
             }
             player.Position = position;
             player.Rotation = rotation;
-            ServerSend.SendPlayerPosition(player.ConnectedRoom, player);
+            ServerSend.SendPlayerPosition(connectedRoom, player);
         }
 
         public static void GetPlayerInput(int fromClient, Packet packet)
@@ -151,6 +136,14 @@ namespace VoxelTanksServer
                 Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
                 return;
             }
+            
+            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
+            if (connectedRoom is {PlayersLocked: true})
+            {
+                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Инпут)");
+                return;
+            }
+            
 
             var client = Server.Clients[fromClient];
             if (client?.ConnectedRoom == null)
@@ -178,6 +171,13 @@ namespace VoxelTanksServer
                 client.Disconnect("Игрок не вошел в аккаунт");
             }
 
+            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
+            if (connectedRoom is {PlayersLocked: true})
+            {
+                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Поворот башни)");
+                return;
+            }
+            
             //Чтение поворота башни и ствола
             Quaternion turretRotation = packet.ReadQuaternion();
             Quaternion barrelRotation = packet.ReadQuaternion();
@@ -241,6 +241,13 @@ namespace VoxelTanksServer
                 client.Disconnect("Игрок не вошел в аккаунт");
             }
 
+            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
+            if (connectedRoom is {PlayersLocked: true})
+            {
+                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента. (Стрельба)");
+                return;
+            }
+            
             //Чтение данных префаба
             string? name = packet.ReadString();
             string? particlePrefab = packet.ReadString();
@@ -277,7 +284,7 @@ namespace VoxelTanksServer
             Player? enemy = Server.Clients[enemyId].Player;
             Player? hitPlayer = Server.Clients[fromClient].Player;
             
-            if (enemy != null && hitPlayer != null && enemy.Team.ID != hitPlayer.Team.ID)
+            if (enemy != null && hitPlayer != null && enemy.Team.Id != hitPlayer.Team.Id)
             {
                 //Высчитывание урона
                 int damage = enemy.SelectedTank.Damage;
@@ -346,7 +353,7 @@ namespace VoxelTanksServer
             }
 
             //Создание новой комнаты
-            Room? newRoom = new Room(2);
+            Room? newRoom = new Room(1, 10000, 15000);
             //Присоединение к комнате
             Server.Clients[fromClient].JoinRoom(newRoom);
 

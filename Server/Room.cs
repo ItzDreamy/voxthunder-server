@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace VoxelTanksServer
 {
@@ -12,6 +13,11 @@ namespace VoxelTanksServer
         public bool GameEnded = false;
         
         public bool IsOpen = true;
+
+        public bool PlayersLocked = true;
+
+        public int PreparationTime { get; }
+
         public int MaxPlayers { get; private set; }
         public List<Team?> Teams { get; private set; }
         public readonly Map Map;
@@ -21,12 +27,24 @@ namespace VoxelTanksServer
 
         public readonly List<CachedPlayer?> CachedPlayers = new();
 
-        private int _playersPerTeam;
+        private readonly int _playersPerTeam;
 
-        public Room(int maxPlayers)
+        private int _currentTime;
+
+        private int _generalTime;
+
+        /// <summary>
+        /// Создание новой комнаты
+        /// </summary>
+        /// <param name="maxPlayers">Кол-во игроков в комнате</param>
+        /// <param name="generalTime">Основное время в игре (в миллисекундах)</param>
+        /// <param name="preparativeTime">Подготовительное время (в миллисекундах)</param>
+        public Room(int maxPlayers, int generalTime, int preparativeTime)
         {
             MaxPlayers = maxPlayers;
             _playersPerTeam = 1;
+            _generalTime = generalTime;
+            PreparationTime = preparativeTime;
 
             //Выбор случайной карты
             Map = Server.Maps[new Random().Next(Server.Maps.Count)];
@@ -59,7 +77,7 @@ namespace VoxelTanksServer
                 do
                 {
                     randomTeam = new Random().Next(1, 3);
-                    playerTeam = Teams.Find(team => team != null && team.ID == randomTeam);
+                    playerTeam = Teams.Find(team => team != null && team.Id == randomTeam);
                 } while (playerTeam != null && playerTeam.Players.Count == _playersPerTeam);
                 
                 playerTeam?.Players.Add(client);
@@ -76,6 +94,47 @@ namespace VoxelTanksServer
             }
             //Запуск игры
             ServerSend.LoadScene(this, Map.Name);
+        }
+
+        public void StartTimer(Server.Timers type, int time)
+        {
+            _currentTime = time;
+            Task.Run(async () =>
+            {
+                while (_currentTime > 0 && !GameEnded)
+                {
+                    _currentTime -= 1000;
+                    ServerSend.SendTimer(this, _currentTime, type == Server.Timers.General);
+                    await Task.Delay(1000);
+                }
+                
+                if (type == Server.Timers.General)
+                {
+                    if (!GameEnded)
+                    {
+                        GameEnded = true;
+                
+                        ServerSend.SendPlayersStats(this);
+                
+                        foreach (var team in Teams)
+                        {
+                            ServerSend.EndGame(team, false, true);
+                        }
+                    
+                        foreach (var player in Players.Values)
+                        {
+                            player?.LeaveRoom();
+                        }
+                    }
+                }
+                else
+                {
+                    StartTimer(Server.Timers.General, _generalTime);
+                    Console.WriteLine("Players unlocked");
+                    ServerSend.UnlockPlayers(this);
+                    PlayersLocked = false;
+                }
+            });
         }
     }
 }

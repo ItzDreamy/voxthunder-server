@@ -147,7 +147,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(player.ConnectedRoom.PlayersCount);
                 packet.Write(player.Id);
-                packet.Write(player.Team.ID);
+                packet.Write(player.Team.Id);
                 packet.Write(player.Username);
                 packet.Write(player.Position);
                 packet.Write(player.Rotation);
@@ -480,6 +480,24 @@ namespace VoxelTanksServer
             {
                 packet.Write("Lobby");
                 SendTCPData(toClient, packet);
+            }
+        }
+        
+        public static void SendTimer(Room room, int time, bool isGeneral)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.Timer))
+            {
+                packet.Write(time);
+                packet.Write(isGeneral);
+                SendTCPDataToRoom(room, packet);
+            }
+        }
+        
+        public static void UnlockPlayers(Room room)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.UnlockPlayers))
+            {
+                SendTCPDataToRoom(room, packet);
             }
         }
         

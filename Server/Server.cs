@@ -12,6 +12,12 @@ namespace VoxelTanksServer
     {
         public static bool IsOnline = false;
         
+        public enum Timers
+        {
+            Preparative,
+            General
+        }
+        
         public static int OnlinePlayers 
         {   
             //Возвращает кол-во онлайн игроков на сервере

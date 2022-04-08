@@ -30,7 +30,9 @@ namespace VoxelTanksServer
         InitializeTankStats,
         SwitchTank,
         LeaveToLobby,
-        TakeDamageOtherPlayer
+        TakeDamageOtherPlayer,
+        Timer,
+        UnlockPlayers
     }
 
     /// <summary>
