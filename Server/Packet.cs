@@ -11,7 +11,6 @@ namespace VoxelTanksServer
     {
         Welcome = 1,
         SpawnPlayer,
-        PlayerMovement,
         PlayerPosition,
         PlayerInput,
         RotateTurret,
@@ -29,7 +28,9 @@ namespace VoxelTanksServer
         PlayersStats,
         EndGame,
         InitializeTankStats,
-        SwitchTank
+        SwitchTank,
+        LeaveToLobby,
+        TakeDamageOtherPlayer
     }
 
     /// <summary>
@@ -47,8 +48,7 @@ namespace VoxelTanksServer
     public enum ClientPackets
     {
         WelcomeReceived = 1,
-        PlayerMovement,
-        PlayerPosition,
+        PlayerPositionAndRotation,
         PlayerInput,
         RotateTurret,
         ReadyToSpawn,
@@ -62,7 +62,8 @@ namespace VoxelTanksServer
         CheckAbleToReconnect,
         ReconnectRequest,
         CancelReconnect,
-        RequestPlayersStats
+        RequestPlayersStats,
+        LeaveToLobby
     }
 
     /// <summary>
@@ -73,6 +74,7 @@ namespace VoxelTanksServer
         GetPlayersCount = 1,
         GetServerState
     }
+
 
     public class Packet : IDisposable
     {

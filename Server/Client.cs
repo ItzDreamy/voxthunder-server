@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
@@ -223,23 +224,14 @@ namespace VoxelTanksServer
             Player.Team = Team;
 
             //Спавн остальных игроков в комнате для данного клиента
-            foreach (var client in ConnectedRoom.Players.Values)
+            foreach (var client in ConnectedRoom.Players.Values.Where(client => client.Player != null).Where(client => client.Id != Id))
             {
-                if (client.Player != null)
-                {
-                    if (client.Id != Id)
-                    {
-                        ServerSend.SpawnPlayer(Id, client.Player);
-                    }
-                }
+                ServerSend.SpawnPlayer(Id, client.Player);
             }
             //Спавн клиента в комнате для других игроков
-            foreach (var client in ConnectedRoom.Players.Values)
+            foreach (var client in ConnectedRoom.Players.Values.Where(client => client.Player != null))
             {
-                if(client.Player != null)
-                {
-                    ServerSend.SpawnPlayer(client.Id, Player);
-                }
+                ServerSend.SpawnPlayer(client.Id, Player);
             }
         }
 
@@ -316,11 +308,18 @@ namespace VoxelTanksServer
             }
 
             //Вызов события
-            OnLeftRoom?.Invoke(ConnectedRoom);
+            if (ConnectedRoom != null)
+            {
+                OnLeftRoom?.Invoke(ConnectedRoom);
+            }
 
             //Сброс комнаты и команды у клиента
             ConnectedRoom = null;
             Team = null;
+            Player = null;
+            Position = Vector3.Zero;
+            Rotation = Quaternion.Identity;
+            ReadyToSpawn = false;
         }
     }
 }

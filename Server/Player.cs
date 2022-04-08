@@ -112,9 +112,6 @@ namespace VoxelTanksServer
             Rotation = rotation;
             Velocity = velocity;
             BarrelRotation = barrelRotation;
-
-            //Отправка данных о позиции и повороте игрока всем игрокам комнаты
-            ServerSend.MovePlayer(ConnectedRoom, this);
         }
 
         private bool CheckSpeedHack(float speed, float maxSpeed)
@@ -183,6 +180,7 @@ namespace VoxelTanksServer
             //Если все игроки команды мертвы - заканчивать игру
             if (!Team.PlayersAliveCheck())
             {
+                ConnectedRoom.GameEnded = true;
                 Task.Run(async () =>
                 {
                     await Task.Delay(3000);
@@ -191,6 +189,11 @@ namespace VoxelTanksServer
                     foreach (var team in ConnectedRoom.Teams)
                     {
                         ServerSend.EndGame(team, team != Team, false);
+                    }
+
+                    foreach (var player in ConnectedRoom.Players.Values)
+                    {
+                        player?.LeaveRoom();
                     }
                 });
             }
@@ -224,7 +227,7 @@ namespace VoxelTanksServer
         }
 
         /// <summary>
-        /// Кеширование игрока память комнаты
+        /// Кеширование игрока в память комнаты
         /// </summary>
         /// <returns></returns>
         public CachedPlayer? CachePlayer()

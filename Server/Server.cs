@@ -133,8 +133,7 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.WelcomeReceived, PacketsHandler.WelcomePacketReceived},
                 {(int) ClientPackets.ReadyToSpawn, PacketsHandler.ReadyToSpawnReceived},
                 {(int) ClientPackets.SelectTank, PacketsHandler.ChangeTank},
-                {(int) ClientPackets.PlayerMovement, PacketsHandler.PlayerMovement},
-                {(int) ClientPackets.PlayerPosition, PacketsHandler.SetPlayerPosition},
+                {(int) ClientPackets.PlayerPositionAndRotation, PacketsHandler.SetPlayerPosition},
                 {(int) ClientPackets.PlayerInput, PacketsHandler.GetPlayerInput},
                 {(int) ClientPackets.RotateTurret, PacketsHandler.RotateTurret},
                 {(int) ClientPackets.TryLogin, PacketsHandler.TryLogin},
@@ -146,7 +145,8 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.CheckAbleToReconnect, PacketsHandler.CheckAbleToReconnect},
                 {(int) ClientPackets.ReconnectRequest, PacketsHandler.Reconnect},
                 {(int) ClientPackets.CancelReconnect, PacketsHandler.CancelReconnect},
-                {(int) ClientPackets.RequestPlayersStats, PacketsHandler.RequestPlayersStats}
+                {(int) ClientPackets.RequestPlayersStats, PacketsHandler.RequestPlayersStats},
+                {(int) ClientPackets.LeaveToLobby, PacketsHandler.LeaveToLobby}
             };
             Log.Information("Packets initialized");
         }

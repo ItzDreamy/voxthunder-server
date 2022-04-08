@@ -145,6 +145,7 @@ namespace VoxelTanksServer
         {
             using (Packet packet = new((int) ServerPackets.SpawnPlayer))
             {
+                packet.Write(player.ConnectedRoom.PlayersCount);
                 packet.Write(player.Id);
                 packet.Write(player.Team.ID);
                 packet.Write(player.Username);
@@ -204,25 +205,6 @@ namespace VoxelTanksServer
             }
         }
         
-        /// <summary>
-        /// Движение игрока
-        /// </summary>
-        /// <param name="room"></param>
-        /// <param name="player"></param>
-        public static void MovePlayer(Room? room, Player player)
-        {
-            using (Packet packet = new((int) ServerPackets.PlayerMovement))
-            {
-                packet.Write(player.Id);
-                packet.Write(player.Velocity);
-                packet.Write(player.Rotation);
-                packet.Write(player.BarrelRotation);
-                packet.Write(DateTime.Now);
-
-                SendTCPDataToRoom(room, packet);
-            }
-        }
-
         public static void SendPlayerPosition(Room? room, Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.PlayerPosition))
@@ -383,28 +365,41 @@ namespace VoxelTanksServer
         /// <summary>
         /// Отправить уведомление о том, что игрок может переподключится к игре
         /// </summary>
-        /// <param name="playerId"></param>
-        public static void AbleToReconnect(int playerId)
+        /// <param name="toClient"></param>
+        public static void AbleToReconnect(int toClient)
         {
             using (Packet packet = new((int) ServerPackets.AbleToReconnect))
             {
-                SendTCPData(playerId, packet);
+                SendTCPData(toClient, packet);
             }
         }
 
         /// <summary>
         /// Показать наносимый урон
         /// </summary>
-        /// <param name="playerId"></param>
+        /// <param name="toClient"></param>
         /// <param name="damage"></param>
-        /// <param name="position"></param>
-        public static void ShowDamage(int playerId, int damage, Vector3 position)
+        /// <param name="player"></param>
+        public static void ShowDamage(int toClient, int damage, Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.ShowDamage))
             {
+                packet.Write(player.Id);
                 packet.Write(damage);
-                packet.Write(position);
-                SendTCPData(playerId, packet);
+                
+                SendTCPData(toClient, packet);
+            }
+        }
+
+        public static void TakeDamageOtherPlayer(Room room, Player player)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.TakeDamageOtherPlayer))
+            {
+                packet.Write(player.Id);
+                packet.Write(player.SelectedTank.MaxHealth);
+                packet.Write(player.Health);
+                
+                SendTCPDataToRoom(room, packet);
             }
         }
         
@@ -467,7 +462,6 @@ namespace VoxelTanksServer
                 SendTCPDataToTeam(team, packet);
             }
         }
-        
         public static void SendInput(Room room, int playerId, bool accelerate, bool brake, float turn)
         {
             using (Packet packet = new Packet((int) ServerPackets.PlayerInput))
@@ -480,6 +474,15 @@ namespace VoxelTanksServer
                 SendTCPDataToRoom(room, packet);
             }
         }
+        public static void LeaveToLobby(int toClient)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.LeaveToLobby))
+            {
+                packet.Write("Lobby");
+                SendTCPData(toClient, packet);
+            }
+        }
+        
         #endregion
     }
 }

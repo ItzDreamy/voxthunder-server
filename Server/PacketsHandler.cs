@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using Serilog;
 
@@ -251,6 +252,13 @@ namespace VoxelTanksServer
             player?.Shoot(name, particlePrefab, position, rotation);
         }
 
+        public static void LeaveToLobby(int fromClient, Packet packet)
+        {
+            var client = Server.Clients[fromClient];
+            
+            ServerSend.LeaveToLobby(client.Id);
+        }
+        
         /// <summary>
         /// Получение урона
         /// </summary>
@@ -288,14 +296,15 @@ namespace VoxelTanksServer
                 //Подсчет суммарного урона врага
                 enemy.TotalDamage += calculatedDamage;
                 
-                //Нанесение урона
-                hitPlayer.TakeDamage(calculatedDamage, enemy);
-                
                 if (hitPlayer.Health > 0)
                 {
                     //Показ урона
-                    ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer.Position);
+                    ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer);
                 }
+                
+                //Нанесение урона
+                hitPlayer.TakeDamage(calculatedDamage, enemy);
+                ServerSend.TakeDamageOtherPlayer(hitPlayer.ConnectedRoom, hitPlayer);
             }
         }
 
@@ -383,16 +392,12 @@ namespace VoxelTanksServer
             }
             
             //Поиск игрока в кеше комнат
-            foreach (var room in Server.Rooms)
+            foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
             {
-                foreach (var cachedPlayer in room.CachedPlayers)
+                foreach (var cachedPlayer in room?.CachedPlayers.Where(cachedPlayer => cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Username?.ToLower() && cachedPlayer.IsAlive && !room.GameEnded))
                 {
-                    //Если игрок найден - оповещение игрока
-                    if (cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Username?.ToLower() && cachedPlayer.IsAlive)
-                    {
-                        ServerSend.AbleToReconnect(fromClient);
-                        Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
-                    }
+                    ServerSend.AbleToReconnect(fromClient);
+                    Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
                 }
             }
         }
@@ -410,23 +415,20 @@ namespace VoxelTanksServer
                 client.Disconnect("Игрок не вошел в аккаунт");
             }
 
-            foreach (var room in Server.Rooms)
+            foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
             {
-                foreach (var cachedPlayer in room?.CachedPlayers!)
+                foreach (var cachedPlayer in room?.CachedPlayers!.Where(cachedPlayer => cachedPlayer?.Username?.ToLower() == Server.Clients[fromClient].Username?.ToLower())!)
                 {
-                    if (cachedPlayer?.Username?.ToLower() == Server.Clients[fromClient].Username?.ToLower())
-                    {
-                        //Подключение к комнате
-                        client.JoinRoom(room);
-                        //Присоединение к команде
-                        client.Team = cachedPlayer?.Team;
-                        client?.Team?.Players.Add(client);
-                        //Загрузка игры
-                        ServerSend.LoadScene(fromClient, room.Map.Name);
-                        //Создание нового игрока из кеша
-                        client.Player = new Player(cachedPlayer, fromClient);
-                        return;
-                    }
+                    //Подключение к комнате
+                    client.JoinRoom(room);
+                    //Присоединение к команде
+                    client.Team = cachedPlayer?.Team;
+                    client?.Team?.Players.Add(client);
+                    //Загрузка игры
+                    ServerSend.LoadScene(fromClient, room.Map.Name);
+                    //Создание нового игрока из кеша
+                    client.Player = new Player(cachedPlayer, fromClient);
+                    return;
                 }
             }
         }

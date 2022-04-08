@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace VoxelTanksServer
 {
@@ -8,6 +9,8 @@ namespace VoxelTanksServer
     /// </summary>
     public class Room
     {
+        public bool GameEnded = false;
+        
         public bool IsOpen = true;
         public int MaxPlayers { get; private set; }
         public List<Team?> Teams { get; private set; }
@@ -29,17 +32,8 @@ namespace VoxelTanksServer
             Map = Server.Maps[new Random().Next(Server.Maps.Count)];
 
             //Инициализация спавнпоинтов для команд
-            var firstTeamSpawns = new List<SpawnPoint>();
-            var secondTeamSpawns = new List<SpawnPoint>();
-
-            foreach (var point in Map.FirstTeamSpawns)
-            {
-                firstTeamSpawns.Add((SpawnPoint) point.Clone());
-            }
-            foreach (var point in Map.SecondTeamSpawns)
-            {
-                secondTeamSpawns.Add((SpawnPoint)point.Clone());
-            }
+            var firstTeamSpawns = Map.FirstTeamSpawns.Select(point => (SpawnPoint) point.Clone()).ToList();
+            var secondTeamSpawns = Map.SecondTeamSpawns.Select(point => (SpawnPoint) point.Clone()).ToList();
 
             //Создание команд
             Teams = new List<Team?>
