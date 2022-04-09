@@ -220,7 +220,10 @@ namespace VoxelTanksServer
         public void SendIntoGame(string? playerName, Tank tank)
         {
             //Создавать новый экземпляр игрока, если он не существует
-            Player ??= new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
+            if (Player == null)
+            {
+                Player = new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
+            }
             Player.Team = Team;
 
             //Спавн остальных игроков в комнате для данного клиента

@@ -353,7 +353,7 @@ namespace VoxelTanksServer
             }
 
             //Создание новой комнаты
-            Room? newRoom = new Room(1, 10000, 15000);
+            Room? newRoom = new Room(2, 420000, 15000);
             //Присоединение к комнате
             Server.Clients[fromClient].JoinRoom(newRoom);
 

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace VoxelTanksServer
 {
@@ -13,6 +15,8 @@ namespace VoxelTanksServer
         public bool GameEnded = false;
         
         public bool IsOpen = true;
+
+        private bool _timerRunning = false;
 
         public bool PlayersLocked = true;
 
@@ -31,7 +35,7 @@ namespace VoxelTanksServer
 
         private int _currentTime;
 
-        private int _generalTime;
+        private readonly int _generalTime;
 
         /// <summary>
         /// Создание новой комнаты
@@ -94,11 +98,58 @@ namespace VoxelTanksServer
             }
             //Запуск игры
             ServerSend.LoadScene(this, Map.Name);
+            
+            CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
+            CancellationToken token = cancelTokenSource.Token;
+            
+            Task.Run(async () =>
+            {
+                int waitingTime = 60000;
+                
+                while (waitingTime > 0)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    if (CheckPlayersReady())
+                    {
+                        cancelTokenSource.Cancel();
+                    }
+                    
+                    waitingTime -= 1000;
+                    await Task.Delay(1000, token);
+                }
+
+                foreach (var client in Players.Values)
+                {
+                    client.LeaveRoom();
+                    ServerSend.LeaveToLobby(client.Id);
+                }
+                
+            }, token);
         }
 
+        private bool CheckPlayersReady()
+        {
+            foreach (var client in Players.Values)
+            {
+                if (!client.ReadyToSpawn)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
         public void StartTimer(Server.Timers type, int time)
         {
+            if (_timerRunning)
+                return;
+            
             _currentTime = time;
+            _timerRunning = true;
             Task.Run(async () =>
             {
                 while (_currentTime > 0 && !GameEnded)
@@ -129,8 +180,8 @@ namespace VoxelTanksServer
                 }
                 else
                 {
+                    _timerRunning = false;
                     StartTimer(Server.Timers.General, _generalTime);
-                    Console.WriteLine("Players unlocked");
                     ServerSend.UnlockPlayers(this);
                     PlayersLocked = false;
                 }

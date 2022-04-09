@@ -154,6 +154,7 @@ namespace VoxelTanksServer
                 packet.Write(player.TurretRotation);
                 packet.Write(player.BarrelRotation);
                 packet.Write(player.SelectedTank.Name);
+                packet.Write(player.ConnectedRoom.PlayersLocked);
                 
                 SendTCPData(toClient, packet);
                 

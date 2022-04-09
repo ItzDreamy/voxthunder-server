@@ -29,14 +29,14 @@ namespace VoxelTanksServer
 
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
-        public static Dictionary<int, Client> Clients = new();
+        public static readonly Dictionary<int, Client> Clients = new();
 
-        public static List<Room?> Rooms = new();
+        public static readonly List<Room?> Rooms = new();
 
         //Инициализация карт
-        public static List<Map> Maps = new ()
+        public static readonly List<Map> Maps = new ()
         {
-            new Map("FirstMap", new List<SpawnPoint>
+            new Map("Dreamberg", new List<SpawnPoint>
             {
                 new(new Vector3(9f, 0, -50)),
                 new(new Vector3(3.5f, 0, -50)),
