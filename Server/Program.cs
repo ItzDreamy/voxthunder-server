@@ -66,7 +66,7 @@ namespace VoxelTanksServer
                 mainThread.Start();
 
                 //Запуск сервера + апи
-                Server.Start(config.MaxPlayers, config.ServerPort);
+                Server.Start(config.MaxPlayers, config.ServerPort, config.ClientVersion);
                 ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
 
                 Log.Information($"Client version: {config.ClientVersion}");

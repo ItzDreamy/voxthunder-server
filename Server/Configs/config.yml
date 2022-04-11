@@ -1,4 +1,4 @@
-﻿clientVersion: 0.1
+﻿clientVersion: "alpha_0.1"
 maxPlayers: 100
 serverPort: 44839
 apiPort: 59483

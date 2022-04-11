@@ -99,27 +99,24 @@ namespace VoxelTanksServer
             //Запуск игры
             ServerSend.LoadScene(this, Map.Name);
             
-            CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
-            CancellationToken token = cancelTokenSource.Token;
-            
             Task.Run(async () =>
             {
                 int waitingTime = 60000;
                 
                 while (waitingTime > 0)
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
                     if (CheckPlayersReady())
                     {
-                        cancelTokenSource.Cancel();
+                        foreach(var client in Players.Values)
+                        {
+                            client?.SendIntoGame(client.Username, client.SelectedTank);
+                        }
+                        StartTimer(Server.Timers.Preparative, PreparationTime);
+                        return;
                     }
                     
                     waitingTime -= 1000;
-                    await Task.Delay(1000, token);
+                    await Task.Delay(1000);
                 }
 
                 foreach (var client in Players.Values)
@@ -127,8 +124,7 @@ namespace VoxelTanksServer
                     client.LeaveRoom();
                     ServerSend.LeaveToLobby(client.Id);
                 }
-                
-            }, token);
+            });
         }
 
         private bool CheckPlayersReady()

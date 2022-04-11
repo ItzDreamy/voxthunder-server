@@ -45,33 +45,6 @@ namespace VoxelTanksServer
             if (player.Tcp.Socket == null) return;
             
             player.ReadyToSpawn = true;
-
-            //Если все игроки готовы - спавн игроков
-            if (CheckPlayersReady(player.ConnectedRoom))
-            {
-                foreach(var client in player.ConnectedRoom.Players.Values)
-                {
-                    client?.SendIntoGame(client.Username, client.SelectedTank);
-                }
-                player.ConnectedRoom.StartTimer(Server.Timers.Preparative, player.ConnectedRoom.PreparationTime);
-            }
-        }
-
-        /// <summary>
-        /// Проверка игроков на готовность к спавну
-        /// </summary>
-        /// <param name="room"></param>
-        /// <returns>Готовность к спавну</returns>
-        private static bool CheckPlayersReady(Room room)
-        {
-            foreach (var client in room.Players.Values)
-            {
-                if (!client.ReadyToSpawn)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
         
         /// <summary>
@@ -90,7 +63,8 @@ namespace VoxelTanksServer
             }
 
             //TODO: Check owned tanks
-            
+            bool isOwned = true;
+
             var tank = Server.Tanks.Find(tank => string.Equals(tank.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
             if (tank == null)
             {
@@ -98,7 +72,7 @@ namespace VoxelTanksServer
                 return;
             }
             
-            ServerSend.SwitchTank(client, tank);
+            ServerSend.SwitchTank(client, tank, isOwned);
         }
         
         public static void SetPlayerPosition(int fromClient, Packet packet)

@@ -15,7 +15,7 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="toClient"></param>
         /// <param name="packet"></param>
-        private static void SendTCPData(int toClient, Packet packet)
+        private static void SendTcpData(int toClient, Packet packet)
         {
             packet.WriteLength();
             Server.Clients[toClient].Tcp.SendData(packet);
@@ -25,7 +25,7 @@ namespace VoxelTanksServer
         /// Отправка данных всем клиентам на сервере
         /// </summary>
         /// <param name="packet"></param>
-        private static void SendTCPDataToAll(Packet packet)
+        private static void SendTcpDataToAll(Packet packet)
         {
             packet.WriteLength();
             for (int i = 1; i < Server.MaxPlayers; i++)
@@ -38,7 +38,7 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="room"></param>
         /// <param name="packet"></param>
-        public static void SendTCPDataToRoom(Room? room, Packet packet)
+        public static void SendTcpDataToRoom(Room? room, Packet packet)
         {
             packet.WriteLength();
 
@@ -56,7 +56,7 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="team"></param>
         /// <param name="packet"></param>
-        public static void SendTCPDataToTeam(Team? team, Packet packet)
+        public static void SendTcpDataToTeam(Team? team, Packet packet)
         {
             packet.WriteLength();
             
@@ -72,7 +72,7 @@ namespace VoxelTanksServer
         /// <param name="room"></param>
         /// <param name="exceptId"></param>
         /// <param name="packet"></param>
-        public static void SendTCPDataToRoom(Room? room, int exceptId, Packet packet)
+        public static void SendTcpDataToRoom(Room? room, int exceptId, Packet packet)
         {
             packet.WriteLength();
 
@@ -91,7 +91,7 @@ namespace VoxelTanksServer
         /// <param name="team"></param>
         /// <param name="exceptId"></param>
         /// <param name="packet"></param>
-        public static void SendTCPDataToTeam(Team? team, int exceptId, Packet packet)
+        public static void SendTcpDataToTeam(Team? team, int exceptId, Packet packet)
         {
             packet.WriteLength();
 
@@ -109,7 +109,7 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="exceptClient"></param>
         /// <param name="packet"></param>
-        private static void SendTCPDataToAll(int exceptClient, Packet packet)
+        private static void SendTcpDataToAll(int exceptClient, Packet packet)
         {
             packet.WriteLength();
             for (int i = 1; i < Server.MaxPlayers; i++)
@@ -131,8 +131,9 @@ namespace VoxelTanksServer
             {
                 packet.Write(message);
                 packet.Write(toClient);
+                packet.Write(Server.ClientVersion);
 
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
 
@@ -156,7 +157,7 @@ namespace VoxelTanksServer
                 packet.Write(player.SelectedTank.Name);
                 packet.Write(player.ConnectedRoom.PlayersLocked);
                 
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
                 
                 InitializeTankStats(toClient, player);
             }
@@ -180,11 +181,11 @@ namespace VoxelTanksServer
                 packet.Write(player.SelectedTank.AngleUp);
                 packet.Write(player.SelectedTank.AngleDown);
                 
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
 
-        public static void SwitchTank(Client client, Tank tank)
+        public static void SwitchTank(Client client, Tank tank, bool isOwned)
         {
             using (Packet packet = new Packet((int) ServerPackets.SwitchTank))
             {
@@ -194,6 +195,7 @@ namespace VoxelTanksServer
                 var topDamage = Server.Tanks.Max(t => t.Damage);
                 var topSpeed = Server.Tanks.Max(t => t.MaxSpeed);
                 
+                packet.Write(isOwned);
                 packet.Write(tank.Name);
                 packet.Write(tank.MaxHealth);
                 packet.Write(topHealth);
@@ -202,7 +204,7 @@ namespace VoxelTanksServer
                 packet.Write(tank.MaxSpeed);
                 packet.Write(topSpeed);
                 
-                SendTCPData(client.Id, packet);
+                SendTcpData(client.Id, packet);
             }
         }
         
@@ -215,7 +217,7 @@ namespace VoxelTanksServer
                 packet.Write(player.Rotation);
                 //packet.Write(DateTime.Now);
                 
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
         
@@ -231,7 +233,7 @@ namespace VoxelTanksServer
                 packet.Write(player.TurretRotation);
                 packet.Write(player.BarrelRotation);
 
-                SendTCPDataToRoom(player.ConnectedRoom, player.Id, packet);
+                SendTcpDataToRoom(player.ConnectedRoom, player.Id, packet);
             }
         }
 
@@ -248,7 +250,7 @@ namespace VoxelTanksServer
                 packet.Write(result);
                 packet.Write(message);
 
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
 
@@ -270,7 +272,7 @@ namespace VoxelTanksServer
                 packet.Write(rotation);
                 packet.Write(fromClient);
 
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
 
@@ -284,7 +286,7 @@ namespace VoxelTanksServer
             using (Packet packet = new((int) ServerPackets.LoadGame))
             {
                 packet.Write(sceneName);
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
 
@@ -298,7 +300,7 @@ namespace VoxelTanksServer
             using (Packet packet = new((int) ServerPackets.LoadGame))
             {
                 packet.Write(sceneName);
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
 
@@ -312,7 +314,7 @@ namespace VoxelTanksServer
             using (Packet packet = new((int) ServerPackets.PlayerDisconnected))
             {
                 packet.Write(playerId);
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
 
@@ -327,7 +329,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(username);
 
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
 
@@ -345,7 +347,7 @@ namespace VoxelTanksServer
                 packet.Write(maxHealth);
                 packet.Write(currentHealth);
 
-                SendTCPData(playerId, packet);
+                SendTcpData(playerId, packet);
             }
         }
 
@@ -359,7 +361,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(playerId);
 
-                SendTCPDataToRoom(Server.Clients[playerId].ConnectedRoom, packet);
+                SendTcpDataToRoom(Server.Clients[playerId].ConnectedRoom, packet);
             }
         }
 
@@ -371,7 +373,7 @@ namespace VoxelTanksServer
         {
             using (Packet packet = new((int) ServerPackets.AbleToReconnect))
             {
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
 
@@ -388,7 +390,7 @@ namespace VoxelTanksServer
                 packet.Write(player.Id);
                 packet.Write(damage);
                 
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
 
@@ -400,7 +402,7 @@ namespace VoxelTanksServer
                 packet.Write(player.SelectedTank.MaxHealth);
                 packet.Write(player.Health);
                 
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
         
@@ -423,7 +425,7 @@ namespace VoxelTanksServer
                 packet.Write(deadTank);
                 packet.Write(color);
                 
-                SendTCPDataToTeam(team, packet);
+                SendTcpDataToTeam(team, packet);
             }
         }
         
@@ -437,7 +439,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(room.PlayersCount);
                 packet.Write(room.MaxPlayers);
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
 
@@ -450,7 +452,7 @@ namespace VoxelTanksServer
             using (Packet packet = new Packet((int)ServerPackets.PlayersStats))
             {
                 packet.Write(room.Players.Values.ToList().Where(client => client.Player != null).Select(client => client.Player).ToList());
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
 
@@ -460,7 +462,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(isWinner);
                 packet.Write(isDraw);
-                SendTCPDataToTeam(team, packet);
+                SendTcpDataToTeam(team, packet);
             }
         }
         public static void SendInput(Room room, int playerId, bool accelerate, bool brake, float turn)
@@ -472,7 +474,7 @@ namespace VoxelTanksServer
                 packet.Write(brake);
                 packet.Write(turn);
                 
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
         public static void LeaveToLobby(int toClient)
@@ -480,7 +482,7 @@ namespace VoxelTanksServer
             using (Packet packet = new Packet((int) ServerPackets.LeaveToLobby))
             {
                 packet.Write("Lobby");
-                SendTCPData(toClient, packet);
+                SendTcpData(toClient, packet);
             }
         }
         
@@ -490,7 +492,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(time);
                 packet.Write(isGeneral);
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
         
@@ -498,7 +500,7 @@ namespace VoxelTanksServer
         {
             using (Packet packet = new Packet((int) ServerPackets.UnlockPlayers))
             {
-                SendTCPDataToRoom(room, packet);
+                SendTcpDataToRoom(room, packet);
             }
         }
         

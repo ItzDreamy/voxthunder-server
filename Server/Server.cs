@@ -29,6 +29,7 @@ namespace VoxelTanksServer
 
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
+        public static string ClientVersion { get; private set; }
         public static readonly Dictionary<int, Client> Clients = new();
 
         public static readonly List<Room?> Rooms = new();
@@ -68,12 +69,14 @@ namespace VoxelTanksServer
         /// </summary>
         /// <param name="maxPlayers">Максимальное кол-во игроков на сервере</param>
         /// <param name="port">Порт сервера, с помощью которого клиенты подключаются</param>
-        public static void Start(int maxPlayers, int port)
+        /// <param name="clientVersion">Версия клиента</param>
+        public static void Start(int maxPlayers, int port, string clientVersion)
         {
             try
             {
                 MaxPlayers = maxPlayers;
                 Port = port;
+                ClientVersion = clientVersion;
 
                 Log.Information("Starting server...");
                 InitializeServerData();
