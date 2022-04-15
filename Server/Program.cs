@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using Serilog;
 using VoxelTanksServer.API;
+using VoxelTanksServer.GameCore;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -66,7 +67,7 @@ namespace VoxelTanksServer
                 mainThread.Start();
 
                 //Запуск сервера + апи
-                Server.Start(config.MaxPlayers, config.ServerPort, config.ClientVersion);
+                Server.Start(config.MaxPlayers, config.ServerPort, config.AfkTime, config.ClientVersion);
                 ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
 
                 Log.Information($"Client version: {config.ClientVersion}");
@@ -106,6 +107,7 @@ namespace VoxelTanksServer
     public class Config
     {
         public string ClientVersion;
+        public int AfkTime;
         public int MaxPlayers;
         public int ServerPort;
         public int ApiPort;

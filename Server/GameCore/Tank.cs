@@ -3,7 +3,7 @@ using System.Threading;
 using MySql.Data.MySqlClient;
 using Serilog;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.GameCore
 {
     /// <summary>
     /// Класс для хранения данных о танке

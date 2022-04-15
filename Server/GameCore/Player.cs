@@ -2,9 +2,8 @@
 using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
-using Serilog;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.GameCore
 {
     public class Player
     {

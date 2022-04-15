@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.GameCore
 {
     /// <summary>
     /// Класс для хранения данных отключившегося игрока

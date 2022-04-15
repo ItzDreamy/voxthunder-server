@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Text;
+using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer
 {
@@ -32,7 +33,8 @@ namespace VoxelTanksServer
         LeaveToLobby,
         TakeDamageOtherPlayer,
         Timer,
-        UnlockPlayers
+        UnlockPlayers,
+        SendMovement
     }
 
     /// <summary>
@@ -65,7 +67,9 @@ namespace VoxelTanksServer
         ReconnectRequest,
         CancelReconnect,
         RequestPlayersStats,
-        LeaveToLobby
+        LeaveToLobby,
+        BuyTank,
+        SendMovement
     }
 
     /// <summary>
@@ -243,19 +247,19 @@ namespace VoxelTanksServer
         /// <param name="value">The Vector3 to add.</param>
         public void Write(Vector3 value)
         {
-            Write(value.X);
-            Write(value.Y);
-            Write(value.Z);
+            Write((float) Math.Round(value.X, 2, MidpointRounding.AwayFromZero));
+            Write((float) Math.Round(value.Y, 2, MidpointRounding.AwayFromZero));
+            Write((float) Math.Round(value.Z, 2, MidpointRounding.AwayFromZero));
         }
 
         /// <summary>Adds a Quaternion to the packet.</summary>
         /// <param name="value">The Quaternion to add.</param>
         public void Write(Quaternion value)
         {
-            Write(value.X);
-            Write(value.Y);
-            Write(value.Z);
-            Write(value.W);
+            Write((float) Math.Round(value.X, 2, MidpointRounding.AwayFromZero));
+            Write((float) Math.Round(value.Y, 2, MidpointRounding.AwayFromZero));
+            Write((float) Math.Round(value.Z, 2, MidpointRounding.AwayFromZero));
+            Write((float) Math.Round(value.W, 2, MidpointRounding.AwayFromZero));
         }
 
         /// <summary>
@@ -285,6 +289,14 @@ namespace VoxelTanksServer
             Write(timestamp.Minute);
             Write(timestamp.Second);
             Write(timestamp.Millisecond);
+        }
+
+        public void Write(MovementData movementData)
+        {
+            Write(movementData.Position);
+            Write(movementData.Rotation);
+            Write(movementData.Velocity);
+            Write(movementData.AngularVelocity);
         }
 
         #endregion
@@ -426,6 +438,16 @@ namespace VoxelTanksServer
             }
         }
 
+        public MovementData ReadMovement(bool moveReadPos = true)
+        {
+            MovementData data = default(MovementData);
+            data.Position = ReadVector3(moveReadPos);
+            data.Rotation = ReadQuaternion(moveReadPos);
+            data.Velocity = ReadVector3(moveReadPos);
+            data.AngularVelocity = ReadVector3(moveReadPos);
+            return data;
+        }
+        
         /// <summary>Reads a bool from the packet.</summary>
         /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
         public bool ReadBool(bool moveReadPos = true)

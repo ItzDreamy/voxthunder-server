@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
+using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer
 {
@@ -29,6 +30,8 @@ namespace VoxelTanksServer
 
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
+        
+        public static int AfkTime { get; private set; }
         public static string ClientVersion { get; private set; }
         public static readonly Dictionary<int, Client> Clients = new();
 
@@ -70,12 +73,13 @@ namespace VoxelTanksServer
         /// <param name="maxPlayers">Максимальное кол-во игроков на сервере</param>
         /// <param name="port">Порт сервера, с помощью которого клиенты подключаются</param>
         /// <param name="clientVersion">Версия клиента</param>
-        public static void Start(int maxPlayers, int port, string clientVersion)
+        public static void Start(int maxPlayers, int port, int afkTime, string clientVersion)
         {
             try
             {
                 MaxPlayers = maxPlayers;
                 Port = port;
+                AfkTime = afkTime;
                 ClientVersion = clientVersion;
 
                 Log.Information("Starting server...");
@@ -155,7 +159,8 @@ namespace VoxelTanksServer
                 {(int) ClientPackets.ReconnectRequest, PacketsHandler.Reconnect},
                 {(int) ClientPackets.CancelReconnect, PacketsHandler.CancelReconnect},
                 {(int) ClientPackets.RequestPlayersStats, PacketsHandler.RequestPlayersStats},
-                {(int) ClientPackets.LeaveToLobby, PacketsHandler.LeaveToLobby}
+                {(int) ClientPackets.LeaveToLobby, PacketsHandler.LeaveToLobby},
+                {(int) ClientPackets.SendMovement, PacketsHandler.GetPlayerMovement}
             };
             Log.Information("Packets initialized");
         }

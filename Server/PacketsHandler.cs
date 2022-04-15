@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using Serilog;
+using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer
 {
@@ -129,7 +130,26 @@ namespace VoxelTanksServer
             bool brake = packet.ReadBool();
             float turn = packet.ReadFloat();
             
-            ServerSend.SendInput(client?.ConnectedRoom, client.Id, accelerate, brake, turn);
+            //ServerSend.SendInput(client?.ConnectedRoom, client.Id, accelerate, brake, turn);
+        }
+
+        public static void GetPlayerMovement(int fromClient, Packet packet)
+        {
+            if (!Server.Clients[fromClient].IsAuth)
+            {
+                Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
+                return;
+            }
+            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
+            if (connectedRoom is {PlayersLocked: true})
+            {
+                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Инпут)");
+                return;
+            }
+
+            MovementData movement = packet.ReadMovement();
+
+            ServerSend.SendMovementData(movement, connectedRoom, fromClient);
         }
 
         /// <summary>
@@ -456,7 +476,5 @@ namespace VoxelTanksServer
 
             ServerSend.SendPlayersStats(room);
         }
-
-        
     }
 }

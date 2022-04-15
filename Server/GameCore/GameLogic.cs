@@ -1,4 +1,4 @@
-﻿namespace VoxelTanksServer
+﻿namespace VoxelTanksServer.GameCore
 {
     public static class GameLogic
     {

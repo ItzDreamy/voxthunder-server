@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
+using System.Threading.Tasks;
 using Serilog;
+using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer
 {
@@ -11,7 +13,7 @@ namespace VoxelTanksServer
         public delegate void RoomHandler(Room room);
         public event RoomHandler OnJoinedRoom;
         public event RoomHandler OnLeftRoom;
-
+        
         //Размер принимающих/отправляемых данных
         public static int DataBufferSize = 4096;
 
@@ -29,6 +31,8 @@ namespace VoxelTanksServer
         public Team? Team = null;
 
         public TCP Tcp;
+
+        private int _afkTimer = Server.AfkTime;
 
         /// <summary>
         /// Создание экземпляра клиента
@@ -81,8 +85,10 @@ namespace VoxelTanksServer
                 //Подписка на необходимые события
                 Server.Clients[_id].OnJoinedRoom += ServerSend.ShowPlayersCountInRoom;
                 Server.Clients[_id].OnLeftRoom += ServerSend.ShowPlayersCountInRoom;
-
+                
                 ServerSend.Welcome(_id, "You have been successfully connected to server");
+                
+                Server.Clients[_id].StartAfkTimer();
             }
 
             /// <summary>
@@ -116,9 +122,18 @@ namespace VoxelTanksServer
                     {
                         using (Packet packet = new(packetBytes))
                         {
-                            int packetId = packet.ReadInt();
-                            if(Server.PacketHandlers.ContainsKey(packetId))
+                            try
+                            {
+                                int packetId = packet.ReadInt();
                                 Server.PacketHandlers[packetId](_id, packet);
+
+                                Server.Clients[_id]._afkTimer = Server.AfkTime;
+                            }
+                            catch (Exception e)
+                            {
+                                Server.Clients[_id].Disconnect("Со стороны клиента пришел некорректный пакет.");
+                                Log.Information($"Со стороны клиента пришел некорректный пакет. Error: {e}");
+                            }
                         }
                     });
 
@@ -212,6 +227,23 @@ namespace VoxelTanksServer
             }
         }
 
+        private void StartAfkTimer()
+        {
+            Task.Run(async () =>
+            {
+                while (_afkTimer > 0 && Tcp.Socket != null)
+                {
+                    await Task.Delay(1000);
+                    _afkTimer -= 1000;
+                }
+
+                if (Tcp.Socket != null)
+                {
+                    Disconnect("AFK");
+                }
+            });
+        }
+        
         /// <summary>
         /// Отправление клиента в игру (спавн всех игроков)
         /// </summary>
@@ -220,10 +252,7 @@ namespace VoxelTanksServer
         public void SendIntoGame(string? playerName, Tank tank)
         {
             //Создавать новый экземпляр игрока, если он не существует
-            if (Player == null)
-            {
-                Player = new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
-            }
+            Player ??= new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
             Player.Team = Team;
 
             //Спавн остальных игроков в комнате для данного клиента
@@ -270,6 +299,7 @@ namespace VoxelTanksServer
             OnLeftRoom -= ServerSend.ShowPlayersCountInRoom;
 
             //Сброс клиента для дальнейшего использования
+            _afkTimer = Server.AfkTime;
             Player = null;
             Username = null;
             Position = Vector3.Zero;

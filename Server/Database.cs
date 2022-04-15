@@ -1,5 +1,4 @@
-﻿using System.Data;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 
 namespace VoxelTanksServer
 {
@@ -15,19 +14,19 @@ namespace VoxelTanksServer
             return _connection;
         }
 
-        //Метод пока что не юзается... Позже закоментирую
-        public static object RequestData(string neededColumn, string tableName, string column, string columnValue)
-        {
-            var db = new Database();
-            MySqlCommand myCommand =
-                new(
-                    $"SELECT `{neededColumn}` FROM `{tableName}` WHERE `{column}` = '{columnValue}'",
-                    db.GetConnection());
-            MySqlDataAdapter adapter = new();
-            DataTable table = new();
-            adapter.SelectCommand = myCommand;
-            adapter.Fill(table);
-            return table.Rows[0][0];
-        }
+        //Метод пока что не юзается...
+        // public static object RequestData(string neededColumn, string tableName, string column, string columnValue)
+        // {
+        //     var db = new Database();
+        //     MySqlCommand myCommand =
+        //         new(
+        //             $"SELECT `{neededColumn}` FROM `{tableName}` WHERE `{column}` = '{columnValue}'",
+        //             db.GetConnection());
+        //     MySqlDataAdapter adapter = new();
+        //     DataTable table = new();
+        //     adapter.SelectCommand = myCommand;
+        //     adapter.Fill(table);
+        //     return table.Rows[0][0];
+        // }
     }
 }

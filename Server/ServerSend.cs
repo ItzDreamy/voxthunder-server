@@ -1,7 +1,8 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using Serilog;
+using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer
 {
@@ -500,6 +501,19 @@ namespace VoxelTanksServer
         {
             using (Packet packet = new Packet((int) ServerPackets.UnlockPlayers))
             {
+                SendTcpDataToRoom(room, packet);
+            }
+        }
+        
+        
+        public static void SendMovementData(MovementData movement, Room room, int id)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.SendMovement))
+            {
+                Log.Debug(movement.ToString());
+                packet.Write(id);
+                packet.Write(movement);
+                
                 SendTcpDataToRoom(room, packet);
             }
         }
