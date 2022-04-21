@@ -76,63 +76,6 @@ namespace VoxelTanksServer
             ServerSend.SwitchTank(client, tank, isOwned);
         }
         
-        public static void SetPlayerPosition(int fromClient, Packet packet)
-        {
-            if (!Server.Clients[fromClient].IsAuth)
-            {
-                Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
-                return;
-            }
-
-            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
-            if (connectedRoom is {PlayersLocked: true})
-            {
-                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента");
-                return;
-            }
-
-            Vector3 position = packet.ReadVector3();
-            Quaternion rotation = packet.ReadQuaternion();
-            
-            Player? player = Server.Clients[fromClient].Player;
-            if (player == null)
-            {
-                return;
-            }
-            player.Position = position;
-            player.Rotation = rotation;
-            ServerSend.SendPlayerPosition(connectedRoom, player);
-        }
-
-        public static void GetPlayerInput(int fromClient, Packet packet)
-        {
-            if (!Server.Clients[fromClient].IsAuth)
-            {
-                Server.Clients[fromClient].Disconnect("Игрок не вошел в аккаунт");
-                return;
-            }
-            
-            var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
-            if (connectedRoom is {PlayersLocked: true})
-            {
-                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Инпут)");
-                return;
-            }
-            
-
-            var client = Server.Clients[fromClient];
-            if (client?.ConnectedRoom == null)
-            {
-                return;
-            }
-            
-            bool accelerate = packet.ReadBool();
-            bool brake = packet.ReadBool();
-            float turn = packet.ReadFloat();
-            
-            //ServerSend.SendInput(client?.ConnectedRoom, client.Id, accelerate, brake, turn);
-        }
-
         public static void GetPlayerMovement(int fromClient, Packet packet)
         {
             if (!Server.Clients[fromClient].IsAuth)
@@ -143,7 +86,7 @@ namespace VoxelTanksServer
             var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
             if (connectedRoom is {PlayersLocked: true})
             {
-                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Инпут)");
+                Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Движение)");
                 return;
             }
 
@@ -347,7 +290,7 @@ namespace VoxelTanksServer
             }
 
             //Создание новой комнаты
-            Room? newRoom = new Room(2, 420000, 15000);
+            Room? newRoom = new Room(420000, 15000);
             //Присоединение к комнате
             Server.Clients[fromClient].JoinRoom(newRoom);
 
@@ -469,7 +412,7 @@ namespace VoxelTanksServer
         {
             Room room = Server.Clients[fromClient].ConnectedRoom;
 
-            if (room == null || room.Players == null)
+            if (room?.Players == null)
             {
                 return;
             }

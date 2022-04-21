@@ -1,4 +1,5 @@
-﻿clientVersion: "alpha_0.1.2"
+﻿clientVersion: "dev_0.0.1.002"
+maxPlayersInRoom: 2
 afkTime: 900000
 maxPlayers: 100
 serverPort: 44839

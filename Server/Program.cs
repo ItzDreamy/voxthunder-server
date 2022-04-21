@@ -20,7 +20,10 @@ namespace VoxelTanksServer
             {"kick", Commands.KickPlayer},
             {"ban", Commands.BanPlayer},
             {"stop", Commands.StopServer},
-            {"info", Commands.ShowInfo}
+            {"info", Commands.ShowInfo},
+            {"players", Commands.ShowPlayerList},
+            {"help", Commands.ShowCommandList},
+            {"smp_room", Commands.SetMaxPlayersInRoom}
         };
 
         public static void Main(string[] args)
@@ -67,8 +70,8 @@ namespace VoxelTanksServer
                 mainThread.Start();
 
                 //Запуск сервера + апи
-                Server.Start(config.MaxPlayers, config.ServerPort, config.AfkTime, config.ClientVersion);
-                ApiServer.Start(config.ApiMaxConnections, config.ApiPort);
+                Server.Start(config);
+                ApiServer.Start(config);
 
                 Log.Information($"Client version: {config.ClientVersion}");
             }
@@ -112,5 +115,6 @@ namespace VoxelTanksServer
         public int ServerPort;
         public int ApiPort;
         public int ApiMaxConnections;
+        public int MaxPlayersInRoom;
     }
 }

@@ -8,8 +8,8 @@ namespace VoxelTanksServer.API
 {
     public static class ApiServer
     {
-        public static int MaxConnections { get; private set; }
-        public static int Port { get; private set; }
+        private static int _maxConnections;
+        private static int _port;
         public static readonly Dictionary<int, ApiClient> Clients = new();
         
         public delegate void PacketHandler(int fromClient, Packet packet);
@@ -18,20 +18,20 @@ namespace VoxelTanksServer.API
 
         private static TcpListener? _tcpListener;
 
-        public static void Start(int maxPlayers, int port)
+        public static void Start(Config config)
         {
             try
             {
-                MaxConnections = maxPlayers;
-                Port = port;
+                _maxConnections = config.ApiMaxConnections;
+                _port = config.ApiPort;
 
                 Log.Information("Starting api...");
                 InitializeServerData();
-                _tcpListener = new TcpListener(IPAddress.Any, Port);
+                _tcpListener = new TcpListener(IPAddress.Any, _port);
                 _tcpListener.Start();
                 _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
 
-                Log.Information($"Api started on {Port}");
+                Log.Information($"Api started on {_port}");
             }
             catch (Exception e)
             {
@@ -43,7 +43,7 @@ namespace VoxelTanksServer.API
         {
             TcpClient? client = _tcpListener?.EndAcceptTcpClient(result);
             _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
-            for (int i = 1; i <= MaxConnections; i++)
+            for (int i = 1; i <= _maxConnections; i++)
             {
                 if (Clients[i].Tcp.Socket == null)
                 {
@@ -57,12 +57,12 @@ namespace VoxelTanksServer.API
 
         private static void InitializeServerData()
         {
-            for (int i = 1; i <= MaxConnections; i++)
+            for (int i = 1; i <= _maxConnections; i++)
             {
                 Clients.Add(i, new ApiClient(i));
             }
 
-            PacketHandlers = new Dictionary<int, PacketHandler>()
+            PacketHandlers = new Dictionary<int, PacketHandler>
             {
                 {(int) ClientApiPackets.GetPlayersCount, ApiHandle.GetPlayersCount},
                 {(int) ClientApiPackets.GetServerState, ApiHandle.GetServerState}

@@ -12,8 +12,6 @@ namespace VoxelTanksServer
     {
         Welcome = 1,
         SpawnPlayer,
-        PlayerPosition,
-        PlayerInput,
         RotateTurret,
         LoginResult,
         PlayerDisconnected,
@@ -52,8 +50,6 @@ namespace VoxelTanksServer
     public enum ClientPackets
     {
         WelcomeReceived = 1,
-        PlayerPositionAndRotation,
-        PlayerInput,
         RotateTurret,
         ReadyToSpawn,
         SelectTank,

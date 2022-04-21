@@ -32,7 +32,7 @@ namespace VoxelTanksServer
 
         public TCP Tcp;
 
-        private int _afkTimer = Server.AfkTime;
+        private int _afkTimer = Server.Config.AfkTime;
 
         /// <summary>
         /// Создание экземпляра клиента
@@ -127,7 +127,7 @@ namespace VoxelTanksServer
                                 int packetId = packet.ReadInt();
                                 Server.PacketHandlers[packetId](_id, packet);
 
-                                Server.Clients[_id]._afkTimer = Server.AfkTime;
+                                Server.Clients[_id]._afkTimer = Server.Config.AfkTime;
                             }
                             catch (Exception e)
                             {
@@ -252,7 +252,10 @@ namespace VoxelTanksServer
         public void SendIntoGame(string? playerName, Tank tank)
         {
             //Создавать новый экземпляр игрока, если он не существует
-            Player ??= new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
+            if (Player == null)
+            {
+                Player = new Player(Id, playerName, Position, Rotation, tank, ConnectedRoom);
+            }
             Player.Team = Team;
 
             //Спавн остальных игроков в комнате для данного клиента
@@ -299,7 +302,7 @@ namespace VoxelTanksServer
             OnLeftRoom -= ServerSend.ShowPlayersCountInRoom;
 
             //Сброс клиента для дальнейшего использования
-            _afkTimer = Server.AfkTime;
+            _afkTimer = Server.Config.AfkTime;
             Player = null;
             Username = null;
             Position = Vector3.Zero;

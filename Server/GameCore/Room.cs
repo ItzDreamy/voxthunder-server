@@ -41,10 +41,10 @@ namespace VoxelTanksServer.GameCore
         /// <param name="maxPlayers">Кол-во игроков в комнате</param>
         /// <param name="generalTime">Основное время в игре (в миллисекундах)</param>
         /// <param name="preparativeTime">Подготовительное время (в миллисекундах)</param>
-        public Room(int maxPlayers, int generalTime, int preparativeTime)
+        public Room(int generalTime, int preparativeTime)
         {
-            MaxPlayers = maxPlayers;
-            _playersPerTeam = 1;
+            MaxPlayers = Server.Config.MaxPlayersInRoom;
+            _playersPerTeam = MaxPlayers / 2;
             _generalTime = generalTime;
             PreparationTime = preparativeTime;
 

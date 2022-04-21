@@ -21,16 +21,6 @@ namespace VoxelTanksServer
         {
             string message = "";
 
-            //Проверка на наличие игрока с таким же ником
-            var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Username?.ToLower() == username.ToLower());
-            if (samePlayer != null)
-            {
-                Log.Information($"[{ip}] Игрок с логином {samePlayer.Username} уже в сети!");
-                message = $"Игрок с логином {username} уже в сети!";
-                ServerSend.LoginResult(clientId, false, message);
-                return false;
-            }
-
             try
             {
                 //Создание запроса к БД
@@ -43,24 +33,25 @@ namespace VoxelTanksServer
                 DataTable table = new();
                 adapter.SelectCommand = myCommand;
 
-                //Ассинхронный запрос в БД для того, что бы не блокировался поток сервера
                 await adapter.FillAsync(table);
+                
                 try
                 {
-                    //Если игрок с такими ником и паролем существует, то запускать в игру
                     string nickname = table.Rows[0][0].ToString();
 
                     Log.Information($"[{ip}] {nickname} успешно зашел в аккаунт");
                     message = "Авторизация прошла успешно";
+                    
+                    var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Username?.ToLower() == username.ToLower());
+                    samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
+                    
                     Server.Clients[clientId].Username = table.Rows[0][0].ToString();
                     Server.Clients[clientId].IsAuth = true;
                     ServerSend.LoginResult(clientId, true, message);
                     return true;
-
                 }
                 catch (Exception ex)
                 {
-                    //Иначе говорить игроку, что данные некорректные
                     Log.Information($"[{ip}] {username} ввел некорректные данные.");
                     message = $"Неправильный логин или пароль";
                     ServerSend.LoginResult(clientId, false, message);

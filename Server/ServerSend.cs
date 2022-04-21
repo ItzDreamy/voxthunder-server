@@ -132,7 +132,7 @@ namespace VoxelTanksServer
             {
                 packet.Write(message);
                 packet.Write(toClient);
-                packet.Write(Server.ClientVersion);
+                packet.Write(Server.Config.ClientVersion);
 
                 SendTcpData(toClient, packet);
             }
@@ -206,19 +206,6 @@ namespace VoxelTanksServer
                 packet.Write(topSpeed);
                 
                 SendTcpData(client.Id, packet);
-            }
-        }
-        
-        public static void SendPlayerPosition(Room? room, Player player)
-        {
-            using (Packet packet = new Packet((int) ServerPackets.PlayerPosition))
-            {
-                packet.Write(player.Id);
-                packet.Write(player.Position);
-                packet.Write(player.Rotation);
-                //packet.Write(DateTime.Now);
-                
-                SendTcpDataToRoom(room, packet);
             }
         }
         
@@ -466,18 +453,7 @@ namespace VoxelTanksServer
                 SendTcpDataToTeam(team, packet);
             }
         }
-        public static void SendInput(Room room, int playerId, bool accelerate, bool brake, float turn)
-        {
-            using (Packet packet = new Packet((int) ServerPackets.PlayerInput))
-            {
-                packet.Write(playerId);
-                packet.Write(accelerate);
-                packet.Write(brake);
-                packet.Write(turn);
-                
-                SendTcpDataToRoom(room, packet);
-            }
-        }
+        
         public static void LeaveToLobby(int toClient)
         {
             using (Packet packet = new Packet((int) ServerPackets.LeaveToLobby))
@@ -510,7 +486,6 @@ namespace VoxelTanksServer
         {
             using (Packet packet = new Packet((int) ServerPackets.SendMovement))
             {
-                Log.Debug(movement.ToString());
                 packet.Write(id);
                 packet.Write(movement);
                 

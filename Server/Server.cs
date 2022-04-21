@@ -12,6 +12,7 @@ namespace VoxelTanksServer
     public static class Server
     {
         public static bool IsOnline = false;
+        public static Config Config;
         
         public enum Timers
         {
@@ -29,12 +30,8 @@ namespace VoxelTanksServer
         }
 
         public static int MaxPlayers { get; private set; }
-        public static int Port { get; private set; }
-        
-        public static int AfkTime { get; private set; }
-        public static string ClientVersion { get; private set; }
+        private static int _port;
         public static readonly Dictionary<int, Client> Clients = new();
-
         public static readonly List<Room?> Rooms = new();
 
         //Инициализация карт
@@ -73,20 +70,19 @@ namespace VoxelTanksServer
         /// <param name="maxPlayers">Максимальное кол-во игроков на сервере</param>
         /// <param name="port">Порт сервера, с помощью которого клиенты подключаются</param>
         /// <param name="clientVersion">Версия клиента</param>
-        public static void Start(int maxPlayers, int port, int afkTime, string clientVersion)
+        public static void Start(Config config)
         {
             try
             {
-                MaxPlayers = maxPlayers;
-                Port = port;
-                AfkTime = afkTime;
-                ClientVersion = clientVersion;
+                Config = config;
+                MaxPlayers = config.MaxPlayers;
+                _port = config.ServerPort;
 
                 Log.Information("Starting server...");
                 InitializeServerData();
-                _tcpListener = new TcpListener(IPAddress.Any, Port);
+                _tcpListener = new TcpListener(IPAddress.Any, _port);
 
-                Log.Information($"Server started on {Port}");
+                Log.Information($"Server started on {_port}");
                 Log.Information($"Max players: {MaxPlayers}");
             }
             catch (Exception e)
@@ -141,13 +137,11 @@ namespace VoxelTanksServer
             }
 
             //Инициализация обработчика пакетов, приходящих от клиента
-            PacketHandlers = new Dictionary<int, PacketHandler>()
+            PacketHandlers = new Dictionary<int, PacketHandler>
             {
                 {(int) ClientPackets.WelcomeReceived, PacketsHandler.WelcomePacketReceived},
                 {(int) ClientPackets.ReadyToSpawn, PacketsHandler.ReadyToSpawnReceived},
                 {(int) ClientPackets.SelectTank, PacketsHandler.ChangeTank},
-                {(int) ClientPackets.PlayerPositionAndRotation, PacketsHandler.SetPlayerPosition},
-                {(int) ClientPackets.PlayerInput, PacketsHandler.GetPlayerInput},
                 {(int) ClientPackets.RotateTurret, PacketsHandler.RotateTurret},
                 {(int) ClientPackets.TryLogin, PacketsHandler.TryLogin},
                 {(int) ClientPackets.TakeDamage, PacketsHandler.TakeDamage},
