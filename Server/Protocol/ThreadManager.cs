@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Serilog;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.Protocol
 {
     public class ThreadManager
     {

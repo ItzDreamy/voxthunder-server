@@ -1,10 +1,9 @@
 ﻿using System.Drawing;
 using System.Linq;
 using System.Numerics;
-using Serilog;
 using VoxelTanksServer.GameCore;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.Protocol
 {
     /// <summary>
     /// Класс для отправки данных клиенту
@@ -292,11 +291,6 @@ namespace VoxelTanksServer
             }
         }
 
-        /// <summary>
-        /// Отправка пакета когда игрок отключился
-        /// </summary>
-        /// <param name="playerId"></param>
-        /// <param name="room"></param>
         public static void PlayerDisconnected(int playerId, Room? room)
         {
             using (Packet packet = new((int) ServerPackets.PlayerDisconnected))

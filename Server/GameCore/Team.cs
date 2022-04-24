@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.GameCore
 {
     /// <summary>
     /// Класс для хранений данных о команде

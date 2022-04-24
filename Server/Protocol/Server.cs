@@ -7,7 +7,7 @@ using System.Numerics;
 using Serilog;
 using VoxelTanksServer.GameCore;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.Protocol
 {
     public static class Server
     {

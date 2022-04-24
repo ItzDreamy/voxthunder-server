@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Serilog;
-using VoxelTanksServer.API;
-using VoxelTanksServer.GameCore;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using VoxelTanksServer.API;
+using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library;
+using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer
 {
@@ -23,34 +25,30 @@ namespace VoxelTanksServer
             {"info", Commands.ShowInfo},
             {"players", Commands.ShowPlayerList},
             {"help", Commands.ShowCommandList},
-            {"smp_room", Commands.SetMaxPlayersInRoom}
+            {"smp_room", Commands.SetMaxPlayersInRoom},
+            {"clear", Console.Clear}
         };
 
         public static void Main(string[] args)
         {
-            Console.Title = "VoxelTanksServer";
+            Console.Title = "Server";
 
             try
             {
-                //Инициализация логгера
                 Log.Logger = new LoggerConfiguration()
                     .MinimumLevel.Debug()
                     .WriteTo.Console()
                     .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
                     .CreateLogger();
 
-                //Чтение конфига
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-                var config = deserializer.Deserialize<Config>(File.ReadAllText("Configs/config.yml"));
+                var config = deserializer.Deserialize<Config>(File.ReadAllText("Library/config.yml"));
 
                 _isRunning = true;
 
-                //Запуск основного потока сервера
                 Thread mainThread = new(MainThread);
-
-                //Запуск потока для выполнения консольных команд
                 Thread commandsThread = new(() =>
                 {
                     while (_isRunning)
@@ -69,7 +67,6 @@ namespace VoxelTanksServer
                 commandsThread.Start();
                 mainThread.Start();
 
-                //Запуск сервера + апи
                 Server.Start(config);
                 ApiServer.Start(config);
 
@@ -82,9 +79,6 @@ namespace VoxelTanksServer
             }
         }
 
-        /// <summary>
-        /// Обновление сервера
-        /// </summary>
         private static void MainThread()
         {
             Log.Information($"Main thread started. Tickrate: {Constants.Tickrate}");

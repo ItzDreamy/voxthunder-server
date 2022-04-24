@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.Library
 {
     public static class Commands
     {
@@ -37,7 +38,8 @@ namespace VoxelTanksServer
 
         public static void ShowInfo()
         {
-            //Info
+            Console.WriteLine(
+                $"Server for VoxThunder.\nClient version: {Server.Config.ClientVersion}\nOnline: {Server.OnlinePlayers} / {Server.Config.MaxPlayers}\nRooms count: {Server.Rooms.Count}\nPlayers per room: {Server.Config.MaxPlayersInRoom}\nDiscord server: https://discord.gg/Pjs6HKA3vz");
         }
 
         public static void ShowCommandList()

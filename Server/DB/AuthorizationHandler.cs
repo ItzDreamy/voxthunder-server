@@ -1,29 +1,21 @@
 ﻿using System;
-using MySql.Data.MySqlClient;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 using Serilog;
+using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.DB
 {
     public static class AuthorizationHandler
     {
-        /// <summary>
-        /// Запрос для проверки корректности логина и пароля
-        /// </summary>
-        /// <param name="username">Логин игрока</param>
-        /// <param name="password">Пароль игрока</param>
-        /// <param name="ip">Адрес игрока</param>
-        /// <param name="clientId">ID игрока</param>
-        /// <returns>Булевый результат операции</returns>
         public static async Task<bool> TryLogin(string username, string password, string ip, int clientId)
         {
             string message = "";
 
             try
             {
-                //Создание запроса к БД
                 Database db = new();
                 MySqlCommand myCommand =
                     new(
@@ -48,11 +40,11 @@ namespace VoxelTanksServer
                     Server.Clients[clientId].Username = table.Rows[0][0].ToString();
                     Server.Clients[clientId].IsAuth = true;
                     ServerSend.LoginResult(clientId, true, message);
-                    return true;
                 }
                 catch (Exception ex)
                 {
                     Log.Information($"[{ip}] {username} ввел некорректные данные.");
+                    Log.Error(ex.ToString());
                     message = $"Неправильный логин или пароль";
                     ServerSend.LoginResult(clientId, false, message);
                     return false;
@@ -64,6 +56,8 @@ namespace VoxelTanksServer
                 ServerSend.LoginResult(clientId, false, message);
                 return false;
             }
+
+            return false;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace VoxelTanksServer.API
+﻿using VoxelTanksServer.Protocol;
+
+namespace VoxelTanksServer.API
 {
     public static class ApiHandle
     {

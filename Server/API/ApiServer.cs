@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Serilog;
+using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.API
 {

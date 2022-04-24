@@ -1,4 +1,6 @@
-﻿namespace VoxelTanksServer.GameCore
+﻿using VoxelTanksServer.Protocol;
+
+namespace VoxelTanksServer.GameCore
 {
     public static class GameLogic
     {

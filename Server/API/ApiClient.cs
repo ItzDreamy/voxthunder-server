@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Sockets;
 using Serilog;
+using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.API
 {

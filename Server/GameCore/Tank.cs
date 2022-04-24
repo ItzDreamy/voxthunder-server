@@ -1,13 +1,13 @@
 ﻿using System.Data;
+using System.Linq;
 using System.Threading;
 using MySql.Data.MySqlClient;
 using Serilog;
+using VoxelTanksServer.DB;
+using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.GameCore
 {
-    /// <summary>
-    /// Класс для хранения данных о танке
-    /// </summary>
     public class Tank
     {
         public string Name { get; private set; }
@@ -28,19 +28,14 @@ namespace VoxelTanksServer.GameCore
         public Tank(string name)
         {
             Name = name;
-            //Запуск потока для инициализации танка
             Thread databaseThread = new(GetStats);
             databaseThread.Start();
         }
 
-        /// <summary>
-        /// Получать данные о танке каждый час
-        /// </summary>
         private void GetStats()
         {
             while (true)
             {
-                //Запрос к БД
                 var db = new Database();
                 MySqlCommand myCommand =
                     new(
@@ -51,7 +46,6 @@ namespace VoxelTanksServer.GameCore
                 adapter.SelectCommand = myCommand;
                 adapter.Fill(table);
 
-                //Установка значений
                 Damage = (int) table.Rows[0][2];
                 MaxHealth = (int) table.Rows[0][3];
                 TowerRotateSpeed =
@@ -78,18 +72,13 @@ namespace VoxelTanksServer.GameCore
             }
         }
 
-        /// <summary>
-        /// Запускать слушатель клиентов, если танки проинциализированы
-        /// </summary>
         private void CheckForInitialize()
         {
-            foreach (var tank in Server.Tanks)
+            if (Server.Tanks.Any(tank => !tank._initialized))
             {
-                if (!tank._initialized)
-                {
-                    return;
-                }
+                return;
             }
+
             Server.BeginListenConnections();
         }
     }

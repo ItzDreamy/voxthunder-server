@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using VoxelTanksServer.GameCore;
 
-namespace VoxelTanksServer
+namespace VoxelTanksServer.Protocol
 {
     /// <summary>Sent from server to client.</summary>
     public enum ServerPackets
