@@ -33,7 +33,6 @@ namespace VoxelTanksServer.DB
                 stats.Loses = (int) table.Rows[0][9];
                 stats.Balance = (int) table.Rows[0][10];
 
-                Log.Debug(stats.ToString());
                 return stats;
             }
             catch (Exception exception)
@@ -43,14 +42,14 @@ namespace VoxelTanksServer.DB
             }
         }
 
-        public static async Task UpdatePlayerStats(PlayerStats stats)
+        public static async Task UpdatePlayerStats(PlayerStats stats, string nickname)
         {
             var (battles, damage, kills, wins, loses, winRate, avgDamage, avgKills, balance) = stats;
 
             Database db = new Database();
             db.GetConnection().Open();
             MySqlCommand myCommand = new(
-                $"UPDATE playerstats (battles, winrate, avgdamage, avgkills, damage, kills, wins, loses, balance) VALUES ({battles}, {winRate}, {avgDamage}, {avgKills}, {damage}, {kills}, {wins}, {loses}, {balance})",
+                $"UPDATE `playerstats` SET `battles` = '{battles}', `winrate` = '{winRate}', `avgdamage` = '{avgDamage}', `avgkills` = '{avgKills}', `damage` = '{damage}', `kills` = '{kills}', `wins` = '{wins}', `loses` = '{loses}', `balance` = '{balance}' WHERE `nickname` = '{nickname}'",
                 db.GetConnection());
             await myCommand.ExecuteNonQueryAsync();
             await db.GetConnection().CloseAsync();

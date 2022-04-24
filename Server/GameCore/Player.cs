@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Data;
 using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using Serilog;
 using VoxelTanksServer.DB;
 using VoxelTanksServer.Protocol;
@@ -158,6 +156,7 @@ namespace VoxelTanksServer.GameCore
             if (Team.PlayersDeadCheck() && !ConnectedRoom.GameEnded)
             {
                 ConnectedRoom.GameEnded = true;
+
                 Task.Run(async () =>
                 {
                     await Task.Delay(3000);
@@ -165,6 +164,11 @@ namespace VoxelTanksServer.GameCore
 
                     foreach (var team in ConnectedRoom.Teams)
                     {
+                        foreach (var client in team.Players)
+                        {
+                            client.Player.UpdatePlayerStats(team != Team);
+                        }
+
                         ServerSend.EndGame(team, team != Team, false);
                     }
 
@@ -210,19 +214,22 @@ namespace VoxelTanksServer.GameCore
                 stats.Kills += Kills;
                 stats.AvgDamage = stats.Damage / stats.Battles;
                 stats.AvgKills = stats.Kills / stats.Battles;
-                stats.WinRate = stats.Wins / stats.Loses;
+                stats.WinRate = (float) stats.Wins / stats.Loses;
 
                 int collectedCredits = (int) (TotalDamage * 10 * (Kills + 1) * (1 + (isWin ? 1 : 0)) -
                                               TakenDamage * 2.5f * (1 + (IsAlive ? 1 : 0)));
                 stats.Balance += collectedCredits;
+                if (stats.Balance < 0)
+                {
+                    stats.Balance = 0;
+                }
 
-                
-                
-                
+                await DatabaseUtils.UpdatePlayerStats(stats, Username);
             }
             catch (Exception exception)
             {
                 Log.Error(exception.ToString());
+                throw;
             }
         }
     }

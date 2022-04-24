@@ -1,8 +1,7 @@
 ﻿using System.Net;
 using System.Net.NetworkInformation;
-using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer.API
+namespace VoxelTanksServer.Protocol.API
 {
     public class ApiSend
     {

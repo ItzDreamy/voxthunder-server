@@ -5,10 +5,10 @@ using System.Threading;
 using Serilog;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using VoxelTanksServer.API;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 using VoxelTanksServer.Protocol;
+using VoxelTanksServer.Protocol.API;
 
 namespace VoxelTanksServer
 {

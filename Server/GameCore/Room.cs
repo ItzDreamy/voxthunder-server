@@ -148,6 +148,10 @@ namespace VoxelTanksServer.GameCore
 
                         foreach (var team in Teams)
                         {
+                            foreach (var client in team.Players)
+                            {
+                                client.Player.UpdatePlayerStats(false);
+                            }
                             ServerSend.EndGame(team, false, true);
                         }
 

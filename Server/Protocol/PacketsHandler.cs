@@ -9,16 +9,8 @@ using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer.Protocol
 {
-    /// <summary>
-    /// Обработчик пакетов сервера
-    /// </summary>
     public static class PacketsHandler
     {
-        /// <summary>
-        /// Успешное подключения клиента к серверу
-        /// </summary>
-        /// <param name="fromClient"></param>
-        /// <param name="packet"></param>
         public static void WelcomePacketReceived(int fromClient, Packet packet)
         {
             int clientIdCheck = packet.ReadInt();
@@ -91,17 +83,15 @@ namespace VoxelTanksServer.Protocol
                 return;
             }
 
-            MovementData movement = packet.ReadMovement();
-            client.Player.Position = movement.Position;
-            client.Player.Rotation = movement.Rotation;
-            ServerSend.SendMovementData(movement, connectedRoom, fromClient);
+            if (client.Player != null)
+            {
+                MovementData movement = packet.ReadMovement();
+                client.Player.Position = movement.Position;
+                client.Player.Rotation = movement.Rotation;
+                ServerSend.SendMovementData(movement, connectedRoom, fromClient);
+            }
         }
 
-        /// <summary>
-        /// Поворот башни
-        /// </summary>
-        /// <param name="fromClient"></param>
-        /// <param name="packet"></param>
         public static void RotateTurret(int fromClient, Packet packet)
         {
             var client = Server.Clients[fromClient];
@@ -148,12 +138,6 @@ namespace VoxelTanksServer.Protocol
                     myCommand = new MySqlCommand($"INSERT INTO `playerstats` (nickname, battles, winrate, avgdamage, avgkills, damage, kills, wins, loses, balance, mamont, raider) VALUES ('{client.Username}', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)", db.GetConnection());
                     await myCommand.ExecuteNonQueryAsync();
                     await db.GetConnection().CloseAsync();
-                }
-                else
-                {
-                    var stats = await DatabaseUtils.GetPlayerStats(client.Username);
-                    stats.Battles++;
-                    Log.Debug(stats.Battles.ToString());
                 }
             }
         }
