@@ -1,4 +1,7 @@
 ﻿clientVersion: "dev_0.0.1.003"
+maxCredits: 99999999
+generalTime: 420000
+preparativeTime: 15000
 maxPlayersInRoom: 2
 afkTime: 900000
 maxPlayers: 100

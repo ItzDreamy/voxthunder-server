@@ -62,7 +62,7 @@ namespace VoxelTanksServer.Library
             Console.Write("Введите кол-во игроков в комнате: ");
             try
             {
-                int playersCount = Int32.Parse(Console.ReadLine());
+                int playersCount = int.Parse(Console.ReadLine());
                 if (playersCount % 2 != 0)
                 {
                     Console.WriteLine("Введите четное число игроков!");

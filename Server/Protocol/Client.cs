@@ -238,7 +238,6 @@ namespace VoxelTanksServer.Protocol
         public void SendIntoGame(string? playerName, Tank tank)
         {
             Player ??= new Player(Id, playerName, SpawnPosition, SpawnRotation, tank, ConnectedRoom);
-            Log.Information(Player.Position.ToString());
             Player.Team = Team;
 
             foreach (var client in ConnectedRoom?.Players.Values.Where(client => client?.Player != null)

@@ -26,7 +26,21 @@ namespace VoxelTanksServer
             {"players", Commands.ShowPlayerList},
             {"help", Commands.ShowCommandList},
             {"smp_room", Commands.SetMaxPlayersInRoom},
-            {"clear", Console.Clear}
+            {"clear", Console.Clear},
+            {
+                "g_time", () =>
+                {
+                    Console.Write("General time: ");
+                    Server.Config.GeneralTime = int.Parse(Console.ReadLine());
+                }
+            },
+            {
+                "p_time", () =>
+                {
+                    Console.Write("Preparative time: ");
+                    Server.Config.PreparativeTime = int.Parse(Console.ReadLine());
+                }
+            }
         };
 
         public static void Main(string[] args)
@@ -99,16 +113,5 @@ namespace VoxelTanksServer
                 }
             }
         }
-    }
-
-    public class Config
-    {
-        public string ClientVersion;
-        public int AfkTime;
-        public int MaxPlayers;
-        public int ServerPort;
-        public int ApiPort;
-        public int ApiMaxConnections;
-        public int MaxPlayersInRoom;
     }
 }

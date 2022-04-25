@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Serilog;
 using VoxelTanksServer.DB;
+using VoxelTanksServer.Library;
 using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.GameCore
@@ -166,10 +167,10 @@ namespace VoxelTanksServer.GameCore
                     {
                         foreach (var client in team.Players)
                         {
-                            client.Player.UpdatePlayerStats(team != Team);
+                            client.Player.UpdatePlayerStats(team != Team ? GameResults.Win : GameResults.Lose);
                         }
 
-                        ServerSend.EndGame(team, team != Team, false);
+                        ServerSend.EndGame(team, team != Team ? GameResults.Win : GameResults.Lose);
                     }
 
                     foreach (var player in ConnectedRoom.Players.Values)
@@ -202,34 +203,45 @@ namespace VoxelTanksServer.GameCore
             return new CachedPlayer(this);
         }
 
-        public async void UpdatePlayerStats(bool isWin)
+        public async void UpdatePlayerStats(GameResults results)
         {
             try
             {
                 var stats = await DatabaseUtils.GetPlayerStats(Username);
                 stats.Battles++;
-                if (isWin) stats.Wins++;
-                else stats.Loses++;
+
+                switch (results)
+                {
+                    case GameResults.Win:
+                        stats.Wins++;
+                        break;
+                    case GameResults.Lose:
+                        stats.Loses++;
+                        break;
+                    case GameResults.Draw:
+                        stats.Draws++;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(results), results, null);
+                }
+                
                 stats.Damage += TotalDamage;
                 stats.Kills += Kills;
                 stats.AvgDamage = stats.Damage / stats.Battles;
                 stats.AvgKills = stats.Kills / stats.Battles;
-                stats.WinRate = (float) stats.Wins / stats.Loses;
+                stats.WinRate = ((stats.Wins + 0.5f * stats.Draws) / stats.Battles) * 100f;
+                stats.WinRate = Math.Clamp(stats.WinRate, 0f, 100f);
 
-                int collectedCredits = (int) (TotalDamage * 10 * (Kills + 1) * (1 + (isWin ? 1 : 0)) -
+                int collectedCredits = (int) (TotalDamage * 10 * (Kills + 1) * (1 + (results == GameResults.Win ? 1 : 0)) -
                                               TakenDamage * 2.5f * (1 + (IsAlive ? 1 : 0)));
                 stats.Balance += collectedCredits;
-                if (stats.Balance < 0)
-                {
-                    stats.Balance = 0;
-                }
+                stats.Balance = Math.Clamp(stats.Balance, 0, Server.Config.MaxCredits);
 
                 await DatabaseUtils.UpdatePlayerStats(stats, Username);
             }
             catch (Exception exception)
             {
                 Log.Error(exception.ToString());
-                throw;
             }
         }
     }

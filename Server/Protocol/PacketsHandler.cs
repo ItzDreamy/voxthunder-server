@@ -125,17 +125,19 @@ namespace VoxelTanksServer.Protocol
                 client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient))
             {
                 var db = new Database();
-                var myCommand = new MySqlCommand($"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client}'", db.GetConnection());
+                var myCommand = new MySqlCommand($"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Username}'", db.GetConnection());
                 var adapter = new MySqlDataAdapter();
                 var table = new DataTable();
                 adapter.SelectCommand = myCommand;
                 await adapter.FillAsync(table);
-                    
+                
+                Log.Debug(table.Rows[0][0].ToString());
                 if ((long) table.Rows[0][0] <= 0)
                 {
+                    Log.Debug("Creating new record");
                     db = new Database();
                     db.GetConnection().Open();
-                    myCommand = new MySqlCommand($"INSERT INTO `playerstats` (nickname, battles, winrate, avgdamage, avgkills, damage, kills, wins, loses, balance, mamont, raider) VALUES ('{client.Username}', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)", db.GetConnection());
+                    myCommand = new MySqlCommand($"INSERT INTO `playerstats` (`nickname`) VALUES ('{client.Username}')", db.GetConnection());
                     await myCommand.ExecuteNonQueryAsync();
                     await db.GetConnection().CloseAsync();
                 }
@@ -278,7 +280,7 @@ namespace VoxelTanksServer.Protocol
             }
 
             //Создание новой комнаты
-            Room? newRoom = new Room(420000, 15000);
+            Room? newRoom = new Room(Server.Config.GeneralTime, Server.Config.PreparativeTime);
             //Присоединение к комнате
             Server.Clients[fromClient].JoinRoom(newRoom);
 

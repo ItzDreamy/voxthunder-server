@@ -6,23 +6,17 @@ using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
 using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol
 {
     public static class Server
     {
         public static bool IsOnline = false;
-        public static Config Config;
-        
-        public enum Timers
-        {
-            Preparative,
-            General
-        }
+        public static Config? Config;
         
         public static int OnlinePlayers 
         {   
-            //Возвращает кол-во онлайн игроков на сервере
             get
             {
                 return Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count;
@@ -34,7 +28,6 @@ namespace VoxelTanksServer.Protocol
         public static readonly Dictionary<int, Client> Clients = new();
         public static readonly List<Room?> Rooms = new();
 
-        //Инициализация карт
         public static readonly List<Map> Maps = new ()
         {
             new Map("Dreamberg", new List<SpawnPoint>
@@ -50,9 +43,7 @@ namespace VoxelTanksServer.Protocol
             })
         };
 
-        
-        // Инициализация танков
-        public static List<Tank> Tanks = new()
+        public static readonly List<Tank> Tanks = new()
         {
             new Tank("Raider"),
             new Tank("Mamont")
@@ -60,17 +51,11 @@ namespace VoxelTanksServer.Protocol
 
         public delegate void PacketHandler(int fromClient, Packet packet);
 
-        public static Dictionary<int, PacketHandler> PacketHandlers;
+        public static Dictionary<int, PacketHandler>? PacketHandlers;
 
-        private static TcpListener _tcpListener;
+        private static TcpListener? _tcpListener;
 
-        /// <summary>
-        /// Запуск сервера
-        /// </summary>
-        /// <param name="maxPlayers">Максимальное кол-во игроков на сервере</param>
-        /// <param name="port">Порт сервера, с помощью которого клиенты подключаются</param>
-        /// <param name="clientVersion">Версия клиента</param>
-        public static void Start(Config config)
+        public static void Start(Config? config)
         {
             try
             {
@@ -90,28 +75,21 @@ namespace VoxelTanksServer.Protocol
                 Log.Error(e.ToString());
             }
         }
-
-        /// <summary>
-        /// Начать слушать подключения клиентов и подключать их
-        /// </summary>
+        
         public static void BeginListenConnections()
         {
-            _tcpListener.Start();
-            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+            _tcpListener?.Start();
+            _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
             IsOnline = true;
         }
-
-        /// <summary>
-        /// Отклик на подключение клиента
-        /// </summary>
-        /// <param name="result"></param>
+        
         private static void TcpConnectCallback(IAsyncResult result)
         {
-            TcpClient? client = _tcpListener.EndAcceptTcpClient(result);
+            TcpClient? client = _tcpListener?.EndAcceptTcpClient(result);
 
-            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+            _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
 
-            Log.Information($"Trying to connect {client.Client.RemoteEndPoint}");
+            Log.Information($"Trying to connect {client?.Client.RemoteEndPoint}");
 
             for (int i = 1; i <= MaxPlayers; i++)
             {
@@ -124,19 +102,14 @@ namespace VoxelTanksServer.Protocol
 
             Log.Information($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
         }
-
-        /// <summary>
-        /// Инициализация серверных данных и обработчика пакетов
-        /// </summary>
+        
         private static void InitializeServerData()
         {
-            //Добавление всех клиентов в словарь для дальнейшего использования
             for (var i = 1; i <= MaxPlayers; i++)
             {
                 Clients.Add(i, new Client(i));
             }
-
-            //Инициализация обработчика пакетов, приходящих от клиента
+            
             PacketHandlers = new Dictionary<int, PacketHandler>
             {
                 {(int) ClientPackets.WelcomeReceived, PacketsHandler.WelcomePacketReceived},

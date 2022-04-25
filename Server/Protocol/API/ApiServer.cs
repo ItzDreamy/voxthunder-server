@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Serilog;
+using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol.API
 {
@@ -18,7 +19,7 @@ namespace VoxelTanksServer.Protocol.API
 
         private static TcpListener? _tcpListener;
 
-        public static void Start(Config config)
+        public static void Start(Config? config)
         {
             try
             {

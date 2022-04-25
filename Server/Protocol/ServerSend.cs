@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol
 {
@@ -120,11 +121,6 @@ namespace VoxelTanksServer.Protocol
 
         #region Packets
 
-        /// <summary>
-        /// Приветственный пакет
-        /// </summary>
-        /// <param name="toClient"></param>
-        /// <param name="message"></param>
         public static void Welcome(int toClient, string? message)
         {
             using (Packet packet = new((int) ServerPackets.Welcome))
@@ -137,11 +133,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Спавн игрока
-        /// </summary>
-        /// <param name="toClient"></param>
-        /// <param name="player"></param>
         public static void SpawnPlayer(int toClient, Player? player)
         {
             using (Packet packet = new((int) ServerPackets.SpawnPlayer))
@@ -208,10 +199,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
         
-        /// <summary>
-        /// Поворот башни
-        /// </summary>
-        /// <param name="player"></param>
         public static void RotateTurret(Player player)
         {
             using (Packet packet = new((int) ServerPackets.RotateTurret))
@@ -224,12 +211,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправка результата авторизации
-        /// </summary>
-        /// <param name="toClient"></param>
-        /// <param name="result"></param>
-        /// <param name="message"></param>
         public static void LoginResult(int toClient, bool result, string? message)
         {
             using (Packet packet = new((int) ServerPackets.LoginResult))
@@ -241,14 +222,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Создание объекта
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="position"></param>
-        /// <param name="rotation"></param>
-        /// <param name="fromClient"></param>
-        /// <param name="room"></param>
         public static void InstantiateObject(string? name, Vector3 position, Quaternion rotation, int fromClient,
             Room? room)
         {
@@ -263,11 +236,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Загрузка сцены для комнаты
-        /// </summary>
-        /// <param name="room"></param>
-        /// <param name="sceneName"></param>
         public static void LoadScene(Room? room, string? sceneName)
         {
             using (Packet packet = new((int) ServerPackets.LoadGame))
@@ -277,11 +245,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Загрузка сцены для игрока
-        /// </summary>
-        /// <param name="toClient"></param>
-        /// <param name="sceneName"></param>
         public static void LoadScene(int toClient, string? sceneName)
         {
             using (Packet packet = new((int) ServerPackets.LoadGame))
@@ -300,11 +263,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправка пакета когда игрок переподключился
-        /// </summary>
-        /// <param name="username"></param>
-        /// <param name="room"></param>
         public static void PlayerReconnected(string username, Room? room)
         {
             using (Packet packet = new((int)ServerPackets.PlayerReconnected))
@@ -315,12 +273,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Получение урона
-        /// </summary>
-        /// <param name="playerId"></param>
-        /// <param name="maxHealth"></param>
-        /// <param name="currentHealth"></param>
         public static void TakeDamage(int playerId, int maxHealth, int currentHealth)
         {
             using (Packet packet = new((int) ServerPackets.TakeDamage))
@@ -333,10 +285,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Уничтожение игрока
-        /// </summary>
-        /// <param name="playerId"></param>
         public static void PlayerDead(int playerId)
         {
             using (Packet packet = new((int) ServerPackets.PlayerDead))
@@ -347,10 +295,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправить уведомление о том, что игрок может переподключится к игре
-        /// </summary>
-        /// <param name="toClient"></param>
         public static void AbleToReconnect(int toClient)
         {
             using (Packet packet = new((int) ServerPackets.AbleToReconnect))
@@ -359,12 +303,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Показать наносимый урон
-        /// </summary>
-        /// <param name="toClient"></param>
-        /// <param name="damage"></param>
-        /// <param name="player"></param>
         public static void ShowDamage(int toClient, int damage, Player player)
         {
             using (Packet packet = new Packet((int) ServerPackets.ShowDamage))
@@ -388,15 +326,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
         
-        /// <summary>
-        /// Показать килфид
-        /// </summary>
-        /// <param name="team"></param>
-        /// <param name="color"></param>
-        /// <param name="killerUsername"></param>
-        /// <param name="deadUsername"></param>
-        /// <param name="killerTank"></param>
-        /// <param name="deadTank"></param>
         public static void ShowKillFeed(Team team, Color color, string killerUsername, string deadUsername, string killerTank, string deadTank)
         {
             using (Packet packet = new Packet((int) ServerPackets.ShowKillFeed))
@@ -411,10 +340,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
         
-        /// <summary>
-        /// Показать кол-во игроков в комнате
-        /// </summary>
-        /// <param name="room"></param>
         public static void ShowPlayersCountInRoom(Room room)
         {
             using (Packet packet = new Packet((int) ServerPackets.ShowPlayersCountInRoom))
@@ -424,11 +349,6 @@ namespace VoxelTanksServer.Protocol
                 SendTcpDataToRoom(room, packet);
             }
         }
-
-        /// <summary>
-        /// Отправить статистику всех игроков в комнате клиенту
-        /// </summary>
-        /// <param name="room">Комната в которой находятся игроки</param>
         public static void SendPlayersStats(Room room)
         {
             using (Packet packet = new Packet((int)ServerPackets.PlayersStats))
@@ -438,12 +358,11 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        public static void EndGame(Team team, bool isWinner, bool isDraw)
+        public static void EndGame(Team team, GameResults result)
         {
             using (Packet packet = new Packet((int) ServerPackets.EndGame))
             {
-                packet.Write(isWinner);
-                packet.Write(isDraw);
+                packet.Write((int) result);
                 SendTcpDataToTeam(team, packet);
             }
         }

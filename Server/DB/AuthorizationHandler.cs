@@ -40,6 +40,8 @@ namespace VoxelTanksServer.DB
                     Server.Clients[clientId].Username = table.Rows[0][0].ToString();
                     Server.Clients[clientId].IsAuth = true;
                     ServerSend.LoginResult(clientId, true, message);
+
+                    return true;
                 }
                 catch (Exception ex)
                 {

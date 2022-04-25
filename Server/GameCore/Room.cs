@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VoxelTanksServer.Library;
 using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.GameCore
@@ -93,7 +94,7 @@ namespace VoxelTanksServer.GameCore
                             client?.SendIntoGame(client.Username, client.SelectedTank);
                         }
 
-                        StartTimer(Server.Timers.Preparative, PreparationTime);
+                        StartTimer(Timers.Preparative, PreparationTime);
                         return;
                     }
 
@@ -122,7 +123,7 @@ namespace VoxelTanksServer.GameCore
             return true;
         }
 
-        public void StartTimer(Server.Timers type, int time)
+        public void StartTimer(Timers type, int time)
         {
             if (_timerRunning)
                 return;
@@ -134,11 +135,11 @@ namespace VoxelTanksServer.GameCore
                 while (_currentTime > 0 && !GameEnded)
                 {
                     _currentTime -= 1000;
-                    ServerSend.SendTimer(this, _currentTime, type == Server.Timers.General);
+                    ServerSend.SendTimer(this, _currentTime, type == Timers.General);
                     await Task.Delay(1000);
                 }
 
-                if (type == Server.Timers.General)
+                if (type == Timers.General)
                 {
                     if (!GameEnded)
                     {
@@ -150,9 +151,9 @@ namespace VoxelTanksServer.GameCore
                         {
                             foreach (var client in team.Players)
                             {
-                                client.Player.UpdatePlayerStats(false);
+                                client.Player.UpdatePlayerStats(GameResults.Draw);
                             }
-                            ServerSend.EndGame(team, false, true);
+                            ServerSend.EndGame(team, GameResults.Draw);
                         }
 
                         foreach (var player in Players.Values)
@@ -164,7 +165,7 @@ namespace VoxelTanksServer.GameCore
                 else
                 {
                     _timerRunning = false;
-                    StartTimer(Server.Timers.General, _generalTime);
+                    StartTimer(Timers.General, _generalTime);
                     ServerSend.UnlockPlayers(this);
                     PlayersLocked = false;
                 }

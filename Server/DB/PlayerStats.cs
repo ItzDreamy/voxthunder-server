@@ -7,6 +7,7 @@
         public int Kills;
         public int Wins;
         public int Loses;
+        public int Draws;
         public float WinRate;
         public int AvgDamage;
         public int AvgKills;
@@ -17,13 +18,14 @@
             return $"Battles: {Battles} Damage: {Damage} Kills: {Kills} Wins: {Wins} Loses: {Loses} WinRate: {WinRate} AvgDamage: {AvgDamage} AvgKills: {AvgKills} Balance: {Balance}";
         }
 
-        public void Deconstruct(out int battles, out int damage, out int kills, out int wins, out int loses, out float winRate, out int avgDamage, out int avgKills, out int balance)
+        public void Deconstruct(out int battles, out int damage, out int kills, out int wins, out int loses, out int draws, out float winRate, out int avgDamage, out int avgKills, out int balance)
         {
             battles = Battles;
             damage = Damage;
             kills = Kills;
             wins = Wins;
             loses = Loses;
+            draws = Draws;
             winRate = WinRate;
             avgDamage = AvgDamage;
             avgKills = AvgKills;
