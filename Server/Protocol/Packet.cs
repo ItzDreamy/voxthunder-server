@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 using System.Text;
 using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer.Protocol
 {
-    /// <summary>Sent from server to client.</summary>
     public enum ServerPackets
     {
         Welcome = 1,
@@ -34,7 +31,8 @@ namespace VoxelTanksServer.Protocol
         UnlockPlayers,
         SendMovement,
         ProfileData,
-        AuthId
+        AuthId,
+        SignOut
     }
 
     /// <summary>
@@ -70,6 +68,7 @@ namespace VoxelTanksServer.Protocol
         SendMovement,
         RequestProfile,
         AuthById,
+        SignOut
     }
 
     /// <summary>

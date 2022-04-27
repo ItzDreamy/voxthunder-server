@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using VoxelTanksServer.Protocol;
+﻿using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.Library
 {

@@ -1,11 +1,10 @@
-﻿using System;
-using System.Data;
-using System.Threading.Tasks;
+﻿using System.Data;
 using MySql.Data.MySqlClient;
-using VoxelTanksServer.Protocol;
 using Serilog;
+using VoxelTanksServer.DB;
+using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer.DB
+namespace VoxelTanksServer.Library
 {
     public static class DatabaseUtils
     {
@@ -24,16 +23,16 @@ namespace VoxelTanksServer.DB
 
             try
             {
-                stats.Battles = (int) table.Rows[0][2];
-                stats.WinRate = (float) table.Rows[0][3];
-                stats.AvgDamage = (int) table.Rows[0][4];
-                stats.AvgKills = (int) table.Rows[0][5];
-                stats.Damage = (int) table.Rows[0][6];
-                stats.Kills = (int) table.Rows[0][7];
-                stats.Wins = (int) table.Rows[0][8];
-                stats.Draws = (int) table.Rows[0][9];
-                stats.Loses = (int) table.Rows[0][10];
-                stats.Balance = (int) table.Rows[0][11];
+                stats.Battles = (int) table.Rows[0][3];
+                stats.WinRate = (float) table.Rows[0][4];
+                stats.AvgDamage = (int) table.Rows[0][5];
+                stats.AvgKills = (int) table.Rows[0][6];
+                stats.Damage = (int) table.Rows[0][7];
+                stats.Kills = (int) table.Rows[0][8];
+                stats.Wins = (int) table.Rows[0][9];
+                stats.Draws = (int) table.Rows[0][10];
+                stats.Loses = (int) table.Rows[0][11];
+                stats.Balance = (int) table.Rows[0][12];
 
                 return stats;
             }
@@ -58,13 +57,25 @@ namespace VoxelTanksServer.DB
             await db.GetConnection().CloseAsync();
         }
 
-        public static async Task<bool> TryLoginById(string authId, int clientId)
+        public static async Task GenerateAuthToken(string nickname, int clientId)
         {
-            string message = "";
-            
+            Guid guid = Guid.NewGuid();
+            var db = new Database();
+            db.GetConnection().Open();
+            MySqlCommand myCommand = new(
+                $"UPDATE `authdata` SET `authId` = '{guid.ToString()}' WHERE `login` = '{nickname}'",
+                db.GetConnection());
+            await myCommand.ExecuteNonQueryAsync();
+            await db.GetConnection().CloseAsync();
+                        
+            ServerSend.SendAuthId(guid.ToString(), clientId);
+        }
+
+        public static async Task<bool> TryLoginByToken(string authToken, int clientId)
+        {
             var db = new Database();
             var myCommand =
-                new MySqlCommand($"SELECT Count(*) FROM `authdata` WHERE `authId` = '{authId}'",
+                new MySqlCommand($"SELECT Count(*) FROM `authdata` WHERE `authId` = '{authToken}'",
                     db.GetConnection());
             var adapter = new MySqlDataAdapter();
             var table = new DataTable();
@@ -75,7 +86,7 @@ namespace VoxelTanksServer.DB
             {
                 db = new Database();
                 myCommand =
-                    new MySqlCommand($"SELECT `login` FROM `authdata` WHERE `authId` = '{authId}'",
+                    new MySqlCommand($"SELECT `login` FROM `authdata` WHERE `authId` = '{authToken}'",
                         db.GetConnection());
                 adapter = new MySqlDataAdapter();
                 table = new DataTable();
@@ -85,21 +96,17 @@ namespace VoxelTanksServer.DB
                 string nickname = table.Rows[0][0].ToString();
 
                 Log.Information($"{nickname} успешно зашел в аккаунт");
-                message = "Авторизация прошла успешно";
-                    
+
                 var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Username?.ToLower() == nickname.ToLower());
                 samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
                 
                 Server.Clients[clientId].Username = table.Rows[0][0].ToString();
                 Server.Clients[clientId].IsAuth = true;
+
+                await GenerateAuthToken(nickname, clientId);
                 
-                ServerSend.LoginResult(clientId, true, message);
                 return true;
             }
-
-            message = "Недействительный id авторизации";
-            ServerSend.LoginResult(clientId, false, message);
-            
             return false;
         }
     }

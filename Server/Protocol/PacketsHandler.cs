@@ -1,12 +1,10 @@
-﻿using System;
-using System.Data;
-using System.Linq;
+﻿using System.Data;
 using System.Numerics;
 using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Serilog;
 using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol
 {
@@ -415,7 +413,16 @@ namespace VoxelTanksServer.Protocol
         public static async void AuthById(int fromClient, Packet packet)
         {
             string id = packet.ReadString();
-            bool isAuth = await DatabaseUtils.TryLoginById(id, fromClient);
+            bool isAuth = await DatabaseUtils.TryLoginByToken(id, fromClient);
+            ServerSend.LoginResult(fromClient, isAuth, isAuth ? "Авторизация прошла успешно" : "Сессия завершина");
+        }
+
+        public static void SignOut(int fromClient, Packet packet)
+        {
+            var client = Server.Clients[fromClient];
+            client.IsAuth = false;
+            client.Username = null;
+            ServerSend.SignOut(fromClient);
         }
     }
 }

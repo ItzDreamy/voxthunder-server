@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
@@ -129,7 +126,8 @@ namespace VoxelTanksServer.Protocol
                 {(int) ClientPackets.LeaveToLobby, PacketsHandler.LeaveToLobby},
                 {(int) ClientPackets.SendMovement, PacketsHandler.GetPlayerMovement},
                 {(int) ClientPackets.RequestProfile, PacketsHandler.HandleProfileRequest},
-                {(int) ClientPackets.AuthById, PacketsHandler.AuthById}
+                {(int) ClientPackets.AuthById, PacketsHandler.AuthById},
+                {(int) ClientPackets.SignOut, PacketsHandler.SignOut}
             };
             Log.Information("Packets initialized");
         }

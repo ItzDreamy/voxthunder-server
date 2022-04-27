@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using MySql.Data.MySqlClient;
 using Serilog;
+using VoxelTanksServer.Library;
 using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.DB
@@ -36,21 +37,14 @@ namespace VoxelTanksServer.DB
                     
                     Server.Clients[clientId].Username = table.Rows[0][0].ToString();
                     Server.Clients[clientId].IsAuth = true;
+                    
                     if (rememberUser)
                     {
-                        Guid guid = Guid.NewGuid();
-                        db = new Database();
-                        db.GetConnection().Open();
-                        myCommand = new(
-                            $"UPDATE `authdata` SET `authId` = '{guid.ToString()}' WHERE `login` = '{nickname}' AND `password` = '{password}'",
-                            db.GetConnection());
-                        await myCommand.ExecuteNonQueryAsync();
-                        await db.GetConnection().CloseAsync();
-                        ServerSend.SendAuthId(guid.ToString(), clientId);
+                        await DatabaseUtils.GenerateAuthToken(nickname, clientId);
                     }
                     
                     ServerSend.LoginResult(clientId, true, message);
-
+                    await RankedSystemUtils.CheckRankUp(Server.Clients[clientId]);
                     return true;
                 }
                 catch (Exception ex)

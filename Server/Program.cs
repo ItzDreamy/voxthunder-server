@@ -42,7 +42,6 @@ namespace VoxelTanksServer
         public static void Main(string[] args)
         {
             Console.Title = "Server";
-
             try
             {
                 Log.Logger = new LoggerConfiguration()

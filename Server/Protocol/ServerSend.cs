@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.Linq;
 using System.Numerics;
 using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
@@ -388,6 +387,14 @@ namespace VoxelTanksServer.Protocol
             {
                 packet.Write(id);
                 
+                SendTcpData(toClient, packet);
+            }
+        }
+        
+        public static void SignOut(int toClient)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.SignOut))
+            {
                 SendTcpData(toClient, packet);
             }
         }

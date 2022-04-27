@@ -2,37 +2,37 @@
   {
     "id": 1,
     "name": "Старший солдат",
-    "exp": 0,
-    "credits": 0
+    "requiredExp": 0,
+    "reward": 0
   },
   {
     "id": 2,
     "name": "Младший сержант",
-    "exp": 1000,
-    "credits": 2500
+    "requiredExp": 1000,
+    "reward": 2500
   },
   {
     "id": 3,
     "name": "Старший сержант",
-    "exp": 2500,
-    "credits": 4000
+    "requiredExp": 2500,
+    "reward": 4000
   },
   {
     "id": 4,
     "name": "Старшина",
-    "exp": 5000,
-    "credits": 5000
+    "requiredExp": 5000,
+    "reward": 5000
   },
   {
     "id": 5,
     "name": "Прапорщик",
-    "exp": 7000,
-    "credits": 8500
+    "requiredExp": 7000,
+    "reward": 8500
   },
   {
     "id": 6,
     "name": "Старший прапорщик",
-    "exp": 10000,
-    "credits": 10000
+    "requiredExp": 10000,
+    "reward": 10000
   }
 ]

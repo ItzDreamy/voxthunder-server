@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Numerics;
-using System.Threading.Tasks;
 using Serilog;
 using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol
 {
@@ -34,19 +32,12 @@ namespace VoxelTanksServer.Protocol
 
         private int _afkTimer = Server.Config.AfkTime;
 
-        /// <summary>
-        /// Создание экземпляра клиента
-        /// </summary>
-        /// <param name="clientId"></param>
         public Client(int clientId)
         {
             Id = clientId;
             Tcp = new TCP(Id);
         }
 
-        /// <summary>
-        /// Класс для взаимодействия с клиентом по сети
-        /// </summary>
         public class TCP
         {
             public TcpClient? Socket;
@@ -61,41 +52,26 @@ namespace VoxelTanksServer.Protocol
                 _id = id;
             }
 
-            /// <summary>
-            /// Подключение клиента к серверу
-            /// </summary>
-            /// <param name="socket">Сокет клиента</param>
             public void Connect(TcpClient socket)
             {
-                //Инициализация сокета
                 Socket = socket;
                 Socket.ReceiveBufferSize = DataBufferSize;
                 Socket.SendBufferSize = DataBufferSize;
 
-                //Получение потока данных
                 _stream = Socket.GetStream();
 
-                //Создания буфера для получаемых данных
                 _receivedData = new Packet();
                 _receiveBuffer = new byte[DataBufferSize];
 
-                //Начать чтения данных клиента
                 _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
 
-                //Подписка на необходимые события
                 Server.Clients[_id].OnJoinedRoom += ServerSend.ShowPlayersCountInRoom;
                 Server.Clients[_id].OnLeftRoom += ServerSend.ShowPlayersCountInRoom;
 
                 ServerSend.Welcome(_id, "You have been successfully connected to server");
-
                 Server.Clients[_id].StartAfkTimer();
             }
 
-            /// <summary>
-            /// Обработка получаемых данных
-            /// </summary>
-            /// <param name="data">Данные</param>
-            /// <returns>Сбрасывать ли настройки экземпляр пакета для повторного использования?</returns>
             private bool HandleData(byte[] data)
             {
                 try

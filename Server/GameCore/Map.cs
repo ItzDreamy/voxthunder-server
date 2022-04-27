@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace VoxelTanksServer.GameCore
+﻿namespace VoxelTanksServer.GameCore
 {
     /// <summary>
     /// Хранение данных карты
