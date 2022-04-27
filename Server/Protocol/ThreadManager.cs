@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using Serilog;
+﻿using Serilog;
 
 namespace VoxelTanksServer.Protocol
 {
-    public class ThreadManager
+    public static class ThreadManager
     {
         private static readonly List<Action> ExecuteOnMainThread = new();
         private static readonly List<Action> ExecuteCopiedOnMainThread = new();
         private static bool _actionToExecuteOnMainThread = false;
         
-        /// <summary>Sets an action to be executed on the main thread.</summary>
-        /// <param name="action">The action to be executed on the main thread.</param>
         public static void ExecuteInMainThread(Action action)
         {
             if (action == null)
@@ -28,7 +24,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>Executes all code meant to run on the main thread. NOTE: Call this ONLY from the main thread.</summary>
         public static void UpdateMain()
         {
             if (_actionToExecuteOnMainThread)

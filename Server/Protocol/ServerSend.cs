@@ -1,31 +1,20 @@
 ﻿using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol
 {
-    /// <summary>
-    /// Класс для отправки данных клиенту
-    /// </summary>
     public static class ServerSend
     {
-        /// <summary>
-        /// Метод для отправки данных определенному клиенту
-        /// </summary>
-        /// <param name="toClient"></param>
-        /// <param name="packet"></param>
         private static void SendTcpData(int toClient, Packet packet)
         {
             packet.WriteLength();
             Server.Clients[toClient].Tcp.SendData(packet);
         }
 
-        /// <summary>
-        /// Отправка данных всем клиентам на сервере
-        /// </summary>
-        /// <param name="packet"></param>
         private static void SendTcpDataToAll(Packet packet)
         {
             packet.WriteLength();
@@ -34,11 +23,7 @@ namespace VoxelTanksServer.Protocol
                 Server.Clients[i].Tcp.SendData(packet);
             }
         }
-        /// <summary>
-        /// Отправка данных всем клиентам в указаной комнате
-        /// </summary>
-        /// <param name="room"></param>
-        /// <param name="packet"></param>
+        
         public static void SendTcpDataToRoom(Room? room, Packet packet)
         {
             packet.WriteLength();
@@ -52,11 +37,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправка данных всем клиентам в указаной команде
-        /// </summary>
-        /// <param name="team"></param>
-        /// <param name="packet"></param>
         public static void SendTcpDataToTeam(Team? team, Packet packet)
         {
             packet.WriteLength();
@@ -67,12 +47,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправка данных всем клиентам в указаной комнате кроме одного
-        /// </summary>
-        /// <param name="room"></param>
-        /// <param name="exceptId"></param>
-        /// <param name="packet"></param>
         public static void SendTcpDataToRoom(Room? room, int exceptId, Packet packet)
         {
             packet.WriteLength();
@@ -86,12 +60,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправка данных всем клиентам в указаной команде кроме одного
-        /// </summary>
-        /// <param name="team"></param>
-        /// <param name="exceptId"></param>
-        /// <param name="packet"></param>
         public static void SendTcpDataToTeam(Team? team, int exceptId, Packet packet)
         {
             packet.WriteLength();
@@ -105,11 +73,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Отправка данных всем игрокам на сервере кроме одного
-        /// </summary>
-        /// <param name="exceptClient"></param>
-        /// <param name="packet"></param>
         private static void SendTcpDataToAll(int exceptClient, Packet packet)
         {
             packet.WriteLength();
@@ -394,7 +357,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
         
-        
         public static void SendMovementData(MovementData movement, Room room, int id)
         {
             using (Packet packet = new Packet((int) ServerPackets.SendMovement))
@@ -406,6 +368,29 @@ namespace VoxelTanksServer.Protocol
             }
         }
         
+        public static async void SendProfileData(Client toClient)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.ProfileData))
+            {
+                PlayerStats stats = await DatabaseUtils.GetPlayerStats(toClient.Username);
+                
+                packet.Write(toClient.Username);
+                packet.Write(stats.AvgDamage);
+                packet.Write(stats.Battles);
+                packet.Write(stats.WinRate);
+                SendTcpData(toClient.Id, packet);
+            }
+        }
+        
+        public static void SendAuthId(string id, int toClient)
+        {
+            using (Packet packet = new Packet((int) ServerPackets.AuthId))
+            {
+                packet.Write(id);
+                
+                SendTcpData(toClient, packet);
+            }
+        }
         #endregion
     }
 }

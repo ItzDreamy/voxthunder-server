@@ -1,7 +1,4 @@
-﻿using System;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Data;
 using MySql.Data.MySqlClient;
 using Serilog;
 using VoxelTanksServer.Protocol;
@@ -10,7 +7,7 @@ namespace VoxelTanksServer.DB
 {
     public static class AuthorizationHandler
     {
-        public static async Task<bool> TryLogin(string username, string password, string ip, int clientId)
+        public static async Task<bool> TryLogin(string username, string password, bool rememberUser, string ip, int clientId)
         {
             string message = "";
 
@@ -39,6 +36,19 @@ namespace VoxelTanksServer.DB
                     
                     Server.Clients[clientId].Username = table.Rows[0][0].ToString();
                     Server.Clients[clientId].IsAuth = true;
+                    if (rememberUser)
+                    {
+                        Guid guid = Guid.NewGuid();
+                        db = new Database();
+                        db.GetConnection().Open();
+                        myCommand = new(
+                            $"UPDATE `authdata` SET `authId` = '{guid.ToString()}' WHERE `login` = '{nickname}' AND `password` = '{password}'",
+                            db.GetConnection());
+                        await myCommand.ExecuteNonQueryAsync();
+                        await db.GetConnection().CloseAsync();
+                        ServerSend.SendAuthId(guid.ToString(), clientId);
+                    }
+                    
                     ServerSend.LoginResult(clientId, true, message);
 
                     return true;

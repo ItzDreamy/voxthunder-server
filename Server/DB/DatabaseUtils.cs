@@ -2,6 +2,7 @@
 using System.Data;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using VoxelTanksServer.Protocol;
 using Serilog;
 
 namespace VoxelTanksServer.DB
@@ -39,8 +40,9 @@ namespace VoxelTanksServer.DB
             catch (Exception exception)
             {
                 Log.Error(exception.ToString());
-                throw;
             }
+
+            return stats;
         }
 
         public static async Task UpdatePlayerStats(PlayerStats stats, string nickname)
@@ -54,6 +56,51 @@ namespace VoxelTanksServer.DB
                 db.GetConnection());
             await myCommand.ExecuteNonQueryAsync();
             await db.GetConnection().CloseAsync();
+        }
+
+        public static async Task<bool> TryLoginById(string authId, int clientId)
+        {
+            string message = "";
+            
+            var db = new Database();
+            var myCommand =
+                new MySqlCommand($"SELECT Count(*) FROM `authdata` WHERE `authId` = '{authId}'",
+                    db.GetConnection());
+            var adapter = new MySqlDataAdapter();
+            var table = new DataTable();
+            adapter.SelectCommand = myCommand;
+            await adapter.FillAsync(table);
+
+            if ((long) table.Rows[0][0] > 0)
+            {
+                db = new Database();
+                myCommand =
+                    new MySqlCommand($"SELECT `login` FROM `authdata` WHERE `authId` = '{authId}'",
+                        db.GetConnection());
+                adapter = new MySqlDataAdapter();
+                table = new DataTable();
+                adapter.SelectCommand = myCommand;
+                await adapter.FillAsync(table);
+                
+                string nickname = table.Rows[0][0].ToString();
+
+                Log.Information($"{nickname} успешно зашел в аккаунт");
+                message = "Авторизация прошла успешно";
+                    
+                var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Username?.ToLower() == nickname.ToLower());
+                samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
+                
+                Server.Clients[clientId].Username = table.Rows[0][0].ToString();
+                Server.Clients[clientId].IsAuth = true;
+                
+                ServerSend.LoginResult(clientId, true, message);
+                return true;
+            }
+
+            message = "Недействительный id авторизации";
+            ServerSend.LoginResult(clientId, false, message);
+            
+            return false;
         }
     }
 }

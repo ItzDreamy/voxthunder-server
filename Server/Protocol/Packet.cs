@@ -32,7 +32,9 @@ namespace VoxelTanksServer.Protocol
         TakeDamageOtherPlayer,
         Timer,
         UnlockPlayers,
-        SendMovement
+        SendMovement,
+        ProfileData,
+        AuthId
     }
 
     /// <summary>
@@ -65,7 +67,9 @@ namespace VoxelTanksServer.Protocol
         RequestPlayersStats,
         LeaveToLobby,
         BuyTank,
-        SendMovement
+        SendMovement,
+        RequestProfile,
+        AuthById,
     }
 
     /// <summary>
@@ -243,19 +247,19 @@ namespace VoxelTanksServer.Protocol
         /// <param name="value">The Vector3 to add.</param>
         public void Write(Vector3 value)
         {
-            Write((float) Math.Round(value.X, 2, MidpointRounding.AwayFromZero));
-            Write((float) Math.Round(value.Y, 2, MidpointRounding.AwayFromZero));
-            Write((float) Math.Round(value.Z, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.X, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.Y, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.Z, 2, MidpointRounding.AwayFromZero));
         }
 
         /// <summary>Adds a Quaternion to the packet.</summary>
         /// <param name="value">The Quaternion to add.</param>
         public void Write(Quaternion value)
         {
-            Write((float) Math.Round(value.X, 2, MidpointRounding.AwayFromZero));
-            Write((float) Math.Round(value.Y, 2, MidpointRounding.AwayFromZero));
-            Write((float) Math.Round(value.Z, 2, MidpointRounding.AwayFromZero));
-            Write((float) Math.Round(value.W, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.X, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.Y, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.Z, 2, MidpointRounding.AwayFromZero));
+            Write((float)Math.Round(value.W, 2, MidpointRounding.AwayFromZero));
         }
 
         /// <summary>
@@ -443,7 +447,7 @@ namespace VoxelTanksServer.Protocol
             data.AngularVelocity = ReadVector3(moveReadPos);
             return data;
         }
-        
+
         /// <summary>Reads a bool from the packet.</summary>
         /// <param name="moveReadPos">Whether or not to move the buffer's read position.</param>
         public bool ReadBool(bool moveReadPos = true)

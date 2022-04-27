@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Numerics;
 using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Serilog;
 using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
@@ -69,7 +70,7 @@ namespace VoxelTanksServer.Protocol
         public static void GetPlayerMovement(int fromClient, Packet packet)
         {
             var client = Server.Clients[fromClient];
-            
+
             if (!client.IsAuth)
             {
                 client.Disconnect("Игрок не вошел в аккаунт");
@@ -77,7 +78,7 @@ namespace VoxelTanksServer.Protocol
             }
 
             var connectedRoom = client.ConnectedRoom;
-            if (connectedRoom is {PlayersLocked: true})
+            if (connectedRoom is { PlayersLocked: true })
             {
                 client.Disconnect("Игрок разблокировал себя на стороне клиента (Движение)");
                 return;
@@ -101,7 +102,7 @@ namespace VoxelTanksServer.Protocol
             }
 
             var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
-            if (connectedRoom is {PlayersLocked: true})
+            if (connectedRoom is { PlayersLocked: true })
             {
                 Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента (Поворот башни)");
                 return;
@@ -118,32 +119,33 @@ namespace VoxelTanksServer.Protocol
         {
             string? username = packet.ReadString();
             string? password = packet.ReadString();
-
+            bool rememberUser = packet.ReadBool();
             var client = Server.Clients[fromClient];
 
-            if (await AuthorizationHandler.TryLogin(username, password,
-                client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient))
+            if (await AuthorizationHandler.TryLogin(username, password, rememberUser,
+                    client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient))
             {
                 var db = new Database();
-                var myCommand = new MySqlCommand($"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Username}'", db.GetConnection());
+                var myCommand =
+                    new MySqlCommand($"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Username}'",
+                        db.GetConnection());
                 var adapter = new MySqlDataAdapter();
                 var table = new DataTable();
                 adapter.SelectCommand = myCommand;
                 await adapter.FillAsync(table);
-                
-                Log.Debug(table.Rows[0][0].ToString());
-                if ((long) table.Rows[0][0] <= 0)
+
+                if ((long)table.Rows[0][0] <= 0)
                 {
-                    Log.Debug("Creating new record");
                     db = new Database();
                     db.GetConnection().Open();
-                    myCommand = new MySqlCommand($"INSERT INTO `playerstats` (`nickname`) VALUES ('{client.Username}')", db.GetConnection());
+                    myCommand = new MySqlCommand($"INSERT INTO `playerstats` (`nickname`) VALUES ('{client.Username}')",
+                        db.GetConnection());
                     await myCommand.ExecuteNonQueryAsync();
                     await db.GetConnection().CloseAsync();
                 }
             }
         }
-        
+
         public static void InstantiateObject(int fromClient, Packet packet)
         {
             Client client = Server.Clients[fromClient];
@@ -169,7 +171,7 @@ namespace VoxelTanksServer.Protocol
             }
 
             var connectedRoom = Server.Clients[fromClient].ConnectedRoom;
-            if (connectedRoom is {PlayersLocked: true})
+            if (connectedRoom is { PlayersLocked: true })
             {
                 Server.Clients[fromClient].Disconnect("Игрок разблокировал себя на стороне клиента. (Стрельба)");
                 return;
@@ -215,8 +217,8 @@ namespace VoxelTanksServer.Protocol
             {
                 //Высчитывание урона
                 int damage = enemy.SelectedTank.Damage;
-                float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
-                int calculatedDamage = damage + (int) randomCoof;
+                float randomCoof = new Random().Next(-20, 20) * ((float)damage / 100);
+                int calculatedDamage = damage + (int)randomCoof;
 
                 if (calculatedDamage == 0)
                 {
@@ -306,7 +308,7 @@ namespace VoxelTanksServer.Protocol
             }
 
             Room? playerRoom = Server.Clients[fromClient].ConnectedRoom;
-            if (playerRoom is {IsOpen: true})
+            if (playerRoom is { IsOpen: true })
             {
                 Server.Clients[fromClient].LeaveRoom();
             }
@@ -326,11 +328,11 @@ namespace VoxelTanksServer.Protocol
             }
 
             //Поиск игрока в кеше комнат
-            foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
+            foreach (var room in Server.Rooms.Where(room => room is { IsOpen: false }))
             {
                 foreach (var cachedPlayer in room?.CachedPlayers.Where(cachedPlayer =>
-                    cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Username?.ToLower() &&
-                    cachedPlayer.IsAlive && !room.GameEnded))
+                             cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Username?.ToLower() &&
+                             cachedPlayer.IsAlive && !room.GameEnded))
                 {
                     ServerSend.AbleToReconnect(fromClient);
                     Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
@@ -346,7 +348,7 @@ namespace VoxelTanksServer.Protocol
                 client.Disconnect("Игрок не вошел в аккаунт");
             }
 
-            foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
+            foreach (var room in Server.Rooms.Where(room => room is { IsOpen: false }))
             {
                 var cachedPlayer = room?.CachedPlayers.Find(player =>
                     player?.Username?.ToLower() == Server.Clients[fromClient].Username?.ToLower());
@@ -360,16 +362,10 @@ namespace VoxelTanksServer.Protocol
                 client?.Team?.Players.Add(client);
                 client.Reconnected = true;
                 client.Player = new Player(cachedPlayer, fromClient);
-                Log.Debug(client.Player.Position.ToString());
                 ServerSend.LoadScene(fromClient, room.Map.Name);
             }
         }
 
-        /// <summary>
-        /// Отмена переподключения к игре
-        /// </summary>
-        /// <param name="fromClient"></param>
-        /// <param name="packet"></param>
         public static void CancelReconnect(int fromClient, Packet packet)
         {
             Client client = Server.Clients[fromClient];
@@ -384,7 +380,6 @@ namespace VoxelTanksServer.Protocol
                 {
                     if (cachedPlayer?.Username == Server.Clients[fromClient].Username)
                     {
-                        //Удаление кеша игрока из комнаты
                         Log.Information($"{cachedPlayer?.Username} canceled reconnect");
                         room.CachedPlayers[room.CachedPlayers.IndexOf(cachedPlayer)] = null;
                         return;
@@ -393,9 +388,6 @@ namespace VoxelTanksServer.Protocol
             }
         }
 
-        /// <summary>
-        /// Собирает данные о боевой статистике игроков и отсылает клиенту
-        /// </summary>
         public static void RequestPlayersStats(int fromClient, Packet packet)
         {
             Room room = Server.Clients[fromClient].ConnectedRoom;
@@ -406,6 +398,24 @@ namespace VoxelTanksServer.Protocol
             }
 
             ServerSend.SendPlayersStats(room);
+        }
+
+        public static void HandleProfileRequest(int fromClient, Packet packet)
+        {
+            Client client = Server.Clients[fromClient];
+            if (!client.IsAuth)
+            {
+                client.Disconnect("Игрок не вошел в аккаунт");
+                return;
+            }
+            
+            ServerSend.SendProfileData(client);
+        }
+
+        public static async void AuthById(int fromClient, Packet packet)
+        {
+            string id = packet.ReadString();
+            bool isAuth = await DatabaseUtils.TryLoginById(id, fromClient);
         }
     }
 }

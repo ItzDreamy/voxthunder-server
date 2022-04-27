@@ -65,7 +65,7 @@ namespace VoxelTanksServer.Protocol
 
                 Log.Information("Starting server...");
                 InitializeServerData();
-                _tcpListener = new TcpListener(IPAddress.Any, _port);
+                _tcpListener = new TcpListener(new IPEndPoint(IPAddress.Any, _port));
 
                 Log.Information($"Server started on {_port}");
                 Log.Information($"Max players: {MaxPlayers}");
@@ -127,7 +127,9 @@ namespace VoxelTanksServer.Protocol
                 {(int) ClientPackets.CancelReconnect, PacketsHandler.CancelReconnect},
                 {(int) ClientPackets.RequestPlayersStats, PacketsHandler.RequestPlayersStats},
                 {(int) ClientPackets.LeaveToLobby, PacketsHandler.LeaveToLobby},
-                {(int) ClientPackets.SendMovement, PacketsHandler.GetPlayerMovement}
+                {(int) ClientPackets.SendMovement, PacketsHandler.GetPlayerMovement},
+                {(int) ClientPackets.RequestProfile, PacketsHandler.HandleProfileRequest},
+                {(int) ClientPackets.AuthById, PacketsHandler.AuthById}
             };
             Log.Information("Packets initialized");
         }
