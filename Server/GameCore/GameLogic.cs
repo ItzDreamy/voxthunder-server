@@ -1,13 +1,12 @@
 ﻿using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer.GameCore
+namespace VoxelTanksServer.GameCore;
+
+public static class GameLogic
 {
-    public static class GameLogic
+    //Обновление сервера
+    public static void Update()
     {
-        //Обновление сервера
-        public static void Update()
-        {
-            ThreadManager.UpdateMain();
-        }
+        ThreadManager.UpdateMain();
     }
 }

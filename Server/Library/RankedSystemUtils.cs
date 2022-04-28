@@ -1,7 +1,4 @@
-﻿using System.Data;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-using VoxelTanksServer.DB;
+﻿using Newtonsoft.Json;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Protocol;
 
@@ -24,30 +21,32 @@ public static class RankedSystemUtils
 
     public static async Task<Rank> GetRank(Client client)
     {
-        var db = new Database();
-
-        MySqlCommand myCommand = new($"SELECT `rankID` FROM `playerstats` WHERE `nickname` = '{client.Username}'",
-            db.GetConnection());
-        MySqlDataAdapter adapter = new();
-        DataTable table = new();
-        adapter.SelectCommand = myCommand;
-        await adapter.FillAsync(table);
+        var table = await DatabaseUtils.RequestData($"SELECT `rankID` FROM `playerstats` WHERE `nickname` = '{client.Username}'");
 
         return GetRank((int) table.Rows[0][0]);
     }
 
+    public static async Task<int> GetCurrentExp(string username)
+    {
+        var table = await DatabaseUtils.RequestData(
+            $"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{username}'");
+
+        return (int) table.Rows[0][0];
+    }
+
     public static async Task<bool> CheckRankUp(Client client)
     {
-        var db = new Database();
-        
-        MySqlCommand myCommand = new($"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{client.Username}'",
-            db.GetConnection());
-        MySqlDataAdapter adapter = new();
-        DataTable table = new();
-        adapter.SelectCommand = myCommand;
-        await adapter.FillAsync(table);
+        var table = await DatabaseUtils.RequestData($"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{client.Username}'");
         
         int exp = (int) table.Rows[0][0];
+        Rank currentRank = await GetRank(client);
+        Rank nextRank = GetRank(currentRank.Id + 1);
+        
+        return exp >= nextRank.RequiredExp;
+    }
+
+    public static async Task<bool> CheckRankUp(int exp, Client client)
+    {
         Rank currentRank = await GetRank(client);
         Rank nextRank = GetRank(currentRank.Id + 1);
         
