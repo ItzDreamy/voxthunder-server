@@ -127,8 +127,10 @@ public static class PacketsHandler
             if ((long) table.Rows[0][0] <= 0)
             {
                 await DatabaseUtils.ExecuteNonQuery(
-                    $"INSERT INTO `playerstats` (`nickname`) VALUES ('{client.Username}')");
+                    $"INSERT INTO `playerstats` (`nickname`, `rankID`) VALUES ('{client.Username}', 1)");
             }
+            
+            client.Stats = await DatabaseUtils.GetPlayerStats(client.Username);
         }
     }
 

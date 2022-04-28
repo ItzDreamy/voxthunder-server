@@ -204,19 +204,19 @@ public class Player
     {
         try
         {
-            var stats = await DatabaseUtils.GetPlayerStats(Username);
-            stats.Battles++;
+            var client = Server.Clients[Id];
+            client.Stats.Battles++;
 
             switch (results)
             {
                 case GameResults.Win:
-                    stats.Wins++;
+                    client.Stats.Wins++;
                     break;
                 case GameResults.Lose:
-                    stats.Loses++;
+                    client.Stats.Loses++;
                     break;
                 case GameResults.Draw:
-                    stats.Draws++;
+                    client.Stats.Draws++;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(results), results, null);
@@ -224,31 +224,37 @@ public class Player
 
             int collectedExperience =
                 (int) (TotalDamage * (1 + (Kills * 0.5)) * (1 + (results == GameResults.Win ? 1 : 0)));
-            stats.Experience += collectedExperience;
+            client.Stats.Experience += collectedExperience;
             
-            stats.Damage += TotalDamage;
-            stats.Kills += Kills;
-            stats.AvgDamage = stats.Damage / stats.Battles;
-            stats.AvgKills = stats.Kills / stats.Battles;
-            stats.AvgExperience = stats.Experience / stats.Battles;
-            stats.WinRate = ((stats.Wins + 0.5f * stats.Draws) / stats.Battles) * 100f;
-            stats.WinRate = (float) Math.Round(Math.Clamp(stats.WinRate, 0f, 100f), 1, MidpointRounding.AwayFromZero);
+            client.Stats.Damage += TotalDamage;
+            client.Stats.Kills += Kills;
+            client.Stats.AvgDamage = client.Stats.Damage / client.Stats.Battles;
+            client.Stats.AvgKills = client.Stats.Kills / client.Stats.Battles;
+            client.Stats.AvgExperience = client.Stats.Experience / client.Stats.Battles;
+            client.Stats.WinRate = ((client.Stats.Wins + 0.5f * client.Stats.Draws) / client.Stats.Battles) * 100f;
+            client.Stats.WinRate = (float) Math.Round(Math.Clamp(client.Stats.WinRate, 0f, 100f), 1, MidpointRounding.AwayFromZero);
 
             int collectedCredits =
                 (int) (TotalDamage * 10 * (Kills + 1) * (1 + (results == GameResults.Win ? 1 : 0)) -
                        TakenDamage * 2.5f * (1 + (IsAlive ? 1 : 0)));
-            stats.Balance += collectedCredits;
-            stats.Balance = Math.Clamp(stats.Balance, 0, Server.Config.MaxCredits);
+            client.Stats.Balance += collectedCredits;
+            client.Stats.Balance = Math.Clamp(client.Stats.Balance, 0, Server.Config.MaxCredits);
 
-            await DatabaseUtils.UpdatePlayerStats(stats, Username);
-
-            if (await RankedSystemUtils.CheckRankUp(stats.Experience, Server.Clients[Id]))
+            Rank nextRank = RankedSystemUtils.GetRank(client.Stats.Rank.Id + 1);
+            if (client.Stats.Experience >= nextRank.RequiredExp)
             {
-                Rank currentRank = await RankedSystemUtils.GetRank(Server.Clients[Id]);
-                Rank nextRank = RankedSystemUtils.GetRank(currentRank.Id + 1);
-                stats.Balance += nextRank.Reward;
-                await DatabaseUtils.ExecuteNonQuery($"UPDATE `playerstats` SET `rankID` = '{nextRank.Id}', `balance` = '{stats.Balance}' WHERE `nickname` = '{Username}'");
+                client.Stats.Balance += nextRank.Reward;
+                client.Stats.Rank = nextRank;
             }
+            
+            // await DatabaseUtils.UpdatePlayerStats(client.Stats, Username);
+            // if (await RankedSystemUtils.CheckRankUp(stats.Experience, Server.Clients[Id]))
+            // {
+            //     Rank currentRank = await RankedSystemUtils.GetRank(Server.Clients[Id]);
+            //     Rank nextRank = RankedSystemUtils.GetRank(currentRank.Id + 1);
+            //     client.Stats.Balance += nextRank.Reward;
+            //     await DatabaseUtils.ExecuteNonQuery($"UPDATE `playerstats` SET `rankID` = '{nextRank.Id}', `balance` = '{stats.Balance}' WHERE `nickname` = '{Username}'");
+            // }
         }
         catch (Exception exception)
         {

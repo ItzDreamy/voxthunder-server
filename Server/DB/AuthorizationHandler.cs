@@ -11,7 +11,6 @@ public static class AuthorizationHandler
     public static async Task<bool> TryLogin(string username, string password, bool rememberUser, string ip, int clientId)
     {
         string message = "";
-
         try
         {
             Database db = new();
@@ -34,9 +33,10 @@ public static class AuthorizationHandler
                     
                 var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Username?.ToLower() == username.ToLower());
                 samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
-                    
-                Server.Clients[clientId].Username = table.Rows[0][0].ToString();
-                Server.Clients[clientId].IsAuth = true;
+
+                var client = Server.Clients[clientId];
+                client.Username = table.Rows[0][0].ToString();
+                client.IsAuth = true;
                     
                 if (rememberUser)
                 {
@@ -62,7 +62,5 @@ public static class AuthorizationHandler
             ServerSend.LoginResult(clientId, false, message);
             return false;
         }
-
-        return false;
     }
 }

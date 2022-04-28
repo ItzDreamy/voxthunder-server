@@ -1,7 +1,9 @@
 ﻿using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
+using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library;
 
 namespace VoxelTanksServer.Protocol;
 
@@ -18,6 +20,7 @@ public class Client
     public bool Reconnected = false;
     public Player? Player;
     public Vector3 SpawnPosition;
+    public PlayerStats Stats;
     public Quaternion SpawnRotation;
     public bool ReadyToSpawn;
 
@@ -64,11 +67,12 @@ public class Client
 
             _stream.BeginRead(_receiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
 
-            Server.Clients[_id].OnJoinedRoom += ServerSend.ShowPlayersCountInRoom;
-            Server.Clients[_id].OnLeftRoom += ServerSend.ShowPlayersCountInRoom;
-
+            var client = Server.Clients[_id];
+            
+            client.OnJoinedRoom += ServerSend.ShowPlayersCountInRoom;
+            client.OnLeftRoom += ServerSend.ShowPlayersCountInRoom;
             ServerSend.Welcome(_id, "You have been successfully connected to server");
-            Server.Clients[_id].StartAfkTimer();
+            client.StartAfkTimer();
         }
 
         private bool HandleData(byte[] data)
@@ -141,7 +145,6 @@ public class Client
 
         public void Disconnect()
         {
-            //Закрытие сокета
             Socket?.Close();
             _stream = null;
             _receivedData = null;
@@ -227,11 +230,13 @@ public class Client
         }
     }
 
-    public void Disconnect(string reason)
+    public async void Disconnect(string reason)
     {
         if (Tcp?.Socket == null)
             return;
 
+        await DatabaseUtils.UpdatePlayerStats(Stats, Username);
+        
         Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. Причина: {reason}");
         ServerSend.PlayerDisconnected(Id, ConnectedRoom);
 
@@ -262,6 +267,7 @@ public class Client
         SelectedTank = null;
         IsAuth = false;
         ReadyToSpawn = false;
+        Stats = default;
 
         Tcp.Disconnect();
     }

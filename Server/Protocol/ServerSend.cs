@@ -367,12 +367,12 @@ public static class ServerSend
         }
     }
         
-    public static async void SendProfileData(Client toClient)
+    public static void SendProfileData(Client toClient)
     {
         using (Packet packet = new Packet((int) ServerPackets.ProfileData))
         {
-            PlayerStats stats = await DatabaseUtils.GetPlayerStats(toClient.Username);
-            Rank rank = await RankedSystemUtils.GetRank(toClient);
+            PlayerStats stats = toClient.Stats;
+            Rank rank = toClient.Stats.Rank;
             packet.Write(toClient.Username);
             packet.Write(stats.AvgDamage);
             packet.Write(stats.AvgExperience);

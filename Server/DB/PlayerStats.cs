@@ -1,7 +1,10 @@
-﻿namespace VoxelTanksServer.DB;
+﻿using VoxelTanksServer.GameCore;
+
+namespace VoxelTanksServer.DB;
 
 public struct PlayerStats
 {
+    public Rank Rank;
     public int Battles;
     public int Damage;
     public int Kills;
@@ -18,11 +21,12 @@ public struct PlayerStats
     public override string ToString()
     {
         return
-            $"Battles: {Battles} Damage: {Damage} Kills: {Kills} Wins: {Wins} Loses: {Loses} WinRate: {WinRate} AvgDamage: {AvgDamage} AvgExperience: {AvgExperience} AvgKills: {AvgKills} Balance: {Balance} Experience: {Experience}";
+            $"Rank: {Rank.Name} Battles: {Battles} Damage: {Damage} Kills: {Kills} Wins: {Wins} Loses: {Loses} WinRate: {WinRate} AvgDamage: {AvgDamage} AvgExperience: {AvgExperience} AvgKills: {AvgKills} Balance: {Balance} Experience: {Experience}";
     }
 
     public void Deconstruct(out int battles, out int damage, out int kills, out int wins, out int loses, out int draws,
-        out float winRate, out int avgDamage, out int avgKills, out int avgExperience, out int balance, out int experience)
+        out float winRate, out int avgDamage, out int avgKills, out int avgExperience, out int balance,
+        out int experience, out Rank rank)
     {
         battles = Battles;
         damage = Damage;
@@ -36,5 +40,6 @@ public struct PlayerStats
         avgKills = AvgKills;
         balance = Balance;
         experience = Experience;
+        rank = Rank;
     }
 }

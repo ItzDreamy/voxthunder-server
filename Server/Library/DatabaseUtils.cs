@@ -19,7 +19,7 @@ public static class DatabaseUtils
         await adapter.FillAsync(table);
         return table;
     }
-        
+
     public static async Task ExecuteNonQuery(string sql)
     {
         Database db = new Database();
@@ -34,9 +34,11 @@ public static class DatabaseUtils
     public static async Task<PlayerStats> GetPlayerStats(string? nickname)
     {
         var stats = new PlayerStats();
+        Log.Debug(nickname);
         DataTable table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{nickname}'");
         try
         {
+            stats.Rank = RankedSystemUtils.GetRank((int) table.Rows[0][2]);
             stats.Battles = (int) table.Rows[0][3];
             stats.WinRate = (float) table.Rows[0][4];
             stats.AvgDamage = (int) table.Rows[0][5];
@@ -49,20 +51,25 @@ public static class DatabaseUtils
             stats.Loses = (int) table.Rows[0][12];
             stats.Balance = (int) table.Rows[0][13];
             stats.Experience = (int) table.Rows[0][16];
+
+            Console.WriteLine((int) table.Rows[0][2]);
+            
             return stats;
         }
         catch (Exception exception)
         {
             Log.Error(exception.ToString());
         }
+
         return stats;
     }
 
     public static async Task UpdatePlayerStats(PlayerStats stats, string nickname)
     {
-        var (battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience, balance, experience) = stats;
+        var (battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience, balance,
+            experience, rank) = stats;
         await ExecuteNonQuery(
-            $"UPDATE `playerstats` SET `battles` = '{battles}', `winrate` = '{winRate}', `avgdamage` = '{avgDamage}', `avgkills` = '{avgKills}', `avgExp` = '{avgExperience}',`damage` = '{damage}', `kills` = '{kills}', `wins` = '{wins}', `loses` = '{loses}', `draws` = '{draws}', `balance` = '{balance}', `exp` = '{experience}' WHERE `nickname` = '{nickname}'");
+            $"UPDATE `playerstats` SET `battles` = '{battles}', `winrate` = '{winRate}', `avgdamage` = '{avgDamage}', `avgkills` = '{avgKills}', `avgExp` = '{avgExperience}',`damage` = '{damage}', `kills` = '{kills}', `wins` = '{wins}', `loses` = '{loses}', `draws` = '{draws}', `balance` = '{balance}', `exp` = '{experience}', `rankID` = '{rank.Id}' WHERE `nickname` = '{nickname}'");
     }
 
     public static async Task GenerateAuthToken(string nickname, int clientId)
