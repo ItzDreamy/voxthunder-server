@@ -34,11 +34,10 @@ public static class DatabaseUtils
     public static async Task<PlayerStats> GetPlayerStats(string? nickname)
     {
         var stats = new PlayerStats();
-        Log.Debug(nickname);
         DataTable table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{nickname}'");
         try
         {
-            stats.Rank = RankedSystemUtils.GetRank((int) table.Rows[0][2]);
+            stats.Rank = RankSystemUtils.GetRank((int) table.Rows[0][2]);
             stats.Battles = (int) table.Rows[0][3];
             stats.WinRate = (float) table.Rows[0][4];
             stats.AvgDamage = (int) table.Rows[0][5];
@@ -52,8 +51,6 @@ public static class DatabaseUtils
             stats.Balance = (int) table.Rows[0][13];
             stats.Experience = (int) table.Rows[0][16];
 
-            Console.WriteLine((int) table.Rows[0][2]);
-            
             return stats;
         }
         catch (Exception exception)

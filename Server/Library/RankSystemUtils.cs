@@ -3,7 +3,7 @@ using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.Library;
-public static class RankedSystemUtils
+public static class RankSystemUtils
 {
     public static Rank GetRank(int id)
     {

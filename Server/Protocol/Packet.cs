@@ -32,7 +32,8 @@ public enum ServerPackets
     SendMovement,
     ProfileData,
     AuthId,
-    SignOut
+    SignOut,
+    SendMessage
 }
 
 /// <summary>
@@ -68,7 +69,8 @@ public enum ClientPackets
     SendMovement,
     RequestProfile,
     AuthById,
-    SignOut
+    SignOut,
+    ReceiveMessage
 }
 
 /// <summary>

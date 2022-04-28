@@ -223,7 +223,7 @@ public class Player
             }
 
             int collectedExperience =
-                (int) (TotalDamage * (1 + (Kills * 0.5)) * (1 + (results == GameResults.Win ? 1 : 0)));
+                (int) (TotalDamage * (1 + (Kills * 0.25)) * (1 + (results == GameResults.Win ? 0.5f : 0))); 
             client.Stats.Experience += collectedExperience;
             
             client.Stats.Damage += TotalDamage;
@@ -240,21 +240,12 @@ public class Player
             client.Stats.Balance += collectedCredits;
             client.Stats.Balance = Math.Clamp(client.Stats.Balance, 0, Server.Config.MaxCredits);
 
-            Rank nextRank = RankedSystemUtils.GetRank(client.Stats.Rank.Id + 1);
+            Rank nextRank = RankSystemUtils.GetRank(client.Stats.Rank.Id + 1);
             if (client.Stats.Experience >= nextRank.RequiredExp)
             {
                 client.Stats.Balance += nextRank.Reward;
                 client.Stats.Rank = nextRank;
             }
-            
-            // await DatabaseUtils.UpdatePlayerStats(client.Stats, Username);
-            // if (await RankedSystemUtils.CheckRankUp(stats.Experience, Server.Clients[Id]))
-            // {
-            //     Rank currentRank = await RankedSystemUtils.GetRank(Server.Clients[Id]);
-            //     Rank nextRank = RankedSystemUtils.GetRank(currentRank.Id + 1);
-            //     client.Stats.Balance += nextRank.Reward;
-            //     await DatabaseUtils.ExecuteNonQuery($"UPDATE `playerstats` SET `rankID` = '{nextRank.Id}', `balance` = '{stats.Balance}' WHERE `nickname` = '{Username}'");
-            // }
         }
         catch (Exception exception)
         {

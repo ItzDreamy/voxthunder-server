@@ -129,7 +129,7 @@ public static class PacketsHandler
                 await DatabaseUtils.ExecuteNonQuery(
                     $"INSERT INTO `playerstats` (`nickname`, `rankID`) VALUES ('{client.Username}', 1)");
             }
-            
+
             client.Stats = await DatabaseUtils.GetPlayerStats(client.Username);
         }
     }
@@ -413,5 +413,23 @@ public static class PacketsHandler
         client.IsAuth = false;
         client.Username = null;
         ServerSend.SignOut(fromClient);
+    }
+
+    public static void ReceiveMessage(int fromClient, Packet packet)
+    {
+        string message = packet.ReadString();
+        Client client = Server.Clients[fromClient];
+        
+        if (!client.IsAuth)
+        {
+            client.Disconnect("Игрок не вошел в аккаунт");
+            return;
+        }
+        if (client.ConnectedRoom == null)
+        {
+            return;
+        }
+        
+        ServerSend.SendMessage(MessageType.Player, client.Username, message, client.ConnectedRoom);
     }
 }

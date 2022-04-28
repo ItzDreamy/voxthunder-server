@@ -21,9 +21,8 @@ public static class AuthorizationHandler
             MySqlDataAdapter adapter = new();
             DataTable table = new();
             adapter.SelectCommand = myCommand;
-
             await adapter.FillAsync(table);
-                
+
             try
             {
                 string nickname = table.Rows[0][0].ToString();
@@ -37,14 +36,14 @@ public static class AuthorizationHandler
                 var client = Server.Clients[clientId];
                 client.Username = table.Rows[0][0].ToString();
                 client.IsAuth = true;
-                    
+
                 if (rememberUser)
                 {
                     await DatabaseUtils.GenerateAuthToken(nickname, clientId);
                 }
-                    
+
                 ServerSend.LoginResult(clientId, true, message);
-                
+
                 return true;
             }
             catch (Exception ex)

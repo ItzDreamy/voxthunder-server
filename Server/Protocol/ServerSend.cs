@@ -22,7 +22,7 @@ public static class ServerSend
             Server.Clients[i].Tcp.SendData(packet);
         }
     }
-        
+
     public static void SendTcpDataToRoom(Room? room, Packet packet)
     {
         packet.WriteLength();
@@ -39,7 +39,7 @@ public static class ServerSend
     public static void SendTcpDataToTeam(Team? team, Packet packet)
     {
         packet.WriteLength();
-            
+
         foreach (var client in team.Players)
         {
             client.Tcp.SendData(packet);
@@ -109,9 +109,9 @@ public static class ServerSend
             packet.Write(player.BarrelRotation);
             packet.Write(player.SelectedTank.Name);
             packet.Write(player.ConnectedRoom.PlayersLocked);
-                
+
             SendTcpData(toClient, packet);
-                
+
             InitializeTankStats(toClient, player);
         }
     }
@@ -133,7 +133,7 @@ public static class ServerSend
             packet.Write(player.SelectedTank.TowerRotateSpeed);
             packet.Write(player.SelectedTank.AngleUp);
             packet.Write(player.SelectedTank.AngleDown);
-                
+
             SendTcpData(toClient, packet);
         }
     }
@@ -147,7 +147,7 @@ public static class ServerSend
             var topHealth = Server.Tanks.Max(t => t.MaxHealth);
             var topDamage = Server.Tanks.Max(t => t.Damage);
             var topSpeed = Server.Tanks.Max(t => t.MaxSpeed);
-                
+
             packet.Write(isOwned);
             packet.Write(tank.Name);
             packet.Write(tank.MaxHealth);
@@ -156,11 +156,11 @@ public static class ServerSend
             packet.Write(topDamage);
             packet.Write(tank.MaxSpeed);
             packet.Write(topSpeed);
-                
+
             SendTcpData(client.Id, packet);
         }
     }
-        
+
     public static void RotateTurret(Player player)
     {
         using (Packet packet = new((int) ServerPackets.RotateTurret))
@@ -227,7 +227,7 @@ public static class ServerSend
 
     public static void PlayerReconnected(string username, Room? room)
     {
-        using (Packet packet = new((int)ServerPackets.PlayerReconnected))
+        using (Packet packet = new((int) ServerPackets.PlayerReconnected))
         {
             packet.Write(username);
 
@@ -271,7 +271,7 @@ public static class ServerSend
         {
             packet.Write(player.Id);
             packet.Write(damage);
-                
+
             SendTcpData(toClient, packet);
         }
     }
@@ -283,12 +283,13 @@ public static class ServerSend
             packet.Write(player.Id);
             packet.Write(player.SelectedTank.MaxHealth);
             packet.Write(player.Health);
-                
+
             SendTcpDataToRoom(room, packet);
         }
     }
-        
-    public static void ShowKillFeed(Team team, Color color, string killerUsername, string deadUsername, string killerTank, string deadTank)
+
+    public static void ShowKillFeed(Team team, Color color, string killerUsername, string deadUsername,
+        string killerTank, string deadTank)
     {
         using (Packet packet = new Packet((int) ServerPackets.ShowKillFeed))
         {
@@ -297,11 +298,11 @@ public static class ServerSend
             packet.Write(killerTank);
             packet.Write(deadTank);
             packet.Write(color);
-                
+
             SendTcpDataToTeam(team, packet);
         }
     }
-        
+
     public static void ShowPlayersCountInRoom(Room room)
     {
         using (Packet packet = new Packet((int) ServerPackets.ShowPlayersCountInRoom))
@@ -311,11 +312,13 @@ public static class ServerSend
             SendTcpDataToRoom(room, packet);
         }
     }
+
     public static void SendPlayersStats(Room room)
     {
-        using (Packet packet = new Packet((int)ServerPackets.PlayersStats))
+        using (Packet packet = new Packet((int) ServerPackets.PlayersStats))
         {
-            packet.Write(room.Players.Values.ToList().Where(client => client.Player != null).Select(client => client.Player).ToList());
+            packet.Write(room.Players.Values.ToList().Where(client => client.Player != null)
+                .Select(client => client.Player).ToList());
             SendTcpDataToRoom(room, packet);
         }
     }
@@ -328,7 +331,7 @@ public static class ServerSend
             SendTcpDataToTeam(team, packet);
         }
     }
-        
+
     public static void LeaveToLobby(int toClient)
     {
         using (Packet packet = new Packet((int) ServerPackets.LeaveToLobby))
@@ -337,7 +340,7 @@ public static class ServerSend
             SendTcpData(toClient, packet);
         }
     }
-        
+
     public static void SendTimer(Room room, int time, bool isGeneral)
     {
         using (Packet packet = new Packet((int) ServerPackets.Timer))
@@ -347,7 +350,7 @@ public static class ServerSend
             SendTcpDataToRoom(room, packet);
         }
     }
-        
+
     public static void UnlockPlayers(Room room)
     {
         using (Packet packet = new Packet((int) ServerPackets.UnlockPlayers))
@@ -355,18 +358,18 @@ public static class ServerSend
             SendTcpDataToRoom(room, packet);
         }
     }
-        
+
     public static void SendMovementData(MovementData movement, Room room, int id)
     {
         using (Packet packet = new Packet((int) ServerPackets.SendMovement))
         {
             packet.Write(id);
             packet.Write(movement);
-                
+
             SendTcpDataToRoom(room, packet);
         }
     }
-        
+
     public static void SendProfileData(Client toClient)
     {
         using (Packet packet = new Packet((int) ServerPackets.ProfileData))
@@ -379,22 +382,22 @@ public static class ServerSend
             packet.Write(stats.Battles);
             packet.Write(stats.WinRate);
             packet.Write(stats.Experience);
-            packet.Write(RankedSystemUtils.GetRank(rank.Id + 1).RequiredExp);
+            packet.Write(RankSystemUtils.GetRank(rank.Id + 1).RequiredExp);
             packet.Write(rank.Name);
             SendTcpData(toClient.Id, packet);
         }
     }
-        
+
     public static void SendAuthId(string id, int toClient)
     {
         using (Packet packet = new Packet((int) ServerPackets.AuthId))
         {
             packet.Write(id);
-                
+
             SendTcpData(toClient, packet);
         }
     }
-        
+
     public static void SignOut(int toClient)
     {
         using (Packet packet = new Packet((int) ServerPackets.SignOut))
@@ -402,5 +405,17 @@ public static class ServerSend
             SendTcpData(toClient, packet);
         }
     }
+
+    public static void SendMessage(MessageType player, string author, string? message, Room room)
+    {
+        using (Packet packet = new Packet((int) ServerPackets.SendMessage))
+        {
+            packet.Write((int) player);
+            packet.Write(author);
+            packet.Write(message);
+            SendTcpDataToRoom(room, packet);
+        }
+    }
+
     #endregion
 }

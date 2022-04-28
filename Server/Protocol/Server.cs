@@ -127,7 +127,8 @@ public static class Server
             {(int) ClientPackets.SendMovement, PacketsHandler.GetPlayerMovement},
             {(int) ClientPackets.RequestProfile, PacketsHandler.HandleProfileRequest},
             {(int) ClientPackets.AuthById, PacketsHandler.AuthById},
-            {(int) ClientPackets.SignOut, PacketsHandler.SignOut}
+            {(int) ClientPackets.SignOut, PacketsHandler.SignOut},
+            {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage}
         };
         Log.Information("Packets initialized");
     }
