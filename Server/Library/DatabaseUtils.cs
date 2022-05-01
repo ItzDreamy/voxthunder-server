@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using Serilog;
 using VoxelTanksServer.DB;
+using VoxelTanksServer.Library.LevelingSystem;
 using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.Library;
@@ -31,42 +32,42 @@ public static class DatabaseUtils
         await db.GetConnection().CloseAsync();
     }
 
-    public static async Task<PlayerStats> GetPlayerStats(string? nickname)
+    public static async Task<PlayerData> GetPlayerData(Client client)
     {
-        var stats = new PlayerStats();
-        DataTable table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{nickname}'");
+        var data = default(PlayerData);
+        DataTable table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
         try
         {
-            stats.Rank = RankSystemUtils.GetRank((int) table.Rows[0][2]);
-            stats.Battles = (int) table.Rows[0][3];
-            stats.WinRate = (float) table.Rows[0][4];
-            stats.AvgDamage = (int) table.Rows[0][5];
-            stats.AvgKills = (int) table.Rows[0][6];
-            stats.AvgExperience = (int) table.Rows[0][7];
-            stats.Damage = (int) table.Rows[0][8];
-            stats.Kills = (int) table.Rows[0][9];
-            stats.Wins = (int) table.Rows[0][10];
-            stats.Draws = (int) table.Rows[0][11];
-            stats.Loses = (int) table.Rows[0][12];
-            stats.Balance = (int) table.Rows[0][13];
-            stats.Experience = (int) table.Rows[0][16];
-
-            return stats;
+            data.Username = client.Data.Username;
+            data.Rank = Leveling.GetRank((int) table.Rows[0][2]);
+            Console.WriteLine((int) table.Rows[0][2]);
+            data.WinRate = (float) table.Rows[0][4];
+            data.AvgDamage = (int) table.Rows[0][5];
+            data.AvgKills = (int) table.Rows[0][6];
+            data.AvgExperience = (int) table.Rows[0][7];
+            data.Damage = (int) table.Rows[0][8];
+            data.Kills = (int) table.Rows[0][9];
+            data.Wins = (int) table.Rows[0][10];
+            data.Draws = (int) table.Rows[0][11];
+            data.Loses = (int) table.Rows[0][12];
+            data.Balance = (int) table.Rows[0][13];
+            data.Experience = (int) table.Rows[0][16];
+            return data;
         }
         catch (Exception exception)
         {
             Log.Error(exception.ToString());
         }
 
-        return stats;
+        return data;
     }
 
-    public static async Task UpdatePlayerStats(PlayerStats stats, string nickname)
+    public static async Task UpdatePlayerData(PlayerData data)
     {
-        var (battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience, balance,
-            experience, rank) = stats;
+        var (username, battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience, balance,
+            experience, rank) = data;
         await ExecuteNonQuery(
-            $"UPDATE `playerstats` SET `battles` = '{battles}', `winrate` = '{winRate}', `avgdamage` = '{avgDamage}', `avgkills` = '{avgKills}', `avgExp` = '{avgExperience}',`damage` = '{damage}', `kills` = '{kills}', `wins` = '{wins}', `loses` = '{loses}', `draws` = '{draws}', `balance` = '{balance}', `exp` = '{experience}', `rankID` = '{rank.Id}' WHERE `nickname` = '{nickname}'");
+            $"UPDATE `playerstats` SET `battles` = '{battles}', `winrate` = '{winRate}', `avgdamage` = '{avgDamage}', `avgkills` = '{avgKills}', `avgExp` = '{avgExperience}',`damage` = '{damage}', `kills` = '{kills}', `wins` = '{wins}', `loses` = '{loses}', `draws` = '{draws}', `balance` = '{balance}', `exp` = '{experience}', `rankID` = '{rank.Id}' WHERE `nickname` = '{username}'");
     }
 
     public static async Task GenerateAuthToken(string nickname, int clientId)
@@ -87,9 +88,9 @@ public static class DatabaseUtils
             string nickname = table.Rows[0][0].ToString();
             Log.Information($"{nickname} успешно зашел в аккаунт");
             var samePlayer = Server.Clients.Values.ToList()
-                .Find(player => player?.Username?.ToLower() == nickname.ToLower());
+                .Find(player => player?.Data.Username?.ToLower() == nickname.ToLower());
             samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
-            Server.Clients[clientId].Username = table.Rows[0][0].ToString();
+            Server.Clients[clientId].Data.Username = table.Rows[0][0].ToString();
             Server.Clients[clientId].IsAuth = true;
             await GenerateAuthToken(nickname, clientId);
             return true;

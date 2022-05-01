@@ -30,7 +30,7 @@ public enum ServerPackets
     Timer,
     UnlockPlayers,
     SendMovement,
-    ProfileData,
+    PlayerData,
     AuthId,
     SignOut,
     SendMessage
@@ -67,7 +67,7 @@ public enum ClientPackets
     LeaveToLobby,
     BuyTank,
     SendMovement,
-    RequestProfile,
+    RequestData,
     AuthById,
     SignOut,
     ReceiveMessage

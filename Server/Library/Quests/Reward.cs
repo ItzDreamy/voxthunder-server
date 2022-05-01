@@ -1,4 +1,4 @@
-﻿namespace VoxelTanksServer.Library;
+﻿namespace VoxelTanksServer.Library.Quests;
 
 public struct Reward
 {

@@ -87,7 +87,7 @@ public class Room
                 {
                     foreach (var client in Players.Values)
                     {
-                        client?.SendIntoGame(client.Username, client.SelectedTank);
+                        client?.SendIntoGame(client.Data.Username, client.SelectedTank);
                     }
 
                     StartTimer(Timers.Preparative, PreparationTime);

@@ -1,4 +1,4 @@
-﻿namespace VoxelTanksServer.Library;
+﻿namespace VoxelTanksServer.Library.Config;
 
 public class Config
 {

@@ -4,6 +4,7 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
+using VoxelTanksServer.Library.Config;
 using VoxelTanksServer.Protocol;
 using VoxelTanksServer.Protocol.API;
 
@@ -54,7 +55,7 @@ public static class Program
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .Build();
-            var config = deserializer.Deserialize<Config>(File.ReadAllText("Library/config.yml"));
+            var config = deserializer.Deserialize<Config>(File.ReadAllText("Library/Config/config.yml"));
 
             _isRunning = true;
 

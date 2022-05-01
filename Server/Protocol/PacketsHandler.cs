@@ -35,23 +35,24 @@ public static class PacketsHandler
         player.ReadyToSpawn = true;
         if (player.Reconnected)
         {
-            player.SendIntoGame(player.Username, player.SelectedTank);
+            player.SendIntoGame(player.Data.Username, player.SelectedTank);
         }
     }
 
-    public static void ChangeTank(int fromClient, Packet packet)
+    public static async void ChangeTank(int fromClient, Packet packet)
     {
         string? tankName = packet.ReadString();
         var client = Server.Clients[fromClient];
-
+        
         if (!client.IsAuth)
         {
             client.Disconnect("Игрок не вошел в аккаунт");
         }
 
-        //TODO: Check owned tanks
-        bool isOwned = true;
-
+        var table = await DatabaseUtils.RequestData($"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}' AND `{tankName}` = 1");
+       
+        bool isOwned = (long) table.Rows[0][0] > 0;
+        
         var tank = Server.Tanks.Find(tank =>
             string.Equals(tank.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
         if (tank == null)
@@ -122,15 +123,16 @@ public static class PacketsHandler
                 client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient))
         {
             var table = await DatabaseUtils.RequestData(
-                $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Username}'");
+                $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
 
             if ((long) table.Rows[0][0] <= 0)
             {
                 await DatabaseUtils.ExecuteNonQuery(
-                    $"INSERT INTO `playerstats` (`nickname`, `rankID`) VALUES ('{client.Username}', 1)");
+                    $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`) VALUES ('{client.Data.Username}', 1, 1)");
             }
 
-            client.Stats = await DatabaseUtils.GetPlayerStats(client.Username);
+            client.Data = await DatabaseUtils.GetPlayerData(client);
+            ServerSend.SendPlayerData(client);
         }
     }
 
@@ -165,14 +167,12 @@ public static class PacketsHandler
             return;
         }
 
-        //Чтение данных префаба
         string? name = packet.ReadString();
         string? particlePrefab = packet.ReadString();
         Vector3 position = packet.ReadVector3();
         Quaternion rotation = packet.ReadQuaternion();
 
         Player? player = Server.Clients[fromClient].Player;
-        //Выстрел
         player?.Shoot(name, particlePrefab, position, rotation);
     }
 
@@ -183,11 +183,6 @@ public static class PacketsHandler
         ServerSend.LeaveToLobby(client.Id);
     }
 
-    /// <summary>
-    /// Получение урона
-    /// </summary>
-    /// <param name="fromClient"></param>
-    /// <param name="packet"></param>
     public static void TakeDamage(int fromClient, Packet packet)
     {
         Client client = Server.Clients[fromClient];
@@ -196,14 +191,12 @@ public static class PacketsHandler
             client.Disconnect("Игрок не вошел в аккаунт");
         }
 
-        //Чтение id врага
         int enemyId = packet.ReadInt();
         Player? enemy = Server.Clients[enemyId].Player;
         Player? hitPlayer = Server.Clients[fromClient].Player;
 
         if (enemy != null && hitPlayer != null && enemy.Team.Id != hitPlayer.Team.Id)
         {
-            //Высчитывание урона
             int damage = enemy.SelectedTank.Damage;
             float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
             int calculatedDamage = damage + (int) randomCoof;
@@ -217,26 +210,18 @@ public static class PacketsHandler
                 calculatedDamage = hitPlayer.Health;
             }
 
-            //Подсчет суммарного урона врага
             enemy.TotalDamage += calculatedDamage;
 
             if (hitPlayer.Health > 0)
             {
-                //Показ урона
                 ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer);
             }
 
-            //Нанесение урона
             hitPlayer.TakeDamage(calculatedDamage, enemy);
             ServerSend.TakeDamageOtherPlayer(hitPlayer.ConnectedRoom, hitPlayer);
         }
     }
 
-    /// <summary>
-    /// Подключится или создать комнату, если нет доступной
-    /// </summary>
-    /// <param name="fromClient"></param>
-    /// <param name="packet"></param>
     public static void JoinOrCreateRoom(int fromClient, Packet packet)
     {
         Client packetSender = Server.Clients[fromClient];
@@ -245,7 +230,6 @@ public static class PacketsHandler
             packetSender.Disconnect("Игрок не вошел в аккаунт");
         }
 
-        //Поиск доступной комнаты, если существует - подключение
         if (Server.Rooms.Count > 0)
         {
             foreach (var room in Server.Rooms)
@@ -254,10 +238,8 @@ public static class PacketsHandler
                 {
                     Client client = Server.Clients[fromClient];
                     if (client == null) return;
-                    //Присоединение к комнате
                     client.JoinRoom(room);
 
-                    //Закрытие комнаты и балансировка команд, если комната заполнена
                     if (room.PlayersCount == room.MaxPlayers)
                     {
                         room.IsOpen = false;
@@ -269,24 +251,15 @@ public static class PacketsHandler
             }
         }
 
-        //Создание новой комнаты
         Room? newRoom = new Room(Server.Config.GeneralTime, Server.Config.PreparativeTime);
-        //Присоединение к комнате
         Server.Clients[fromClient].JoinRoom(newRoom);
 
-        //Закрытие комнаты и балансировка команд, если комната заполнена
         if (newRoom.PlayersCount == newRoom.MaxPlayers)
         {
             newRoom.IsOpen = false;
             newRoom.BalanceTeams();
         }
     }
-
-    /// <summary>
-    /// Покинуть комнату
-    /// </summary>
-    /// <param name="fromClient"></param>
-    /// <param name="packet"></param>
     public static void LeaveRoom(int fromClient, Packet packet)
     {
         Client client = Server.Clients[fromClient];
@@ -302,11 +275,6 @@ public static class PacketsHandler
         }
     }
 
-    /// <summary>
-    /// Проверка на доступность переподключения к игре
-    /// </summary>
-    /// <param name="fromClient"></param>
-    /// <param name="packet"></param>
     public static void CheckAbleToReconnect(int fromClient, Packet packet)
     {
         Client client = Server.Clients[fromClient];
@@ -315,15 +283,14 @@ public static class PacketsHandler
             client.Disconnect("Игрок не вошел в аккаунт");
         }
 
-        //Поиск игрока в кеше комнат
         foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
         {
             foreach (var cachedPlayer in room?.CachedPlayers.Where(cachedPlayer =>
-                         cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Username?.ToLower() &&
+                         cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Data.Username?.ToLower() &&
                          cachedPlayer.IsAlive && !room.GameEnded))
             {
                 ServerSend.AbleToReconnect(fromClient);
-                Log.Information($"{Server.Clients[fromClient].Username} can reconnect to battle");
+                Log.Information($"{Server.Clients[fromClient].Data.Username} can reconnect to battle");
             }
         }
     }
@@ -339,7 +306,7 @@ public static class PacketsHandler
         foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
         {
             var cachedPlayer = room?.CachedPlayers.Find(player =>
-                player?.Username?.ToLower() == Server.Clients[fromClient].Username?.ToLower());
+                player?.Username?.ToLower() == Server.Clients[fromClient].Data.Username?.ToLower());
             if (cachedPlayer == null)
             {
                 return;
@@ -366,7 +333,7 @@ public static class PacketsHandler
         {
             foreach (var cachedPlayer in room.CachedPlayers)
             {
-                if (cachedPlayer?.Username == Server.Clients[fromClient].Username)
+                if (cachedPlayer?.Username == Server.Clients[fromClient].Data.Username)
                 {
                     Log.Information($"{cachedPlayer?.Username} canceled reconnect");
                     room.CachedPlayers[room.CachedPlayers.IndexOf(cachedPlayer)] = null;
@@ -388,7 +355,7 @@ public static class PacketsHandler
         ServerSend.SendPlayersStats(room);
     }
 
-    public static void HandleProfileRequest(int fromClient, Packet packet)
+    public static void HandleDataRequest(int fromClient, Packet packet)
     {
         Client client = Server.Clients[fromClient];
         if (!client.IsAuth)
@@ -397,7 +364,7 @@ public static class PacketsHandler
             return;
         }
 
-        ServerSend.SendProfileData(client);
+        ServerSend.SendPlayerData(client);
     }
 
     public static async void AuthById(int fromClient, Packet packet)
@@ -411,7 +378,7 @@ public static class PacketsHandler
     {
         var client = Server.Clients[fromClient];
         client.IsAuth = false;
-        client.Username = null;
+        client.Data = default;
         ServerSend.SignOut(fromClient);
     }
 
@@ -430,6 +397,6 @@ public static class PacketsHandler
             return;
         }
         
-        ServerSend.SendMessage(MessageType.Player, client.Username, message, client.ConnectedRoom);
+        ServerSend.SendMessage(MessageType.Player, client.Data.Username, message, client.ConnectedRoom);
     }
 }

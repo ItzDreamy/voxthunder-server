@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace VoxelTanksServer.Library;
+namespace VoxelTanksServer.Library.Quests;
 
 [JsonConverter(typeof(StringEnumConverter))]
 public enum QuestType

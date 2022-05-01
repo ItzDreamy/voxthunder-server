@@ -1,36 +1,36 @@
 [
   {
-    "type": 1,
+    "id": 1,
     "name": "Старший солдат",
     "requiredExp": 0,
     "reward": 0
   },
   {
-    "type": 2,
+    "id": 2,
     "name": "Младший сержант",
     "requiredExp": 5000,
     "reward": 10000
   },
   {
-    "type": 3,
+    "id": 3,
     "name": "Старший сержант",
     "requiredExp": 25000,
     "reward": 15000
   },
   {
-    "type": 4,
+    "id": 4,
     "name": "Старшина",
     "requiredExp": 50000,
     "reward": 35000
   },
   {
-    "type": 5,
+    "id": 5,
     "name": "Прапорщик",
     "requiredExp": 80000,
     "reward": 50000
   },
   {
-    "type": 6,
+    "id": 6,
     "name": "Старший прапорщик",
     "requiredExp": 100000,
     "reward": 65000

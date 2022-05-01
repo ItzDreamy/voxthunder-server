@@ -51,7 +51,7 @@ public static class Commands
         Console.WriteLine("Player list: ");
         foreach (var client in Server.Clients.Values.Where(client => client.IsAuth))
         {
-            Console.WriteLine(client.Username);
+            Console.WriteLine(client.Data.Username);
         }
     }
 
@@ -77,7 +77,7 @@ public static class Commands
 
     private static bool TryGetClient(string? username, out Client client)
     {
-        client = Server.Clients.Values.ToList().Find(c => c?.Username?.ToLower() == username.ToLower());
+        client = Server.Clients.Values.ToList().Find(c => c?.Data.Username?.ToLower() == username.ToLower());
         Console.Write(client == null ? "Player not found\n" : null);
         return client != null;
     }

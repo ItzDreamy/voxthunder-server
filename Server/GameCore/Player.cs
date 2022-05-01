@@ -2,6 +2,7 @@
 using System.Numerics;
 using Serilog;
 using VoxelTanksServer.Library;
+using VoxelTanksServer.Library.LevelingSystem;
 using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.GameCore;
@@ -205,47 +206,50 @@ public class Player
         try
         {
             var client = Server.Clients[Id];
-            client.Stats.Battles++;
+            client.Data.Battles++;
 
             switch (results)
             {
                 case GameResults.Win:
-                    client.Stats.Wins++;
+                    client.Data.Wins++;
                     break;
                 case GameResults.Lose:
-                    client.Stats.Loses++;
+                    client.Data.Loses++;
                     break;
                 case GameResults.Draw:
-                    client.Stats.Draws++;
+                    client.Data.Draws++;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(results), results, null);
             }
 
             int collectedExperience =
-                (int) (TotalDamage * (1 + (Kills * 0.25)) * (1 + (results == GameResults.Win ? 0.5f : 0))); 
-            client.Stats.Experience += collectedExperience;
-            
-            client.Stats.Damage += TotalDamage;
-            client.Stats.Kills += Kills;
-            client.Stats.AvgDamage = client.Stats.Damage / client.Stats.Battles;
-            client.Stats.AvgKills = client.Stats.Kills / client.Stats.Battles;
-            client.Stats.AvgExperience = client.Stats.Experience / client.Stats.Battles;
-            client.Stats.WinRate = ((client.Stats.Wins + 0.5f * client.Stats.Draws) / client.Stats.Battles) * 100f;
-            client.Stats.WinRate = (float) Math.Round(Math.Clamp(client.Stats.WinRate, 0f, 100f), 1, MidpointRounding.AwayFromZero);
+                (int) (TotalDamage * (1 + (Kills * 0.25)) * (1 + (results == GameResults.Win ? 0.5f : 0)));
+            client.Data.Experience += collectedExperience;
+
+            client.Data.Damage += TotalDamage;
+            client.Data.Kills += Kills;
+            client.Data.AvgDamage = client.Data.Damage / client.Data.Battles;
+            client.Data.AvgKills = client.Data.Kills / client.Data.Battles;
+            client.Data.AvgExperience = client.Data.Experience / client.Data.Battles;
+            client.Data.WinRate = ((client.Data.Wins + 0.5f * client.Data.Draws) / client.Data.Battles) * 100f;
+            client.Data.WinRate = (float) Math.Round(Math.Clamp(client.Data.WinRate, 0f, 100f), 1,
+                MidpointRounding.AwayFromZero);
 
             int collectedCredits =
                 (int) (TotalDamage * 10 * (Kills + 1) * (1 + (results == GameResults.Win ? 1 : 0)) -
                        TakenDamage * 2.5f * (1 + (IsAlive ? 1 : 0)));
-            client.Stats.Balance += collectedCredits;
-            client.Stats.Balance = Math.Clamp(client.Stats.Balance, 0, Server.Config.MaxCredits);
+            client.Data.Balance += collectedCredits;
+            client.Data.Balance = Math.Clamp(client.Data.Balance, 0, Server.Config.MaxCredits);
 
-            Rank nextRank = RankSystemUtils.GetRank(client.Stats.Rank.Id + 1);
-            if (client.Stats.Experience >= nextRank.RequiredExp)
+            Rank nextRank = Leveling.GetRank(client.Data.Rank.Id + 1);
+            if (client.Data.Experience >= nextRank.RequiredExp)
             {
-                client.Stats.Balance += nextRank.Reward;
-                client.Stats.Rank = nextRank;
+                client.Data.Balance += nextRank.Reward;
+                client.Data.Rank = nextRank;
             }
+
+            await DatabaseUtils.UpdatePlayerData(client.Data);
         }
         catch (Exception exception)
         {

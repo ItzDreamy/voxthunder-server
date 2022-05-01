@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace VoxelTanksServer.Library;
+namespace VoxelTanksServer.Library.Quests;
 
 public struct Quest
 {

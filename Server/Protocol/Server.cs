@@ -4,6 +4,7 @@ using System.Numerics;
 using Serilog;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
+using VoxelTanksServer.Library.Config;
 
 namespace VoxelTanksServer.Protocol;
 
@@ -43,7 +44,8 @@ public static class Server
     public static readonly List<Tank> Tanks = new()
     {
         new Tank("Raider"),
-        new Tank("Mamont")
+        new Tank("Mamont"),
+        new Tank("Berserk")
     };
 
     public delegate void PacketHandler(int fromClient, Packet packet);
@@ -125,7 +127,7 @@ public static class Server
             {(int) ClientPackets.RequestPlayersStats, PacketsHandler.RequestPlayersStats},
             {(int) ClientPackets.LeaveToLobby, PacketsHandler.LeaveToLobby},
             {(int) ClientPackets.SendMovement, PacketsHandler.GetPlayerMovement},
-            {(int) ClientPackets.RequestProfile, PacketsHandler.HandleProfileRequest},
+            {(int) ClientPackets.RequestData, PacketsHandler.HandleDataRequest},
             {(int) ClientPackets.AuthById, PacketsHandler.AuthById},
             {(int) ClientPackets.SignOut, PacketsHandler.SignOut},
             {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage}

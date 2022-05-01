@@ -3,6 +3,7 @@ using System.Numerics;
 using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
+using VoxelTanksServer.Library.LevelingSystem;
 
 namespace VoxelTanksServer.Protocol;
 
@@ -56,7 +57,7 @@ public static class ServerSend
             {
                 player.Tcp.SendData(packet);
             }
-        }
+        } 
     }
 
     public static void SendTcpDataToTeam(Team? team, int exceptId, Packet packet)
@@ -370,20 +371,32 @@ public static class ServerSend
         }
     }
 
-    public static void SendProfileData(Client toClient)
+    public static void SendPlayerData(Client toClient)
     {
-        using (Packet packet = new Packet((int) ServerPackets.ProfileData))
+        using (Packet packet = new Packet((int) ServerPackets.PlayerData))
         {
-            PlayerStats stats = toClient.Stats;
-            Rank rank = toClient.Stats.Rank;
-            packet.Write(toClient.Username);
-            packet.Write(stats.AvgDamage);
-            packet.Write(stats.AvgExperience);
-            packet.Write(stats.Battles);
-            packet.Write(stats.WinRate);
-            packet.Write(stats.Experience);
-            packet.Write(RankSystemUtils.GetRank(rank.Id + 1).RequiredExp);
+            PlayerData data = toClient.Data;
+            Rank rank = toClient.Data.Rank;
+            packet.Write(data.Username);
+            
+            packet.Write(rank.Id);
             packet.Write(rank.Name);
+            packet.Write(rank.Reward);
+            packet.Write(rank.RequiredExp);
+            
+            packet.Write(data.Battles);
+            packet.Write(data.Damage);
+            packet.Write(data.Kills);
+            packet.Write(data.Wins);
+            packet.Write(data.Loses);
+            packet.Write(data.Draws);
+            packet.Write(data.WinRate);
+            packet.Write(data.AvgDamage);
+            packet.Write(data.AvgExperience);
+            packet.Write(data.Balance);
+            packet.Write(data.Experience);
+            packet.Write(Leveling.GetRank(rank.Id + 1).RequiredExp);
+            
             SendTcpData(toClient.Id, packet);
         }
     }

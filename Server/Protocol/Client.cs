@@ -15,16 +15,15 @@ public class Client
 
     private const int DataBufferSize = 4096;
 
+    public PlayerData Data;
     public readonly int Id;
     public bool IsAuth = false;
     public bool Reconnected = false;
     public Player? Player;
     public Vector3 SpawnPosition;
-    public PlayerStats Stats;
     public Quaternion SpawnRotation;
     public bool ReadyToSpawn;
 
-    public string? Username;
     public Tank SelectedTank;
 
     public Room? ConnectedRoom = null;
@@ -235,7 +234,7 @@ public class Client
         if (Tcp?.Socket == null)
             return;
 
-        await DatabaseUtils.UpdatePlayerStats(Stats, Username);
+        await DatabaseUtils.UpdatePlayerData(Data);
         
         Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. Причина: {reason}");
         ServerSend.PlayerDisconnected(Id, ConnectedRoom);
@@ -246,7 +245,7 @@ public class Client
             {
                 int playerIndex = Player.ConnectedRoom.CachedPlayers.IndexOf(
                     Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer =>
-                        string.Equals(cachedPlayer?.Username, Username,
+                        string.Equals(cachedPlayer?.Username, Data.Username,
                             StringComparison.CurrentCultureIgnoreCase)));
                 if (playerIndex != -1)
                     Player.ConnectedRoom.CachedPlayers[playerIndex] = Player.CachePlayer();
@@ -261,13 +260,12 @@ public class Client
         _afkTimer = Server.Config.AfkTime;
         Reconnected = false;
         Player = null;
-        Username = null;
         SpawnPosition = Vector3.Zero;
         SpawnRotation = Quaternion.Identity;
         SelectedTank = null;
         IsAuth = false;
         ReadyToSpawn = false;
-        Stats = default;
+        Data = default;
 
         Tcp.Disconnect();
     }

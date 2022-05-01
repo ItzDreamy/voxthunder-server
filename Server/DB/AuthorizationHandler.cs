@@ -30,11 +30,11 @@ public static class AuthorizationHandler
                 Log.Information($"[{ip}] {nickname} успешно зашел в аккаунт");
                 message = "Авторизация прошла успешно";
                     
-                var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Username?.ToLower() == username.ToLower());
+                var samePlayer = Server.Clients.Values.ToList().Find(player => player?.Data.Username?.ToLower() == username.ToLower());
                 samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
 
                 var client = Server.Clients[clientId];
-                client.Username = table.Rows[0][0].ToString();
+                client.Data.Username = table.Rows[0][0].ToString();
                 client.IsAuth = true;
 
                 if (rememberUser)

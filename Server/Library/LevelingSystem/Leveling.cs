@@ -2,26 +2,26 @@
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Protocol;
 
-namespace VoxelTanksServer.Library;
-public static class RankSystemUtils
+namespace VoxelTanksServer.Library.LevelingSystem;
+public static class Leveling
 {
     public static Rank GetRank(int id)
     {
-        string jsonRanks = File.ReadAllText("Library/ranks.json");
+        string jsonRanks = File.ReadAllText("Library/LevelingSystem/ranks.json");
         Rank[] ranks = JsonConvert.DeserializeObject<Rank[]>(jsonRanks);
         return ranks.ToList().Find(rank => rank.Id == id);
     }
 
     public static Rank GetRank(string rankName)
     {
-        string jsonRanks = File.ReadAllText("Library/ranks.json");
+        string jsonRanks = File.ReadAllText("Library/LevelingSystem/ranks.json");
         Rank[] ranks = JsonConvert.DeserializeObject<Rank[]>(jsonRanks);
         return ranks.ToList().Find(rank => rank.Name == rankName);
     }
 
     public static async Task<Rank> GetRank(Client client)
     {
-        var table = await DatabaseUtils.RequestData($"SELECT `rankID` FROM `playerstats` WHERE `nickname` = '{client.Username}'");
+        var table = await DatabaseUtils.RequestData($"SELECT `rankID` FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
 
         return GetRank((int) table.Rows[0][0]);
     }
@@ -36,7 +36,7 @@ public static class RankSystemUtils
 
     public static async Task<bool> CheckRankUp(Client client)
     {
-        var table = await DatabaseUtils.RequestData($"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{client.Username}'");
+        var table = await DatabaseUtils.RequestData($"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
         
         int exp = (int) table.Rows[0][0];
         Rank currentRank = await GetRank(client);
