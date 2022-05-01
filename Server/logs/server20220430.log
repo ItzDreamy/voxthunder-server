@@ -1,0 +1,155 @@
+2022-04-30 07:04:25.060 +00:00 [ERR] System.IO.FileNotFoundException: Could not find file '/workspace/voxthunder/Server/Library/config.yml'.
+File name: '/workspace/voxthunder/Server/Library/config.yml'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirectory, Func`2 errorRewriter)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategy(FileStream fileStream, String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.InternalReadAllText(String path, Encoding encoding)
+   at System.IO.File.ReadAllText(String path)
+   at VoxelTanksServer.Program.Main(String[] args) in /workspace/voxthunder/Server/Program.cs:line 58
+2022-04-30 07:05:16.072 +00:00 [INF] Starting server...
+2022-04-30 07:05:16.050 +00:00 [INF] Main thread started. Tickrate: 30
+2022-04-30 07:05:16.118 +00:00 [INF] Packets initialized
+2022-04-30 07:05:16.131 +00:00 [INF] Server started on 44839
+2022-04-30 07:05:16.132 +00:00 [INF] Max players: 100
+2022-04-30 07:05:16.133 +00:00 [INF] Starting api...
+2022-04-30 07:05:16.149 +00:00 [INF] Api started on 59483
+2022-04-30 07:05:16.150 +00:00 [INF] Client version: dev_0.0.1.006
+2022-04-30 07:05:16.925 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 07:05:16.934 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 07:05:24.151 +00:00 [INF] Trying to connect 93.170.46.71:5485
+2022-04-30 07:05:24.236 +00:00 [INF] 93.170.46.71:5485 connected successfully with ID 1
+2022-04-30 07:05:32.117 +00:00 [INF] [93.170.46.71:5485] iDream успешно зашел в аккаунт
+2022-04-30 07:05:32.372 +00:00 [ERR] System.IO.FileNotFoundException: Could not find file '/workspace/voxthunder/Server/Library/ranks.json'.
+File name: '/workspace/voxthunder/Server/Library/ranks.json'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirectory, Func`2 errorRewriter)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategy(FileStream fileStream, String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.InternalReadAllText(String path, Encoding encoding)
+   at System.IO.File.ReadAllText(String path)
+   at VoxelTanksServer.Library.Ranking.RankSystemUtils.GetRank(Int32 id) in /workspace/voxthunder/Server/Library/Ranking/RankSystemUtils.cs:line 10
+   at VoxelTanksServer.Library.DatabaseUtils.GetPlayerStats(String nickname) in /workspace/voxthunder/Server/Library/DatabaseUtils.cs:line 41
+2022-04-30 07:08:52.473 +00:00 [INF] Starting server...
+2022-04-30 07:08:52.458 +00:00 [INF] Main thread started. Tickrate: 30
+2022-04-30 07:08:52.556 +00:00 [INF] Packets initialized
+2022-04-30 07:08:52.566 +00:00 [INF] Server started on 44839
+2022-04-30 07:08:52.567 +00:00 [INF] Max players: 100
+2022-04-30 07:08:52.568 +00:00 [INF] Starting api...
+2022-04-30 07:08:52.587 +00:00 [INF] Api started on 59483
+2022-04-30 07:08:52.588 +00:00 [INF] Client version: dev_0.0.1.006
+2022-04-30 07:08:53.464 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 07:08:53.465 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 07:08:55.006 +00:00 [INF] Trying to connect 93.170.46.71:5156
+2022-04-30 07:08:55.097 +00:00 [INF] 93.170.46.71:5156 connected successfully with ID 1
+2022-04-30 07:09:00.302 +00:00 [INF] [93.170.46.71:5156] iDream успешно зашел в аккаунт
+2022-04-30 07:09:00.559 +00:00 [ERR] System.IO.FileNotFoundException: Could not find file '/workspace/voxthunder/Server/Library/ranks.json'.
+File name: '/workspace/voxthunder/Server/Library/ranks.json'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirectory, Func`2 errorRewriter)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategy(FileStream fileStream, String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.InternalReadAllText(String path, Encoding encoding)
+   at System.IO.File.ReadAllText(String path)
+   at VoxelTanksServer.Library.Ranking.RankSystemUtils.GetRank(Int32 id) in /workspace/voxthunder/Server/Library/Ranking/RankSystemUtils.cs:line 10
+   at VoxelTanksServer.Library.DatabaseUtils.GetPlayerStats(String nickname) in /workspace/voxthunder/Server/Library/DatabaseUtils.cs:line 41
+2022-04-30 07:09:08.981 +00:00 [INF] 93.170.46.71:5156 отключился. Причина: Со стороны клиента пришел некорректный пакет.
+2022-04-30 07:09:08.991 +00:00 [ERR] Unhandled packet. Error: System.IO.FileNotFoundException: Could not find file '/workspace/voxthunder/Server/Library/ranks.json'.
+File name: '/workspace/voxthunder/Server/Library/ranks.json'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirectory, Func`2 errorRewriter)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategy(FileStream fileStream, String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.InternalReadAllText(String path, Encoding encoding)
+   at System.IO.File.ReadAllText(String path)
+   at VoxelTanksServer.Library.Ranking.RankSystemUtils.GetRank(Int32 id) in /workspace/voxthunder/Server/Library/Ranking/RankSystemUtils.cs:line 10
+   at VoxelTanksServer.Protocol.ServerSend.SendProfileData(Client toClient) in /workspace/voxthunder/Server/Protocol/ServerSend.cs:line 386
+   at VoxelTanksServer.Protocol.PacketsHandler.HandleProfileRequest(Int32 fromClient, Packet packet) in /workspace/voxthunder/Server/Protocol/PacketsHandler.cs:line 366
+   at VoxelTanksServer.Protocol.Client.TCP.<>c__DisplayClass7_0.<HandleData>b__0() in /workspace/voxthunder/Server/Protocol/Client.cs:line 108
+2022-04-30 07:11:07.662 +00:00 [INF] Starting server...
+2022-04-30 07:11:07.635 +00:00 [INF] Main thread started. Tickrate: 30
+2022-04-30 07:11:07.691 +00:00 [INF] Packets initialized
+2022-04-30 07:11:07.711 +00:00 [INF] Server started on 44839
+2022-04-30 07:11:07.712 +00:00 [INF] Max players: 100
+2022-04-30 07:11:07.712 +00:00 [INF] Starting api...
+2022-04-30 07:11:07.725 +00:00 [INF] Api started on 59483
+2022-04-30 07:11:07.726 +00:00 [INF] Client version: dev_0.0.1.006
+2022-04-30 07:11:08.483 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 07:11:08.491 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 07:11:14.236 +00:00 [INF] Trying to connect 93.170.46.71:13055
+2022-04-30 07:11:14.323 +00:00 [INF] 93.170.46.71:13055 connected successfully with ID 1
+2022-04-30 07:11:23.295 +00:00 [INF] [93.170.46.71:13055] idream ввел некорректные данные.
+2022-04-30 07:11:23.307 +00:00 [ERR] System.IndexOutOfRangeException: There is no row at position 0.
+   at System.Data.RBTree`1.GetNodeByIndex(Int32 userIndex)
+   at System.Data.DataRowCollection.get_Item(Int32 index)
+   at VoxelTanksServer.DB.AuthorizationHandler.TryLogin(String username, String password, Boolean rememberUser, String ip, Int32 clientId) in /workspace/voxthunder/Server/DB/AuthorizationHandler.cs:line 28
+2022-04-30 07:11:29.559 +00:00 [INF] [93.170.46.71:13055] iDream успешно зашел в аккаунт
+2022-04-30 07:11:32.270 +00:00 [INF] 93.170.46.71:13055 отключился. Причина: Со стороны клиента пришел некорректный пакет.
+2022-04-30 07:11:32.279 +00:00 [ERR] Unhandled packet. Error: System.NullReferenceException: Object reference not set to an instance of an object.
+   at VoxelTanksServer.Protocol.Packet.Write(String value) in /workspace/voxthunder/Server/Protocol/Packet.cs:line 235
+   at VoxelTanksServer.Protocol.ServerSend.SendProfileData(Client toClient) in /workspace/voxthunder/Server/Protocol/ServerSend.cs:line 387
+   at VoxelTanksServer.Protocol.PacketsHandler.HandleProfileRequest(Int32 fromClient, Packet packet) in /workspace/voxthunder/Server/Protocol/PacketsHandler.cs:line 366
+   at VoxelTanksServer.Protocol.Client.TCP.<>c__DisplayClass7_0.<HandleData>b__0() in /workspace/voxthunder/Server/Protocol/Client.cs:line 108
+2022-04-30 07:16:03.601 +00:00 [INF] Trying to connect 93.170.46.71:13055
+2022-04-30 07:16:03.667 +00:00 [INF] 93.170.46.71:13055 connected successfully with ID 1
+2022-04-30 07:16:06.922 +00:00 [INF] [93.170.46.71:13055] Space успешно зашел в аккаунт
+2022-04-30 07:16:26.163 +00:00 [INF] [93.170.46.71:13055] iDream успешно зашел в аккаунт
+2022-04-30 07:16:27.482 +00:00 [INF] 93.170.46.71:13055 отключился. Причина: Со стороны клиента пришел некорректный пакет.
+2022-04-30 07:16:27.483 +00:00 [ERR] Unhandled packet. Error: System.NullReferenceException: Object reference not set to an instance of an object.
+   at VoxelTanksServer.Protocol.Packet.Write(String value) in /workspace/voxthunder/Server/Protocol/Packet.cs:line 235
+   at VoxelTanksServer.Protocol.ServerSend.SendProfileData(Client toClient) in /workspace/voxthunder/Server/Protocol/ServerSend.cs:line 387
+   at VoxelTanksServer.Protocol.PacketsHandler.HandleProfileRequest(Int32 fromClient, Packet packet) in /workspace/voxthunder/Server/Protocol/PacketsHandler.cs:line 366
+   at VoxelTanksServer.Protocol.Client.TCP.<>c__DisplayClass7_0.<HandleData>b__0() in /workspace/voxthunder/Server/Protocol/Client.cs:line 108
+2022-04-30 07:21:26.075 +00:00 [INF] Trying to connect 93.170.46.71:9670
+2022-04-30 07:21:26.143 +00:00 [INF] 93.170.46.71:9670 connected successfully with ID 1
+2022-04-30 07:21:32.392 +00:00 [INF] [93.170.46.71:9670] iDream успешно зашел в аккаунт
+2022-04-30 07:22:33.043 +00:00 [INF] 93.170.46.71:9670 отключился. Причина: Ошибка получения данных клиента
+2022-04-30 07:25:01.567 +00:00 [INF] Trying to connect 93.170.46.71:10609
+2022-04-30 07:25:01.666 +00:00 [INF] 93.170.46.71:10609 connected successfully with ID 1
+2022-04-30 07:25:08.204 +00:00 [INF] 93.170.46.71:10609 отключился. Причина: Ошибка получения данных клиента
+2022-04-30 07:26:03.866 +00:00 [INF] Starting server...
+2022-04-30 07:26:03.854 +00:00 [INF] Main thread started. Tickrate: 30
+2022-04-30 07:26:03.951 +00:00 [INF] Packets initialized
+2022-04-30 07:26:03.974 +00:00 [INF] Server started on 44839
+2022-04-30 07:26:03.975 +00:00 [INF] Max players: 100
+2022-04-30 07:26:03.976 +00:00 [INF] Starting api...
+2022-04-30 07:26:03.994 +00:00 [INF] Api started on 59483
+2022-04-30 07:26:03.995 +00:00 [INF] Client version: dev_0.0.1.006
+2022-04-30 07:26:04.763 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 07:26:04.780 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 07:26:06.748 +00:00 [INF] Trying to connect 93.170.46.71:1167
+2022-04-30 07:26:06.854 +00:00 [INF] 93.170.46.71:1167 connected successfully with ID 1
+2022-04-30 07:26:13.444 +00:00 [INF] [93.170.46.71:1167] iDream успешно зашел в аккаунт
+2022-04-30 07:26:50.254 +00:00 [INF] 93.170.46.71:1167 отключился. Причина: Ошибка получения данных клиента
+2022-04-30 07:34:23.254 +00:00 [INF] Trying to connect 93.170.46.71:5957
+2022-04-30 07:34:23.338 +00:00 [INF] 93.170.46.71:5957 connected successfully with ID 1
+2022-04-30 07:34:33.702 +00:00 [INF] [93.170.46.71:5957] iDream успешно зашел в аккаунт
+2022-04-30 07:35:28.615 +00:00 [INF] 93.170.46.71:5957 отключился. Причина: Ошибка получения данных клиента
+2022-04-30 08:26:05.286 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 08:26:05.384 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 09:26:05.807 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 09:26:05.895 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 10:26:06.326 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 10:26:06.410 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 11:26:06.841 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 11:26:06.928 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 12:26:07.362 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 12:26:07.439 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 13:26:07.894 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 13:26:07.964 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 14:26:08.426 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 14:26:08.518 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 15:26:08.949 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 15:26:09.039 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 16:26:09.473 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 16:26:09.565 +00:00 [INF] Tank RAIDER initialized
+2022-04-30 17:26:09.996 +00:00 [INF] Tank MAMONT initialized
+2022-04-30 17:26:10.090 +00:00 [INF] Tank RAIDER initialized

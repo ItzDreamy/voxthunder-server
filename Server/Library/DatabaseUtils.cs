@@ -40,7 +40,7 @@ public static class DatabaseUtils
         {
             data.Username = client.Data.Username;
             data.Rank = Leveling.GetRank((int) table.Rows[0][2]);
-            Console.WriteLine((int) table.Rows[0][2]);
+            data.Battles = (int) table.Rows[0][3];
             data.WinRate = (float) table.Rows[0][4];
             data.AvgDamage = (int) table.Rows[0][5];
             data.AvgKills = (int) table.Rows[0][6];
@@ -51,7 +51,7 @@ public static class DatabaseUtils
             data.Draws = (int) table.Rows[0][11];
             data.Loses = (int) table.Rows[0][12];
             data.Balance = (int) table.Rows[0][13];
-            data.Experience = (int) table.Rows[0][16];
+            data.Experience = (int) table.Rows[0][17];
             return data;
         }
         catch (Exception exception)

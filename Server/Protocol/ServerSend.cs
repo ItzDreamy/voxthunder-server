@@ -430,5 +430,13 @@ public static class ServerSend
         }
     }
 
+    public static void OpenProfile(int fromClient)
+    {
+        using (Packet packet = new Packet((int) ServerPackets.OpenProfile))
+        {
+            SendTcpData(fromClient, packet);
+        }
+    }
+
     #endregion
 }

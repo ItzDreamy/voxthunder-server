@@ -206,6 +206,7 @@ public class Player
         try
         {
             var client = Server.Clients[Id];
+            
             client.Data.Battles++;
 
             switch (results)

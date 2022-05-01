@@ -399,4 +399,9 @@ public static class PacketsHandler
         
         ServerSend.SendMessage(MessageType.Player, client.Data.Username, message, client.ConnectedRoom);
     }
+
+    public static void OpenProfile(int fromClient, Packet packet)
+    {
+        ServerSend.OpenProfile(fromClient);
+    }
 }

@@ -12,13 +12,10 @@ public static class Server
 {
     public static bool IsOnline = false;
     public static Config? Config;
-        
-    public static int OnlinePlayers 
-    {   
-        get
-        {
-            return Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count;
-        }
+
+    public static int OnlinePlayers
+    {
+        get { return Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count; }
     }
 
     public static int MaxPlayers { get; private set; }
@@ -26,7 +23,7 @@ public static class Server
     public static readonly Dictionary<int, Client> Clients = new();
     public static readonly List<Room?> Rooms = new();
 
-    public static readonly List<Map> Maps = new ()
+    public static readonly List<Map> Maps = new()
     {
         new Map("Dreamberg", new List<SpawnPoint>
         {
@@ -74,14 +71,14 @@ public static class Server
             Log.Error(e.ToString());
         }
     }
-        
+
     public static void BeginListenConnections()
     {
         _tcpListener?.Start();
         _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
         IsOnline = true;
     }
-        
+
     private static void TcpConnectCallback(IAsyncResult result)
     {
         TcpClient? client = _tcpListener?.EndAcceptTcpClient(result);
@@ -101,14 +98,14 @@ public static class Server
 
         Log.Information($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
     }
-        
+
     private static void InitializeServerData()
     {
         for (var i = 1; i <= MaxPlayers; i++)
         {
             Clients.Add(i, new Client(i));
         }
-            
+
         PacketHandlers = new Dictionary<int, PacketHandler>
         {
             {(int) ClientPackets.WelcomeReceived, PacketsHandler.WelcomePacketReceived},
@@ -130,7 +127,8 @@ public static class Server
             {(int) ClientPackets.RequestData, PacketsHandler.HandleDataRequest},
             {(int) ClientPackets.AuthById, PacketsHandler.AuthById},
             {(int) ClientPackets.SignOut, PacketsHandler.SignOut},
-            {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage}
+            {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage},
+            {(int) ClientPackets.OpenProfile, PacketsHandler.OpenProfile},
         };
         Log.Information("Packets initialized");
     }

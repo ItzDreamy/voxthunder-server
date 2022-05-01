@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Text;
+using Serilog;
 using VoxelTanksServer.GameCore;
 
 namespace VoxelTanksServer.Protocol;
@@ -33,7 +34,8 @@ public enum ServerPackets
     PlayerData,
     AuthId,
     SignOut,
-    SendMessage
+    SendMessage,
+    OpenProfile
 }
 
 /// <summary>
@@ -70,7 +72,8 @@ public enum ClientPackets
     RequestData,
     AuthById,
     SignOut,
-    ReceiveMessage
+    ReceiveMessage,
+    OpenProfile
 }
 
 /// <summary>
