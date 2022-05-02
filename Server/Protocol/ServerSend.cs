@@ -143,7 +143,10 @@ public static class ServerSend
     {
         using (Packet packet = new Packet((int) ServerPackets.SwitchTank))
         {
-            client.SelectedTank = tank;
+            if (isOwned)
+            {
+                client.SelectedTank = tank;
+            }
 
             var topHealth = Server.Tanks.Max(t => t.MaxHealth);
             var topDamage = Server.Tanks.Max(t => t.Damage);

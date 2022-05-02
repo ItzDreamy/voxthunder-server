@@ -369,8 +369,25 @@ public static class PacketsHandler
 
     public static async void AuthById(int fromClient, Packet packet)
     {
+        var client = Server.Clients[fromClient];
         string id = packet.ReadString();
         bool isAuth = await DatabaseUtils.TryLoginByToken(id, fromClient);
+
+        if (isAuth)
+        {
+            var table = await DatabaseUtils.RequestData(
+                $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
+
+            if ((long) table.Rows[0][0] <= 0)
+            {
+                await DatabaseUtils.ExecuteNonQuery(
+                    $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`) VALUES ('{client.Data.Username}', 1, 1)");
+            }
+
+            client.Data = await DatabaseUtils.GetPlayerData(client);
+            ServerSend.SendPlayerData(client);
+        }
+        
         ServerSend.LoginResult(fromClient, isAuth, isAuth ? "Авторизация прошла успешно" : "Сессия завершина");
     }
 
