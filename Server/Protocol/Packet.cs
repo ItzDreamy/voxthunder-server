@@ -35,7 +35,8 @@ public enum ServerPackets
     AuthId,
     SignOut,
     SendMessage,
-    OpenProfile
+    OpenProfile,
+    BoughtTankInfo
 }
 
 /// <summary>
@@ -73,7 +74,8 @@ public enum ClientPackets
     AuthById,
     SignOut,
     ReceiveMessage,
-    OpenProfile
+    OpenProfile,
+    GetLastSelectedTank
 }
 
 /// <summary>

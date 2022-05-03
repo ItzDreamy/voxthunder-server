@@ -243,13 +243,13 @@ public class Player
             client.Data.Balance += collectedCredits;
             client.Data.Balance = Math.Clamp(client.Data.Balance, 0, Server.Config.MaxCredits);
 
-            Rank nextRank = Leveling.GetRank(client.Data.Rank.Id + 1);
-            if (client.Data.Experience >= nextRank.RequiredExp)
+            if (Leveling.CheckRankUp(client, out Rank nextRank))
             {
                 client.Data.Balance += nextRank.Reward;
                 client.Data.Rank = nextRank;
             }
-
+            
+            ServerSend.SendPlayerData(client);
             await DatabaseUtils.UpdatePlayerData(client.Data);
         }
         catch (Exception exception)

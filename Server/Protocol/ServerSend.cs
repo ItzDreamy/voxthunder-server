@@ -139,13 +139,14 @@ public static class ServerSend
         }
     }
 
-    public static void SwitchTank(Client client, Tank tank, bool isOwned)
+    public static async void SwitchTank(Client client, Tank tank, bool isOwned)
     {
         using (Packet packet = new Packet((int) ServerPackets.SwitchTank))
         {
             if (isOwned)
             {
                 client.SelectedTank = tank;
+                await DatabaseUtils.ExecuteNonQuery($"UPDATE `playerstats` SET `selectedTank` = '{tank.Name.ToLower()}' WHERE `nickname` = '{client.Data.Username}'");
             }
 
             var topHealth = Server.Tanks.Max(t => t.MaxHealth);
@@ -154,6 +155,7 @@ public static class ServerSend
 
             packet.Write(isOwned);
             packet.Write(tank.Name);
+            packet.Write(tank.Cost);
             packet.Write(tank.MaxHealth);
             packet.Write(topHealth);
             packet.Write(tank.Damage);
@@ -398,8 +400,8 @@ public static class ServerSend
             packet.Write(data.AvgExperience);
             packet.Write(data.Balance);
             packet.Write(data.Experience);
-            packet.Write(Leveling.GetRank(rank.Id + 1).RequiredExp);
-            
+            packet.Write(Leveling.MaxRank.Id != rank.Id ? Leveling.GetRank(rank.Id + 1).RequiredExp : rank.RequiredExp);
+
             SendTcpData(toClient.Id, packet);
         }
     }
@@ -433,11 +435,22 @@ public static class ServerSend
         }
     }
 
-    public static void OpenProfile(int fromClient)
+    public static void OpenProfile(int toClient)
     {
         using (Packet packet = new Packet((int) ServerPackets.OpenProfile))
         {
-            SendTcpData(fromClient, packet);
+            SendTcpData(toClient, packet);
+        }
+    }
+
+    public static void SendBoughtTankInfo(int toClient, string message, bool isSuccessful)
+    {
+        using (Packet packet = new Packet((int) ServerPackets.BoughtTankInfo))
+        {
+            packet.Write(isSuccessful);
+            packet.Write(message);
+            
+            SendTcpData(toClient, packet);
         }
     }
 

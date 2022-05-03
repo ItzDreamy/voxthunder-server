@@ -43,16 +43,17 @@ public static class PacketsHandler
     {
         string? tankName = packet.ReadString();
         var client = Server.Clients[fromClient];
-        
+
         if (!client.IsAuth)
         {
             client.Disconnect("Игрок не вошел в аккаунт");
         }
 
-        var table = await DatabaseUtils.RequestData($"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}' AND `{tankName}` = 1");
-       
+        var table = await DatabaseUtils.RequestData(
+            $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}' AND `{tankName}` = 1");
+
         bool isOwned = (long) table.Rows[0][0] > 0;
-        
+
         var tank = Server.Tanks.Find(tank =>
             string.Equals(tank.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
         if (tank == null)
@@ -128,12 +129,24 @@ public static class PacketsHandler
             if ((long) table.Rows[0][0] <= 0)
             {
                 await DatabaseUtils.ExecuteNonQuery(
-                    $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`) VALUES ('{client.Data.Username}', 1, 1)");
+                    $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`, `selectedTank`) VALUES ('{client.Data.Username}', 1, 1, 'raider')");
             }
 
             client.Data = await DatabaseUtils.GetPlayerData(client);
             ServerSend.SendPlayerData(client);
         }
+    }
+
+    public static async void GetLastSelectedTank(int fromClient, Packet packet)
+    {
+        var table = await DatabaseUtils.RequestData(
+            $"SELECT `selectedTank` FROM `playerstats` WHERE `nickname` = '{Server.Clients[fromClient].Data.Username}'");
+        string selectedTankName = (string) table.Rows[0][0];
+
+        Tank tank = Server.Tanks.Find(t =>
+            t.Name.ToLower() == selectedTankName.ToLower());
+
+        ServerSend.SwitchTank(Server.Clients[fromClient], tank, true);
     }
 
     public static void InstantiateObject(int fromClient, Packet packet)
@@ -260,6 +273,7 @@ public static class PacketsHandler
             newRoom.BalanceTeams();
         }
     }
+
     public static void LeaveRoom(int fromClient, Packet packet)
     {
         Client client = Server.Clients[fromClient];
@@ -387,7 +401,7 @@ public static class PacketsHandler
             client.Data = await DatabaseUtils.GetPlayerData(client);
             ServerSend.SendPlayerData(client);
         }
-        
+
         ServerSend.LoginResult(fromClient, isAuth, isAuth ? "Авторизация прошла успешно" : "Сессия завершина");
     }
 
@@ -403,22 +417,62 @@ public static class PacketsHandler
     {
         string message = packet.ReadString();
         Client client = Server.Clients[fromClient];
-        
+
         if (!client.IsAuth)
         {
             client.Disconnect("Игрок не вошел в аккаунт");
             return;
         }
+
         if (client.ConnectedRoom == null)
         {
             return;
         }
-        
+
         ServerSend.SendMessage(MessageType.Player, client.Data.Username, message, client.ConnectedRoom);
     }
 
     public static void OpenProfile(int fromClient, Packet packet)
     {
         ServerSend.OpenProfile(fromClient);
+    }
+
+    public static void BuyTankRequest(int fromClient, Packet packet)
+    {
+        string tankName = packet.ReadString();
+        Tank? tank = Server.Tanks.Find(t => string.Equals(t.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
+        Client client = Server.Clients[fromClient];
+
+        bool successful = false;
+        string message;
+        
+        if (client.Data.Balance >= tank.Cost)
+        {
+            try
+            {
+                client.Data.Balance -= tank.Cost;
+                DatabaseUtils.ExecuteNonQuery(
+                    $"UPDATE `playerstats` SET `{tankName.ToLower()}` = '1', `balance` = '{client.Data.Balance}' WHERE `nickname` = '{client.Data.Username}'");
+                successful = true;
+                message = "Успех";
+                
+                ServerSend.SwitchTank(client, tank, true);
+            }
+            catch (Exception e)
+            {
+                client.Data.Balance += tank.Cost;
+                Log.Error($"Cannot buy tank '{tankName}'. Error: {e}");
+                successful = false;
+                message = "Не удалось купить танк. Попробуйте еще раз";
+            }
+        }
+        else
+        {
+            message = $"Не хватает {tank.Cost - client.Data.Balance} воксов для покупки этого танка.";
+            successful = false;
+        }
+
+        ServerSend.SendBoughtTankInfo(fromClient, message, successful);
+        ServerSend.SendPlayerData(client);
     }
 }

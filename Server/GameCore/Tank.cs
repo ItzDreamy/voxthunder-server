@@ -19,6 +19,8 @@ public class Tank
     public float BackAcceleration { get; private set; }
     public float Cooldown { get; private set; }
 
+    public int Cost { get; private set; }
+
     private bool _initialized;
 
     public Tank(string name)
@@ -30,33 +32,30 @@ public class Tank
 
     private async void GetStats()
     {
-        while (true)
+        var table = await DatabaseUtils.RequestData(
+            $"SELECT * FROM `tanksstats` WHERE `tankname` = '{Name.ToLower()}'");
+
+        Damage = (int) table.Rows[0][2];
+        MaxHealth = (int) table.Rows[0][3];
+        TowerRotateSpeed =
+            (float) table.Rows[0][4];
+        TankRotateSpeed = (float) table.Rows[0][5];
+        AngleUp = (float) table.Rows[0][6];
+        AngleDown = (float) table.Rows[0][7];
+        MaxSpeed = (float) table.Rows[0][8];
+        Acceleration = (float) table.Rows[0][9];
+        MaxBackSpeed = (float) table.Rows[0][10];
+        BackAcceleration =
+            (float) table.Rows[0][11];
+        Cooldown = (float) table.Rows[0][12];
+        Cost = (int) table.Rows[0][14];
+
+        Log.Information($"Tank {Name.ToUpper()} initialized");
+        _initialized = true;
+
+        if (!Server.IsOnline)
         {
-            var table = await DatabaseUtils.RequestData($"SELECT * FROM `tanksstats` WHERE `tankname` = '{Name.ToLower()}'");
-
-            Damage = (int) table.Rows[0][2];
-            MaxHealth = (int) table.Rows[0][3];
-            TowerRotateSpeed =
-                (float) table.Rows[0][4];
-            TankRotateSpeed = (float) table.Rows[0][5];
-            AngleUp = (float) table.Rows[0][6];
-            AngleDown = (float) table.Rows[0][7];
-            MaxSpeed = (float) table.Rows[0][8];
-            Acceleration = (float) table.Rows[0][9];
-            MaxBackSpeed = (float) table.Rows[0][10];
-            BackAcceleration =
-                (float) table.Rows[0][11];
-            Cooldown = (float) table.Rows[0][12];
-
-            Log.Information($"Tank {Name.ToUpper()} initialized");
-            _initialized = true;
-                
-            if (!Server.IsOnline)
-            {
-                CheckForInitialize();
-            }
-                
-            Thread.Sleep(3600000);
+            CheckForInitialize();
         }
     }
 

@@ -38,7 +38,7 @@ public static class Server
         })
     };
 
-    public static readonly List<Tank> Tanks = new()
+    public static readonly List<Tank?> Tanks = new()
     {
         new Tank("Raider"),
         new Tank("Mamont"),
@@ -129,6 +129,8 @@ public static class Server
             {(int) ClientPackets.SignOut, PacketsHandler.SignOut},
             {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage},
             {(int) ClientPackets.OpenProfile, PacketsHandler.OpenProfile},
+            {(int) ClientPackets.GetLastSelectedTank, PacketsHandler.GetLastSelectedTank},
+            {(int) ClientPackets.BuyTank, PacketsHandler.BuyTankRequest},
         };
         Log.Information("Packets initialized");
     }
