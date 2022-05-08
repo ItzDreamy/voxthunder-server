@@ -7,53 +7,45 @@ using VoxelTanksServer.Library.Config;
 
 namespace VoxelTanksServer.Protocol;
 
-public static class Server
-{
+public static class Server {
+    public delegate void PacketHandler(int fromClient, Packet packet);
+
     public static bool IsOnline;
     public static Config? Config;
-
-    public static int OnlinePlayers
-    {
-        get { return Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count; }
-    }
-
-    public static int MaxPlayers { get; private set; }
     private static int _port;
     public static readonly Dictionary<int, Client> Clients = new();
     public static readonly List<Room?> Rooms = new();
 
-    public static readonly List<Map> Maps = new()
-    {
-        new Map("Dreamberg", new List<SpawnPoint>
-        {
+    public static readonly List<Map> Maps = new() {
+        new Map("Dreamberg", new List<SpawnPoint> {
             new(new Vector3(9f, 0, -50)),
             new(new Vector3(3.5f, 0, -50)),
             new(new Vector3(-3.5f, 0, -50))
-        }, new List<SpawnPoint>
-        {
+        }, new List<SpawnPoint> {
             new(new Vector3(11, 0, 45), new Quaternion(0, 180, 0, 0)),
             new(new Vector3(3, 0, 45), new Quaternion(0, 180, 0, 0)),
             new(new Vector3(-5, 0, 45), new Quaternion(0, 180, 0, 0))
         })
     };
 
-    public static readonly List<Tank?> Tanks = new()
-    {
+    public static readonly List<Tank?> Tanks = new() {
         new Tank("Raider"),
         new Tank("Mamont"),
         new Tank("Berserk")
     };
 
-    public delegate void PacketHandler(int fromClient, Packet packet);
-
     public static Dictionary<int, PacketHandler>? PacketHandlers;
 
     private static TcpListener? _tcpListener;
 
-    public static void Start(Config? config)
-    {
-        try
-        {
+    public static int OnlinePlayers {
+        get { return Clients.Values.ToList().FindAll(client => client.Tcp.Socket != null).Count; }
+    }
+
+    public static int MaxPlayers { get; private set; }
+
+    public static void Start(Config? config) {
+        try {
             Config = config;
             MaxPlayers = config.MaxPlayers;
             _port = config.ServerPort;
@@ -65,46 +57,35 @@ public static class Server
             Log.Information($"Server started on {_port}");
             Log.Information($"Max players: {MaxPlayers}");
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Log.Error(e.ToString());
         }
     }
 
-    public static void BeginListenConnections()
-    {
+    public static void BeginListenConnections() {
         _tcpListener?.Start();
         _tcpListener?.BeginAcceptTcpClient(TcpConnectCallback, null);
         IsOnline = true;
     }
 
-    private static void TcpConnectCallback(IAsyncResult result)
-    {
-        TcpClient? client = _tcpListener?.EndAcceptTcpClient(result);
+    private static void TcpConnectCallback(IAsyncResult result) {
+        var client = _tcpListener?.EndAcceptTcpClient(result);
         _tcpListener?.BeginAcceptTcpClient(TcpConnectCallback, null);
         Log.Information($"Trying to connect {client?.Client.RemoteEndPoint}");
 
-        for (int i = 1; i <= MaxPlayers; i++)
-        {
-            if (Clients[i].Tcp.Socket == null)
-            {
+        for (var i = 1; i <= MaxPlayers; i++)
+            if (Clients[i].Tcp.Socket == null) {
                 Clients[i].Tcp.Connect(client);
                 return;
             }
-        }
 
         Log.Information($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
     }
 
-    private static void InitializeServerData()
-    {
-        for (var i = 1; i <= MaxPlayers; i++)
-        {
-            Clients.Add(i, new Client(i));
-        }
+    private static void InitializeServerData() {
+        for (var i = 1; i <= MaxPlayers; i++) Clients.Add(i, new Client(i));
 
-        PacketHandlers = new Dictionary<int, PacketHandler>
-        {
+        PacketHandlers = new Dictionary<int, PacketHandler> {
             {(int) ClientPackets.WelcomeReceived, PacketsHandler.WelcomePacketReceived},
             {(int) ClientPackets.ReadyToSpawn, PacketsHandler.ReadyToSpawnReceived},
             {(int) ClientPackets.SelectTank, PacketsHandler.ChangeTank},
@@ -127,7 +108,7 @@ public static class Server
             {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage},
             {(int) ClientPackets.OpenProfile, PacketsHandler.OpenProfile},
             {(int) ClientPackets.GetLastSelectedTank, PacketsHandler.GetLastSelectedTank},
-            {(int) ClientPackets.BuyTank, PacketsHandler.BuyTankRequest},
+            {(int) ClientPackets.BuyTank, PacketsHandler.BuyTankRequest}
         };
         Log.Information("Packets initialized");
     }

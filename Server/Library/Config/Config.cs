@@ -1,15 +1,14 @@
 ﻿namespace VoxelTanksServer.Library.Config;
 
-public class Config
-{
-    public string ClientVersion;
+public class Config {
     public int AfkTime;
-    public int MaxCredits;
-    public int GeneralTime;
-    public int PreparativeTime;
-    public int MaxPlayers;
-    public int ServerPort;
-    public int ApiPort;
     public int ApiMaxConnections;
+    public int ApiPort;
+    public string ClientVersion;
+    public int GeneralTime;
+    public int MaxCredits;
+    public int MaxPlayers;
     public int MaxPlayersInRoom;
+    public int PreparativeTime;
+    public int ServerPort;
 }

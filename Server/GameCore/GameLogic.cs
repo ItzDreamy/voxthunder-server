@@ -2,10 +2,8 @@
 
 namespace VoxelTanksServer.GameCore;
 
-public static class GameLogic
-{
-    public static void Update()
-    {
+public static class GameLogic {
+    public static void Update() {
         ThreadManager.UpdateMain();
     }
 }

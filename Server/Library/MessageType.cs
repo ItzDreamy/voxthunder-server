@@ -1,7 +1,6 @@
 ﻿namespace VoxelTanksServer.Library;
 
-public enum MessageType
-{
+public enum MessageType {
     Server,
     Player
 }

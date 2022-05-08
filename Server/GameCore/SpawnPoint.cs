@@ -2,26 +2,23 @@
 
 namespace VoxelTanksServer.GameCore;
 
-public class SpawnPoint : ICloneable
-{
+public class SpawnPoint : ICloneable {
     public bool IsOpen = true;
-    public Vector3 Position { get; }
-    public Quaternion Rotation { get; }
 
-    public SpawnPoint(Vector3 position)
-    {
+    public SpawnPoint(Vector3 position) {
         Rotation = Quaternion.Identity;
         Position = position;
-    }   
-        
-    public SpawnPoint(Vector3 position, Quaternion rotation)
-    {
+    }
+
+    public SpawnPoint(Vector3 position, Quaternion rotation) {
         Rotation = rotation;
         Position = position;
     }
-    
-    public object Clone()
-    {
+
+    public Vector3 Position { get; }
+    public Quaternion Rotation { get; }
+
+    public object Clone() {
         return new SpawnPoint(Position, Rotation);
     }
 }

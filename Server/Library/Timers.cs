@@ -1,7 +1,6 @@
 namespace VoxelTanksServer.Library;
 
-public enum Timers
-{
+public enum Timers {
     Preparative,
     General
 }

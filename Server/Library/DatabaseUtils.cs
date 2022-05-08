@@ -7,10 +7,8 @@ using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.Library;
 
-public static class DatabaseUtils
-{
-    public static async Task<DataTable> RequestData(string sql)
-    {
+public static class DatabaseUtils {
+    public static async Task<DataTable> RequestData(string sql) {
         var db = new Database();
         MySqlCommand myCommand = new(sql,
             db.GetConnection());
@@ -21,9 +19,8 @@ public static class DatabaseUtils
         return table;
     }
 
-    public static async Task ExecuteNonQuery(string sql)
-    {
-        Database db = new Database();
+    public static async Task ExecuteNonQuery(string sql) {
+        var db = new Database();
         db.GetConnection().Open();
         MySqlCommand myCommand = new(sql
             ,
@@ -32,13 +29,10 @@ public static class DatabaseUtils
         await db.GetConnection().CloseAsync();
     }
 
-    public static async Task<PlayerData> GetPlayerData(Client client)
-    {
+    public static async Task<PlayerData> GetPlayerData(Client client) {
         var data = default(PlayerData);
-        DataTable table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
-        try
-        {
-            
+        var table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
+        try {
             data.Username = client.Data.Username;
             data.Rank = Leveling.GetRank((int) table.Rows[0][2]);
             data.Battles = (int) table.Rows[0][3];
@@ -55,38 +49,33 @@ public static class DatabaseUtils
             data.Experience = (int) table.Rows[0][17];
             return data;
         }
-        catch (Exception exception)
-        {
+        catch (Exception exception) {
             Log.Error(exception.ToString());
         }
 
         return data;
     }
 
-    public static async Task UpdatePlayerData(PlayerData data)
-    {
+    public static async Task UpdatePlayerData(PlayerData data) {
         var (username, battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience, balance,
             experience, rank) = data;
         await ExecuteNonQuery(
             $"UPDATE `playerstats` SET `battles` = '{battles}', `winrate` = '{winRate}', `avgdamage` = '{avgDamage}', `avgkills` = '{avgKills}', `avgExp` = '{avgExperience}',`damage` = '{damage}', `kills` = '{kills}', `wins` = '{wins}', `loses` = '{loses}', `draws` = '{draws}', `balance` = '{balance}', `exp` = '{experience}', `rankID` = '{rank.Id}' WHERE `nickname` = '{username}'");
     }
 
-    public static async Task GenerateAuthToken(string nickname, int clientId)
-    {
-        Guid guid = Guid.NewGuid();
+    public static async Task GenerateAuthToken(string nickname, int clientId) {
+        var guid = Guid.NewGuid();
         await ExecuteNonQuery($"UPDATE `authdata` SET `authId` = '{guid.ToString()}' WHERE `login` = '{nickname}'");
         ServerSend.SendAuthId(guid.ToString(), clientId);
     }
 
-    public static async Task<bool> TryLoginByToken(string authToken, int clientId)
-    {
+    public static async Task<bool> TryLoginByToken(string authToken, int clientId) {
         var table = await RequestData($"SELECT Count(*) FROM `authdata` WHERE `authId` = '{authToken}'");
 
-        if ((long) table.Rows[0][0] > 0)
-        {
+        if ((long) table.Rows[0][0] > 0) {
             table = await RequestData($"SELECT `login` FROM `authdata` WHERE `authId` = '{authToken}'");
 
-            string nickname = table.Rows[0][0].ToString();
+            var nickname = table.Rows[0][0].ToString();
             Log.Information($"{nickname} успешно зашел в аккаунт");
             var samePlayer = Server.Clients.Values.ToList()
                 .Find(player => player?.Data.Username?.ToLower() == nickname.ToLower());

@@ -10,12 +10,10 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoxelTanksServer;
 
-public static class Program
-{
+public static class Program {
     private static bool _isRunning;
 
-    private static readonly Dictionary<string, Action> ServerCommands = new()
-    {
+    private static readonly Dictionary<string, Action> ServerCommands = new() {
         {"online", Commands.ShowOnline},
         {"kick", Commands.KickPlayer},
         {"ban", Commands.BanPlayer},
@@ -24,34 +22,25 @@ public static class Program
         {"players", Commands.ShowPlayerList},
         {"help", Commands.ShowCommandList},
         {"smp_room", Commands.SetMaxPlayersInRoom},
-        {"clear", Console.Clear},
-        {
-            "g_time", () =>
-            {
+        {"clear", Console.Clear}, {
+            "g_time", () => {
                 Console.Write("General time: ");
                 Server.Config.GeneralTime = int.Parse(Console.ReadLine());
             }
-        },
-        {
-            "p_time", () =>
-            {
+        }, {
+            "p_time", () => {
                 Console.Write("Preparative time: ");
                 Server.Config.PreparativeTime = int.Parse(Console.ReadLine());
             }
         }
     };
 
-    public static void Main(string[] args)
-    {
-        JArray obj = JArray.Parse(File.ReadAllText("PlayersData/questsData.json"));
-        foreach (var something in obj)
-        {
-            Console.WriteLine(something["nickname"]);
-        }
-        
+    public static void Main(string[] args) {
+        var obj = JArray.Parse(File.ReadAllText("PlayersData/questsData.json"));
+        foreach (var something in obj) Console.WriteLine(something["nickname"]);
+
         Console.Title = "Server";
-        try
-        {
+        try {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
@@ -66,19 +55,13 @@ public static class Program
             _isRunning = true;
 
             Thread mainThread = new(MainThread);
-            Thread commandsThread = new(() =>
-            {
-                while (_isRunning)
-                {
+            Thread commandsThread = new(() => {
+                while (_isRunning) {
                     var command = Console.ReadLine()?.ToLower();
                     if (command != null && ServerCommands.ContainsKey(command))
-                    {
                         ServerCommands[command]();
-                    }
                     else
-                    {
                         Console.WriteLine("Command doesnt exists");
-                    }
                 }
             });
             commandsThread.Start();
@@ -89,31 +72,24 @@ public static class Program
 
             Log.Information($"Client version: {config.ClientVersion}");
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Log.Error(e.ToString());
             Console.ReadLine();
         }
     }
 
-    private static void MainThread()
-    {
+    private static void MainThread() {
         Log.Information($"Main thread started. Tickrate: {Constants.Tickrate}");
-        DateTime nextLoop = DateTime.Now;
+        var nextLoop = DateTime.Now;
 
         while (_isRunning)
-        {
-            while (nextLoop < DateTime.Now)
-            {
-                GameLogic.Update();
+        while (nextLoop < DateTime.Now) {
+            GameLogic.Update();
 
-                nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
+            nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
 
-                if (nextLoop > DateTime.Now && nextLoop - DateTime.Now >= TimeSpan.Zero)
-                {
-                    Thread.Sleep(nextLoop - DateTime.Now);
-                }
-            }
+            if (nextLoop > DateTime.Now && nextLoop - DateTime.Now >= TimeSpan.Zero)
+                Thread.Sleep(nextLoop - DateTime.Now);
         }
     }
 }

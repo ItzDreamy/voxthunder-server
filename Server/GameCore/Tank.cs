@@ -4,9 +4,16 @@ using VoxelTanksServer.Protocol;
 
 namespace VoxelTanksServer.GameCore;
 
-public class Tank
-{
-    public string Name { get; private set; }
+public class Tank {
+    private bool _initialized;
+
+    public Tank(string name) {
+        Name = name;
+        Thread databaseThread = new(GetStats);
+        databaseThread.Start();
+    }
+
+    public string Name { get; }
     public int Damage { get; private set; }
     public int MaxHealth { get; private set; }
     public float TowerRotateSpeed { get; private set; }
@@ -21,17 +28,7 @@ public class Tank
 
     public int Cost { get; private set; }
 
-    private bool _initialized;
-
-    public Tank(string name)
-    {
-        Name = name;
-        Thread databaseThread = new(GetStats);
-        databaseThread.Start();
-    }
-
-    private async void GetStats()
-    {
+    private async void GetStats() {
         var table = await DatabaseUtils.RequestData(
             $"SELECT * FROM `tanksstats` WHERE `tankname` = '{Name.ToLower()}'");
 
@@ -53,18 +50,11 @@ public class Tank
         Log.Information($"Tank {Name.ToUpper()} initialized");
         _initialized = true;
 
-        if (!Server.IsOnline)
-        {
-            CheckForInitialize();
-        }
+        if (!Server.IsOnline) CheckForInitialize();
     }
 
-    private void CheckForInitialize()
-    {
-        if (Server.Tanks.Any(tank => !tank._initialized))
-        {
-            return;
-        }
+    private void CheckForInitialize() {
+        if (Server.Tanks.Any(tank => !tank._initialized)) return;
 
         Server.BeginListenConnections();
     }

@@ -3,30 +3,28 @@
 namespace VoxelTanksServer.GameCore;
 
 /// <summary>
-/// Класс для хранения данных отключившегося игрока
+///     Класс для хранения данных отключившегося игрока
 /// </summary>
-public class CachedPlayer
-{
-    public string? Username;
+public class CachedPlayer {
+    public Quaternion BarrelRotation;
+    public bool CanShoot;
+    public int Health;
+    public bool IsAlive;
+    public int Kills;
+    public Vector3 Position;
+    public Quaternion Rotation;
     public Tank SelectedTank;
     public string TankName;
     public Team? Team;
-    public Vector3 Position;
-    public Quaternion Rotation;
-    public Quaternion BarrelRotation;
-    public Quaternion TurretRotation;
-    public int Health;
     public int TotalDamage;
-    public int Kills;
-    public bool CanShoot;
-    public bool IsAlive;
+    public Quaternion TurretRotation;
+    public string? Username;
 
     /// <summary>
-    /// Создание кеша игрока
+    ///     Создание кеша игрока
     /// </summary>
     /// <param name="player">Отключившийся игрок</param>
-    public CachedPlayer(Player player)
-    {
+    public CachedPlayer(Player player) {
         Username = player.Username;
         SelectedTank = player.SelectedTank;
         Team = player.Team;

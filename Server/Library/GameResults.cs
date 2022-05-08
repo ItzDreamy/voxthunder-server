@@ -1,7 +1,6 @@
 namespace VoxelTanksServer.Library;
 
-public enum GameResults
-{
+public enum GameResults {
     Win,
     Lose,
     Draw

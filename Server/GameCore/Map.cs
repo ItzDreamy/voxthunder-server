@@ -1,10 +1,9 @@
 ﻿namespace VoxelTanksServer.GameCore;
 
 /// <summary>
-/// Хранение данных карты
+///     Хранение данных карты
 /// </summary>
-public struct Map
-{
+public struct Map {
     //Название карты
     public string? Name;
 
@@ -14,8 +13,7 @@ public struct Map
     //Спавнпоинты второй команды
     public readonly List<SpawnPoint> SecondTeamSpawns;
 
-    public Map(string? name, List<SpawnPoint> firstTeamSpawns, List<SpawnPoint> secondTeamSpawns)
-    {
+    public Map(string? name, List<SpawnPoint> firstTeamSpawns, List<SpawnPoint> secondTeamSpawns) {
         Name = name;
         FirstTeamSpawns = firstTeamSpawns;
         SecondTeamSpawns = secondTeamSpawns;
