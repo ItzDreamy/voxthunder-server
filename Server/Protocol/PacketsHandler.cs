@@ -204,13 +204,13 @@ public static class PacketsHandler
             client.Disconnect("Игрок не вошел в аккаунт");
         }
 
-        int enemyId = packet.ReadInt();
-        Player? enemy = Server.Clients[enemyId].Player;
-        Player? hitPlayer = Server.Clients[fromClient].Player;
+        int hitPlayerId = packet.ReadInt();
+        Player? attacker = Server.Clients[fromClient].Player;  
+        Player? hitPlayer = Server.Clients[hitPlayerId].Player;
 
-        if (enemy != null && hitPlayer != null && enemy.Team.Id != hitPlayer.Team.Id)
+        if (attacker != null && hitPlayer != null && attacker.Team.Id != hitPlayer.Team.Id)
         {
-            int damage = enemy.SelectedTank.Damage;
+            int damage = attacker.SelectedTank.Damage;
             float randomCoof = new Random().Next(-20, 20) * ((float) damage / 100);
             int calculatedDamage = damage + (int) randomCoof;
 
@@ -223,14 +223,14 @@ public static class PacketsHandler
                 calculatedDamage = hitPlayer.Health;
             }
 
-            enemy.TotalDamage += calculatedDamage;
+            attacker.TotalDamage += calculatedDamage;
 
             if (hitPlayer.Health > 0)
             {
-                ServerSend.ShowDamage(enemy.Id, calculatedDamage, hitPlayer);
+                ServerSend.ShowDamage(attacker.Id, calculatedDamage, hitPlayer);
             }
 
-            hitPlayer.TakeDamage(calculatedDamage, enemy);
+            hitPlayer.TakeDamage(calculatedDamage, attacker);
             ServerSend.TakeDamageOtherPlayer(hitPlayer.ConnectedRoom, hitPlayer);
         }
     }
@@ -402,7 +402,7 @@ public static class PacketsHandler
             ServerSend.SendPlayerData(client);
         }
 
-        ServerSend.LoginResult(fromClient, isAuth, isAuth ? "Авторизация прошла успешно" : "Сессия завершина");
+        ServerSend.LoginResult(fromClient, isAuth, isAuth ? "Авторизация прошла успешно" : "Сессия завершeна");
     }
 
     public static void SignOut(int fromClient, Packet packet)

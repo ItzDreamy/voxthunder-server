@@ -38,6 +38,7 @@ public static class DatabaseUtils
         DataTable table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
         try
         {
+            
             data.Username = client.Data.Username;
             data.Rank = Leveling.GetRank((int) table.Rows[0][2]);
             data.Battles = (int) table.Rows[0][3];

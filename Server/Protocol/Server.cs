@@ -3,14 +3,13 @@ using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
 using VoxelTanksServer.GameCore;
-using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.Config;
 
 namespace VoxelTanksServer.Protocol;
 
 public static class Server
 {
-    public static bool IsOnline = false;
+    public static bool IsOnline;
     public static Config? Config;
 
     public static int OnlinePlayers
@@ -75,16 +74,14 @@ public static class Server
     public static void BeginListenConnections()
     {
         _tcpListener?.Start();
-        _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+        _tcpListener?.BeginAcceptTcpClient(TcpConnectCallback, null);
         IsOnline = true;
     }
 
     private static void TcpConnectCallback(IAsyncResult result)
     {
         TcpClient? client = _tcpListener?.EndAcceptTcpClient(result);
-
-        _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
-
+        _tcpListener?.BeginAcceptTcpClient(TcpConnectCallback, null);
         Log.Information($"Trying to connect {client?.Client.RemoteEndPoint}");
 
         for (int i = 1; i <= MaxPlayers; i++)

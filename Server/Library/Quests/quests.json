@@ -1,27 +1,24 @@
 ﻿[
   {
     "type": "Wins",
-    "count": 3,
-    "reward": 
-    {
+    "require": 3,
+    "reward": {
       "experience": 300,
       "credits": 5000
     }
   },
   {
     "type": "Kills",
-    "count": 6,
-    "reward":
-    {
+    "require": 6,
+    "reward": {
       "experience": 600,
       "credits": 10000
     }
   },
   {
     "type": "Damage",
-    "count": 3000,
-    "reward":
-    {
+    "require": 3000,
+    "reward": {
       "experience": 200,
       "credits": 3000
     }

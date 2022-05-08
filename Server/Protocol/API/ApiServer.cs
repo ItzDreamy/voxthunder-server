@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using Serilog;
-using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.Config;
 
 namespace VoxelTanksServer.Protocol.API;
@@ -29,7 +28,7 @@ public static class ApiServer
             InitializeServerData();
             _tcpListener = new TcpListener(IPAddress.Any, _port);
             _tcpListener.Start();
-            _tcpListener.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+            _tcpListener.BeginAcceptTcpClient(TcpConnectCallback, null);
 
             Log.Information($"Api started on {_port}");
         }
@@ -42,7 +41,7 @@ public static class ApiServer
     private static void TcpConnectCallback(IAsyncResult result)
     {
         TcpClient? client = _tcpListener?.EndAcceptTcpClient(result);
-        _tcpListener?.BeginAcceptTcpClient(new AsyncCallback(TcpConnectCallback), null);
+        _tcpListener?.BeginAcceptTcpClient(TcpConnectCallback, null);
         for (int i = 1; i <= _maxConnections; i++)
         {
             if (Clients[i].Tcp.Socket == null)

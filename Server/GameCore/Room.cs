@@ -5,11 +5,11 @@ namespace VoxelTanksServer.GameCore;
 
 public class Room
 {
-    public bool GameEnded = false;
+    public bool GameEnded;
 
     public bool IsOpen = true;
 
-    private bool _timerRunning = false;
+    private bool _timerRunning;
 
     public bool PlayersLocked = true;
 

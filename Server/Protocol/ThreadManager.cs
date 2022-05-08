@@ -6,7 +6,7 @@ public static class ThreadManager
 {
     private static readonly List<Action> ExecuteOnMainThread = new();
     private static readonly List<Action> ExecuteCopiedOnMainThread = new();
-    private static bool _actionToExecuteOnMainThread = false;
+    private static bool _actionToExecuteOnMainThread;
         
     public static void ExecuteInMainThread(Action action)
     {

@@ -1,13 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using Newtonsoft.Json.Linq;
 using Serilog;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.Config;
-using VoxelTanksServer.Library.LevelingSystem;
 using VoxelTanksServer.Protocol;
 using VoxelTanksServer.Protocol.API;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoxelTanksServer;
 
@@ -44,13 +43,19 @@ public static class Program
 
     public static void Main(string[] args)
     {
+        JArray obj = JArray.Parse(File.ReadAllText("PlayersData/questsData.json"));
+        foreach (var something in obj)
+        {
+            Console.WriteLine(something["nickname"]);
+        }
+        
         Console.Title = "Server";
         try
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
-                .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
+                .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Hour)
                 .CreateLogger();
 
             var deserializer = new DeserializerBuilder()

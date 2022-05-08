@@ -50,7 +50,7 @@ public static class AuthorizationHandler
             {
                 Log.Information($"[{ip}] {username} ввел некорректные данные.");
                 Log.Error(ex.ToString());
-                message = $"Неправильный логин или пароль";
+                message = "Неправильный логин или пароль";
                 ServerSend.LoginResult(clientId, false, message);
                 return false;
             }

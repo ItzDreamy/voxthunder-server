@@ -17,8 +17,8 @@ public class Client
 
     public PlayerData Data;
     public readonly int Id;
-    public bool IsAuth = false;
-    public bool Reconnected = false;
+    public bool IsAuth;
+    public bool Reconnected;
     public Player? Player;
     public Vector3 SpawnPosition;
     public Quaternion SpawnRotation;
@@ -26,8 +26,8 @@ public class Client
 
     public Tank SelectedTank;
 
-    public Room? ConnectedRoom = null;
-    public Team? Team = null;
+    public Room? ConnectedRoom;
+    public Team? Team;
 
     public TCP Tcp;
 
@@ -273,7 +273,7 @@ public class Client
     public void JoinRoom(Room room)
     {
         room.Players[Id] = this;
-        this.ConnectedRoom = room;
+        ConnectedRoom = room;
 
         OnJoinedRoom?.Invoke(ConnectedRoom);
     }

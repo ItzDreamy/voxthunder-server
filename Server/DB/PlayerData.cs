@@ -1,4 +1,5 @@
 ﻿using VoxelTanksServer.GameCore;
+using VoxelTanksServer.Library.Quests;
 
 namespace VoxelTanksServer.DB;
 
@@ -18,6 +19,8 @@ public struct PlayerData
     public int AvgExperience;
     public int Balance;
     public int Experience;
+    public List<Tank> OwnedTanks;
+    public List<Quest> Quests;
 
     public override string ToString()
     {
