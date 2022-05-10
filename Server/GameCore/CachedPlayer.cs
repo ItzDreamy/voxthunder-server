@@ -20,10 +20,6 @@ public class CachedPlayer {
     public Quaternion TurretRotation;
     public string? Username;
 
-    /// <summary>
-    ///     Создание кеша игрока
-    /// </summary>
-    /// <param name="player">Отключившийся игрок</param>
     public CachedPlayer(Player player) {
         Username = player.Username;
         SelectedTank = player.SelectedTank;

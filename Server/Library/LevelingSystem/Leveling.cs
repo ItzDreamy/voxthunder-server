@@ -40,17 +40,6 @@ public static class Leveling {
         return (int) table.Rows[0][0];
     }
 
-    // public static async Task<bool> CheckRankUp(Client client)
-    // {
-    //     var table = await DatabaseUtils.RequestData($"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
-    //     
-    //     int exp = (int) table.Rows[0][0];
-    //     Rank currentRank = await GetRank(client);
-    //     Rank nextRank = GetRank(currentRank.Id + 1);
-    //     
-    //     return exp >= nextRank.RequiredExp;
-    // }
-
     public static bool CheckRankUp(Client client, out Rank nextRank) {
         if (client.Data.Rank.Id == MaxRank.Id) {
             nextRank = default;

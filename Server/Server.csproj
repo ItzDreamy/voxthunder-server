@@ -10,17 +10,27 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-preview.1.22076.8"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0-preview.1.22076.8"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0-preview.1.22076.8"/>
-        <PackageReference Include="MySql.Data" Version="8.0.28"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
-        <PackageReference Include="Serilog" Version="2.11.0-dev-01380"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.2-dev-00890"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947"/>
-        <PackageReference Include="System.Numerics.Vectors" Version="4.5.0"/>
-        <PackageReference Include="System.Web.Mvc.Extensions" Version="1.1.1.2"/>
-        <PackageReference Include="YamlDotNet" Version="11.2.1"/>
+        <PackageReference Include="Discord.Addons.Hosting" Version="5.1.0" />
+        <PackageReference Include="Discord.Net" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.Commands" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.Core" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.Interactions" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.Rest" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.Webhook" Version="3.6.1" />
+        <PackageReference Include="Discord.Net.WebSocket" Version="3.6.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-preview.1.22076.8" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0-preview.1.22076.8" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0-preview.1.22076.8" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0-preview.3.22175.4" />
+        <PackageReference Include="MySql.Data" Version="8.0.28" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Serilog" Version="2.11.0-dev-01380" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.2-dev-00890" />
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947" />
+        <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+        <PackageReference Include="System.Web.Mvc.Extensions" Version="1.1.1.2" />
+        <PackageReference Include="YamlDotNet" Version="11.2.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -38,6 +48,9 @@
         </None>
         <None Update="PlayersData\questsData.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="DiscordConfig.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 

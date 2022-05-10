@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Serilog;
+using VoxelTanksServer.Discord;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.Config;
@@ -36,10 +37,8 @@ public static class Program {
     };
 
     public static void Main(string[] args) {
-        var obj = JArray.Parse(File.ReadAllText("PlayersData/questsData.json"));
-        foreach (var something in obj) Console.WriteLine(something["nickname"]);
-
         Console.Title = "Server";
+        
         try {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
@@ -71,11 +70,14 @@ public static class Program {
             ApiServer.Start(config);
 
             Log.Information($"Client version: {config.ClientVersion}");
+
         }
         catch (Exception e) {
             Log.Error(e.ToString());
             Console.ReadLine();
         }
+        
+        StartUp.MainAsync();
     }
 
     private static void MainThread() {
