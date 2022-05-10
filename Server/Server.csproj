@@ -49,8 +49,8 @@
         <None Update="PlayersData\questsData.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="DiscordConfig.json">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <None Update="Library\Config\DiscordConfig.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 

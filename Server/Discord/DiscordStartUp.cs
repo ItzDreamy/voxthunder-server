@@ -6,15 +6,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using VoxelTanksServer.Discord.Services;
 
 namespace VoxelTanksServer.Discord;
 
-public class StartUp {
-    public static async Task MainAsync() {
+public class DiscordStartUp {
+    public async Task MainAsync() {
         var builder = new HostBuilder().ConfigureAppConfiguration(configurationBuilder => {
-                var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
+                var configuration = new ConfigurationBuilder().SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "Library", "Config"))
                     .AddJsonFile("DiscordConfig.json", false, true).Build();
 
                 configurationBuilder.AddConfiguration(configuration);
@@ -22,7 +21,7 @@ public class StartUp {
                 loggingBuilder.AddConsole();
                 loggingBuilder.SetMinimumLevel(LogLevel.Error);
             }).ConfigureDiscordHost((context, config) => {
-                config.SocketConfig = new DiscordSocketConfig() {
+                config.SocketConfig = new DiscordSocketConfig {
                     LogLevel = LogSeverity.Error,
                     AlwaysDownloadUsers = true,
                     MessageCacheSize = 200,
@@ -34,8 +33,7 @@ public class StartUp {
                 config.CaseSensitiveCommands = false;
                 config.LogLevel = LogSeverity.Error;
                 config.DefaultRunMode = RunMode.Async;
-            }).ConfigureServices((context, services) =>
-            {
+            }).ConfigureServices((context, services) => {
                 services.AddHostedService<CommandHandler>();
                 services.AddHostedService<LogHandler>();
             })

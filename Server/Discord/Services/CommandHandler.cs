@@ -9,10 +9,10 @@ using Microsoft.Extensions.Logging;
 namespace VoxelTanksServer.Discord.Services;
 
 public class CommandHandler : DiscordClientService {
-    private readonly IServiceProvider _provider;
     private readonly DiscordSocketClient _client;
     private readonly CommandService _commandService;
     private readonly IConfiguration _configuration;
+    private readonly IServiceProvider _provider;
 
     public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService commandService,
         IConfiguration configuration, ILogger<DiscordClientService> logger) : base(client, logger) {

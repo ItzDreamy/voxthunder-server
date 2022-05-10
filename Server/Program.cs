@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using Serilog;
+﻿using Serilog;
 using VoxelTanksServer.Discord;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
@@ -38,7 +37,7 @@ public static class Program {
 
     public static void Main(string[] args) {
         Console.Title = "Server";
-        
+
         try {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
@@ -70,28 +69,27 @@ public static class Program {
             ApiServer.Start(config);
 
             Log.Information($"Client version: {config.ClientVersion}");
-
+            new DiscordStartUp().MainAsync();
         }
         catch (Exception e) {
             Log.Error(e.ToString());
             Console.ReadLine();
         }
-        
-        StartUp.MainAsync();
     }
 
     private static void MainThread() {
         Log.Information($"Main thread started. Tickrate: {Constants.Tickrate}");
         var nextLoop = DateTime.Now;
 
-        while (_isRunning)
-        while (nextLoop < DateTime.Now) {
-            GameLogic.Update();
+        while (_isRunning) {
+            while (nextLoop < DateTime.Now) {
+                GameLogic.Update();
 
-            nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
+                nextLoop = nextLoop.AddMilliseconds(Constants.MsPerTick);
 
-            if (nextLoop > DateTime.Now && nextLoop - DateTime.Now >= TimeSpan.Zero)
-                Thread.Sleep(nextLoop - DateTime.Now);
+                if (nextLoop > DateTime.Now && nextLoop - DateTime.Now >= TimeSpan.Zero)
+                    Thread.Sleep(nextLoop - DateTime.Now);
+            }
         }
     }
 }
