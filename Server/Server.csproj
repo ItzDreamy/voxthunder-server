@@ -54,4 +54,10 @@
         </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="ProgressBar">
+        <HintPath>D:\RiderProjects\ProgressBar\ProgressBar\bin\Debug\net6.0\ProgressBar.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

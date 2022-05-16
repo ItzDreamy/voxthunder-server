@@ -93,6 +93,8 @@ public static class PacketsHandler {
         var rememberUser = packet.ReadBool();
         var client = Server.Clients[fromClient];
 
+        if (client.IsAuth) return;
+        
         if (await AuthorizationHandler.TryLogin(username, password, rememberUser,
                 client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient)) {
             var table = await DatabaseUtils.RequestData(
@@ -282,6 +284,7 @@ public static class PacketsHandler {
     public static async void AuthById(int fromClient, Packet packet) {
         var client = Server.Clients[fromClient];
         var id = packet.ReadString();
+        if (client.IsAuth) return;
         var isAuth = await DatabaseUtils.TryLoginByToken(id, fromClient);
 
         if (isAuth) {
@@ -329,6 +332,11 @@ public static class PacketsHandler {
         var tank = Server.Tanks.Find(t => string.Equals(t.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
         var client = Server.Clients[fromClient];
 
+        if (tank == null) {
+            client.Disconnect("Игрок запросил несуществующий танк");
+            return;
+        }
+
         var successful = false;
         string message;
 
@@ -356,5 +364,12 @@ public static class PacketsHandler {
 
         ServerSend.SendBoughtTankInfo(fromClient, message, successful);
         ServerSend.SendPlayerData(client);
+    }
+
+    public static void RamPlayer(int fromClient, Packet packet) {
+        float ramVelocity = packet.ReadFloat();
+        int otherPlayerId = packet.ReadInt();
+        Client client = Server.Clients[fromClient];
+        Client otherClient = Server.Clients[otherPlayerId];
     }
 }

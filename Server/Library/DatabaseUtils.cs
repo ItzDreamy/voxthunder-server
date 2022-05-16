@@ -30,10 +30,11 @@ public static class DatabaseUtils {
     }
 
     public static async Task<PlayerData> GetPlayerData(Client client) {
-        var data = default(PlayerData);
+        var data = client.Data;
         var table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
         try {
-            data.Username = client.Data.Username;
+            Console.WriteLine( table.Rows[0][2]);
+            Console.WriteLine(data.Rank.ToString());
             data.Rank = Leveling.GetRank((int) table.Rows[0][2]);
             data.Battles = (int) table.Rows[0][3];
             data.WinRate = (float) table.Rows[0][4];
@@ -77,10 +78,12 @@ public static class DatabaseUtils {
 
             var nickname = table.Rows[0][0].ToString();
             Log.Information($"{nickname} успешно зашел в аккаунт");
+            
             var samePlayer = Server.Clients.Values.ToList()
                 .Find(player => player?.Data.Username?.ToLower() == nickname.ToLower());
             samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
-            Server.Clients[clientId].Data.Username = table.Rows[0][0].ToString();
+            
+            Server.Clients[clientId].Data.Username = nickname;
             Server.Clients[clientId].IsAuth = true;
             await GenerateAuthToken(nickname, clientId);
             return true;

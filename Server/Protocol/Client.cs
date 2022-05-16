@@ -61,13 +61,14 @@ public class Client {
             ServerSend.SpawnPlayer(client.Id, Player);
     }
 
-    public async void Disconnect(string reason) {
+    public async void Disconnect(string reason = "") {
         if (Tcp?.Socket == null)
             return;
 
         await DatabaseUtils.UpdatePlayerData(Data);
 
-        Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. Причина: {reason}");
+        reason = reason == string.Empty ? "" : $"Причина: {reason}"; 
+        Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. {reason}");
         ServerSend.PlayerDisconnected(Id, ConnectedRoom);
 
         if (ConnectedRoom != null) {
@@ -197,9 +198,9 @@ public class Client {
                 return false;
             }
             catch (Exception e) {
-                Console.WriteLine(e);
-                throw;
+                Console.WriteLine(e.ToString());
             }
+            return true;
         }
 
         public void Disconnect() {
@@ -215,7 +216,7 @@ public class Client {
                 if (_stream is {CanRead: true}) {
                     var byteLength = _stream.EndRead(result);
                     if (byteLength <= 0) {
-                        Server.Clients[_id].Disconnect("Ошибка получения данных клиента");
+                        Server.Clients[_id].Disconnect();
                         return;
                     }
 
