@@ -11,3 +11,4 @@ riderModule.iml
 *.v2
 *.vsidx
 Server/Library/Config/databaseCfg.yml
+Server/Library/Config/DiscordConfig.json
