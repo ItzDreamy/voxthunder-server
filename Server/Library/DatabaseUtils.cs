@@ -33,8 +33,6 @@ public static class DatabaseUtils {
         var data = client.Data;
         var table = await RequestData($"SELECT * FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
         try {
-            Console.WriteLine( table.Rows[0][2]);
-            Console.WriteLine(data.Rank.ToString());
             data.Rank = Leveling.GetRank((int) table.Rows[0][2]);
             data.Battles = (int) table.Rows[0][3];
             data.WinRate = (float) table.Rows[0][4];

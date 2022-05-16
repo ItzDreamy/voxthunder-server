@@ -10,3 +10,4 @@ riderModule.iml
 *.v2
 *.v2
 *.vsidx
+Server/Library/Config/databaseCfg.yml

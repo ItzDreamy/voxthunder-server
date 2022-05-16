@@ -12,8 +12,6 @@ public static class AuthorizationHandler {
         var message = "";
         try {
             Database db = new();
-            Log.Debug(username);
-            Log.Debug(password);
             MySqlCommand myCommand =
                 new(
                     $"SELECT `login` FROM `authdata` WHERE `login` = '{username}' AND `password` = '{password}'",
@@ -34,9 +32,7 @@ public static class AuthorizationHandler {
                 samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
 
                 var client = Server.Clients[clientId];
-                Console.WriteLine(nickname);
                 client.Data.Username = nickname;
-                Console.WriteLine(client.Data.Username);
                 client.IsAuth = true;
 
                 if (rememberUser) await DatabaseUtils.GenerateAuthToken(nickname, clientId);
