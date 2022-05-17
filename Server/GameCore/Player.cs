@@ -11,14 +11,28 @@ public class Player {
     public int TakenDamage;
     public Team? Team;
     public int TotalDamage;
+    public int Id { get; }
+    public string? Username { get; }
+    public Tank SelectedTank { get; }
+    public Room? ConnectedRoom { get; }
+    public MovementData Movement { get; set; }
+    public Quaternion BarrelRotation { get; private set; }
+    public Quaternion TurretRotation { get; private set; }
+    public int Health { get; private set; }
+    public int Kills { get; private set; }
+    public bool CanShoot { get; private set; }
+    public bool IsAlive { get; private set; }
+    public DateTime LastShootedTime { get; set; }
 
     public Player(int id, string? username, Vector3 spawnPosition, Quaternion rotation, Tank tank,
         Room? room) {
         Id = id;
         Username = username;
-        Position = spawnPosition;
-        Rotation = rotation;
         SelectedTank = tank;
+        var movement = new MovementData();
+        movement.Position = spawnPosition;
+        movement.Rotation = rotation;
+        Movement = movement;
         IsAlive = true;
         ConnectedRoom = room;
 
@@ -30,21 +44,13 @@ public class Player {
         Health = tank.MaxHealth;
 
         ConnectedRoom.CachedPlayers.Add(CachePlayer());
-
-        Task.Run(async () => {
-            await Task.Delay((int) (SelectedTank.Cooldown * 1000));
-            CanShoot = true;
-            return Task.CompletedTask;
-        });
     }
 
     public Player(CachedPlayer cachedPlayer, int id) {
         Id = id;
         Username = cachedPlayer.Username;
         Team = cachedPlayer.Team;
-
-        Position = cachedPlayer.Position;
-        Rotation = cachedPlayer.Rotation;
+        Movement = cachedPlayer.Movement;
         BarrelRotation = cachedPlayer.BarrelRotation;
         TurretRotation = cachedPlayer.TurretRotation;
         CanShoot = cachedPlayer.CanShoot;
@@ -53,6 +59,7 @@ public class Player {
         TotalDamage = cachedPlayer.TotalDamage;
         Kills = cachedPlayer.Kills;
         ConnectedRoom = Server.Clients[Id].ConnectedRoom;
+        LastShootedTime = cachedPlayer.LastShootedTime;
 
         SelectedTank = cachedPlayer.SelectedTank;
 
@@ -60,35 +67,12 @@ public class Player {
 
         ConnectedRoom.CachedPlayers.Remove(cachedPlayer);
         ConnectedRoom.CachedPlayers.Add(CachePlayer());
-
-        if (!CanShoot && IsAlive)
-            Task.Run(async () => {
-                await Task.Delay((int) (SelectedTank.Cooldown * 1000));
-                CanShoot = true;
-                return Task.CompletedTask;
-            });
     }
-
-    public int Id { get; }
-    public string? Username { get; }
-    public Tank SelectedTank { get; }
-    public Room? ConnectedRoom { get; }
-    public Vector3 Position { get; set; }
-    public Vector3 Velocity { get; private set; }
-    public Quaternion Rotation { get; set; }
-    public Quaternion BarrelRotation { get; private set; }
-    public Quaternion TurretRotation { get; private set; }
-    public int Health { get; private set; }
-    public int Kills { get; private set; }
-    public bool CanShoot { get; private set; }
-    public bool IsAlive { get; private set; }
 
     public void Move(Vector3 velocity, Quaternion rotation, Quaternion barrelRotation, float speed, bool isForward) {
         if (!IsAlive || CheckSpeedHack(speed,
                 isForward ? SelectedTank.MaxSpeed : SelectedTank.MaxBackSpeed)) return;
 
-        Rotation = rotation;
-        Velocity = velocity;
         BarrelRotation = barrelRotation;
     }
 
@@ -137,8 +121,8 @@ public class Player {
             ConnectedRoom.GameEnded = true;
 
             Task.Run(async () => {
-                await Task.Delay(3000);
                 ServerSend.SendPlayersStats(ConnectedRoom);
+                await Task.Delay(3000);
 
                 foreach (var team in ConnectedRoom.Teams) {
                     foreach (var client in team.Players)
@@ -153,18 +137,12 @@ public class Player {
     }
 
     public void Shoot(string? bulletPrefab, string? particlePrefab, Vector3 position, Quaternion rotation) {
-        if (!CanShoot || !IsAlive)
+        if (!((float) (DateTime.Now - LastShootedTime).TotalSeconds >= SelectedTank.Cooldown) || !IsAlive)
             return;
 
-        CanShoot = false;
         ServerSend.InstantiateObject(bulletPrefab, position, rotation, Id, ConnectedRoom);
         ServerSend.InstantiateObject(particlePrefab, position, rotation, Id, ConnectedRoom);
-
-        Task.Run(async () => {
-            await Task.Delay((int) (SelectedTank.Cooldown * 1000));
-            CanShoot = true;
-            return Task.CompletedTask;
-        });
+        LastShootedTime = DateTime.Now;
     }
 
     public CachedPlayer? CachePlayer() {

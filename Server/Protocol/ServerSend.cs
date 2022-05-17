@@ -72,8 +72,8 @@ public static class ServerSend {
             packet.Write(player.Id);
             packet.Write(player.Team.Id);
             packet.Write(player.Username);
-            packet.Write(player.Position);
-            packet.Write(player.Rotation);
+            packet.Write(player.Movement.Position);
+            packet.Write(player.Movement.Rotation);
             packet.Write(player.TurretRotation);
             packet.Write(player.BarrelRotation);
             packet.Write(player.SelectedTank.Name);

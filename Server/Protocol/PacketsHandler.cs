@@ -64,8 +64,7 @@ public static class PacketsHandler {
 
         if (client.Player != null) {
             var movement = packet.ReadMovement();
-            client.Player.Position = movement.Position;
-            client.Player.Rotation = movement.Rotation;
+            client.Player.Movement = movement;
             ServerSend.SendMovementData(movement, connectedRoom, fromClient);
         }
     }

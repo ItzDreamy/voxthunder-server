@@ -44,7 +44,7 @@ public static class Server {
 
     public static int MaxPlayers { get; private set; }
 
-    public static void Start(Config? config) {
+    public static void Start(Config config) {
         try {
             Config = config;
             MaxPlayers = config.MaxPlayers;

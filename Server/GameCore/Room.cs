@@ -133,6 +133,9 @@ public class Room {
                 StartTimer(Timers.General, _generalTime);
                 ServerSend.UnlockPlayers(this);
                 PlayersLocked = false;
+                foreach (var player in Players.Values) {
+                    player.Player.LastShootedTime = DateTime.Now;
+                }
             }
         });
     }
