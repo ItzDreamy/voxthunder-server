@@ -67,7 +67,8 @@ public enum ClientPackets {
     SignOut,
     ReceiveMessage,
     OpenProfile,
-    GetLastSelectedTank
+    GetLastSelectedTank,
+    Ram
 }
 
 public enum ClientApiPackets {

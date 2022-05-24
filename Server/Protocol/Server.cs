@@ -108,7 +108,8 @@ public static class Server {
             {(int) ClientPackets.ReceiveMessage, PacketsHandler.ReceiveMessage},
             {(int) ClientPackets.OpenProfile, PacketsHandler.OpenProfile},
             {(int) ClientPackets.GetLastSelectedTank, PacketsHandler.GetLastSelectedTank},
-            {(int) ClientPackets.BuyTank, PacketsHandler.BuyTankRequest}
+            {(int) ClientPackets.BuyTank, PacketsHandler.BuyTankRequest},
+            {(int) ClientPackets.Ram, PacketsHandler.RamPlayer}
         };
         Log.Information("Packets initialized");
     }

@@ -93,7 +93,7 @@ public static class PacketsHandler {
         var client = Server.Clients[fromClient];
 
         if (client.IsAuth) return;
-        
+
         if (await AuthorizationHandler.TryLogin(username, password, rememberUser,
                 client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient)) {
             var table = await DatabaseUtils.RequestData(
@@ -366,9 +366,20 @@ public static class PacketsHandler {
     }
 
     public static void RamPlayer(int fromClient, Packet packet) {
-        float ramVelocity = packet.ReadFloat();
+        float senderVelocity = packet.ReadFloat();
         int otherPlayerId = packet.ReadInt();
+        if (senderVelocity < 1.5f)
+            return;
+
         Client client = Server.Clients[fromClient];
         Client otherClient = Server.Clients[otherPlayerId];
+
+        if (client.Player == null) return;
+
+        int damage = (int) (senderVelocity *
+            ((float) client.Player.SelectedTank.Weight / 100) / 2);
+        client.Player.TotalDamage += damage;
+        otherClient.Player.TakeDamage(damage, client.Player);
+        ServerSend.TakeDamageOtherPlayer(otherClient.ConnectedRoom, otherClient.Player);
     }
 }
