@@ -1,7 +1,9 @@
-﻿using Serilog;
+﻿using Newtonsoft.Json;
+using Serilog;
 using VoxelTanksServer.DB;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
+using VoxelTanksServer.Library.Quests;
 
 namespace VoxelTanksServer.Protocol;
 
@@ -102,8 +104,9 @@ public static class PacketsHandler {
             if ((long) table.Rows[0][0] <= 0)
                 await DatabaseUtils.ExecuteNonQuery(
                     $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`, `selectedTank`) VALUES ('{client.Data.Username}', 1, 1, 'raider')");
-
+            
             client.Data = await DatabaseUtils.GetPlayerData(client);
+            QuestManager.CheckAndUpdateQuests(client);
             ServerSend.SendPlayerData(client);
         }
     }
@@ -295,6 +298,7 @@ public static class PacketsHandler {
                     $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`) VALUES ('{client.Data.Username}', 1, 1)");
 
             client.Data = await DatabaseUtils.GetPlayerData(client);
+            QuestManager.CheckAndUpdateQuests(client);
             ServerSend.SendPlayerData(client);
         }
 

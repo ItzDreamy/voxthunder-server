@@ -18,8 +18,7 @@ public struct PlayerData {
     public int AvgExperience;
     public int Balance;
     public int Experience;
-    public List<Tank> OwnedTanks;
-    public List<Quest> Quests;
+    public QuestsData QuestsData;
 
     public override string ToString() {
         return

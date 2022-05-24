@@ -17,7 +17,7 @@
   },
   {
     "type": "Damage",
-    "require": 3000,
+    "require": 1500,
     "reward": {
       "experience": 200,
       "credits": 3000
