@@ -2,5 +2,5 @@
 
 public struct QuestsData {
     public DateTime GeneratedDate;
-    public Quest[] Quests;
+    public List<Quest> Quests;
 }

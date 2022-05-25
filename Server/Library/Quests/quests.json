@@ -3,23 +3,23 @@
     "type": "Wins",
     "require": 3,
     "reward": {
-      "experience": 300,
-      "credits": 5000
+      "experience": 3500,
+      "credits": 6000
     }
   },
   {
     "type": "Kills",
     "require": 6,
     "reward": {
-      "experience": 600,
-      "credits": 10000
+      "experience": 800,
+      "credits": 8500
     }
   },
   {
     "type": "Damage",
     "require": 1500,
     "reward": {
-      "experience": 200,
+      "experience": 1250,
       "credits": 3000
     }
   }

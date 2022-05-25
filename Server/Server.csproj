@@ -52,15 +52,16 @@
         <None Update="Library\Config\databaseCfg.yml">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="PlayersData\Quests\questsData.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
 
     <ItemGroup>
       <Reference Include="ProgressBar">
         <HintPath>D:\RiderProjects\ProgressBar\ProgressBar\bin\Debug\net6.0\ProgressBar.dll</HintPath>
       </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="PlayersData\Quests" />
     </ItemGroup>
 
 </Project>

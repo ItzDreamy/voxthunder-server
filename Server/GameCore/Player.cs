@@ -170,7 +170,7 @@ public class Player {
 
     private void UpdateQuestsData(Client client, GameResults results) {
         var quests = client.Data.QuestsData.Quests;
-        for (int i = 0; i < quests.Length; i++) {
+        for (int i = 0; i < quests.Count; i++) {
             if (quests[i].Completed)
                 continue;
 

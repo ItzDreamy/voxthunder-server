@@ -7,10 +7,10 @@ namespace VoxelTanksServer.Library.Quests;
 public class QuestManager {
     private const string QuestsPath = "Library/Quests/quests.json";
 
-    public static Quest[] AllowedQuests {
+    public static List<Quest> AllowedQuests {
         get {
             string json = File.ReadAllText(QuestsPath);
-            var quests = JsonConvert.DeserializeObject<Quest[]>(json);
+            var quests = JsonConvert.DeserializeObject<List<Quest>>(json);
             if (quests == null) {
                 throw new NullReferenceException();
             }
@@ -42,11 +42,22 @@ public class QuestManager {
     }
 
     public static QuestsData GenerateQuests() {
-        QuestsData data = new QuestsData();
-        data.GeneratedDate = DateTime.Today;
-        data.Quests = AllowedQuests;
+        var data = new QuestsData {
+            GeneratedDate = DateTime.Today,
+            Quests = new List<Quest>()
+        };
 
-        //TODO: Generate random quests
+        var random = new Random();
+        var questsCopy = new List<Quest>(AllowedQuests);
+        
+        for (var i = 0; i < AllowedQuests.Count && data.Quests.Count < 3; i++)
+        {
+            var pickIndex = random.Next(questsCopy.Count);
+            var randomQuest = questsCopy[pickIndex];
+            data.Quests.Add(randomQuest);
+            questsCopy.RemoveAt(pickIndex);
+        }
+
         return data;
     }
 
