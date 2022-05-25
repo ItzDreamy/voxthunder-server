@@ -49,9 +49,8 @@ public class QuestManager {
 
         var random = new Random();
         var questsCopy = new List<Quest>(AllowedQuests);
-        
-        for (var i = 0; i < AllowedQuests.Count && data.Quests.Count < 3; i++)
-        {
+
+        for (var i = 0; i < AllowedQuests.Count && data.Quests.Count < 3; i++) {
             var pickIndex = random.Next(questsCopy.Count);
             var randomQuest = questsCopy[pickIndex];
             data.Quests.Add(randomQuest);
@@ -65,6 +64,7 @@ public class QuestManager {
         if (File.Exists(questsDataPath)) {
             File.Delete(questsDataPath);
         }
+
         var dataJson = JsonConvert.SerializeObject(questsData);
 
         using (StreamWriter writer = File.AppendText(questsDataPath)) {
