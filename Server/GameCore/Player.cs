@@ -150,15 +150,18 @@ public class Player {
         return new CachedPlayer(this);
     }
 
-    public void UpdatePlayerStats(GameResults results) {
+    public async void UpdatePlayerStats(GameResults results) {
         try {
             var client = Server.Clients[Id];
 
             UpdateBattlesCount(results, client);
+            UpdateQuestsData(client, results);
             UpdateRank(client, results);
             UpdateBattleStats(client);
             UpdateBalance(client, results);
-            UpdateQuestsData(client, results);
+            
+            ServerSend.SendPlayerData(client);
+            await DatabaseUtils.UpdatePlayerData(client.Data);
         }
         catch (Exception exception) {
             Log.Error(exception.ToString());
@@ -197,18 +200,10 @@ public class Player {
             Path.Combine("PlayersData", "Quests", $"{client.Data.Username}.json"));
     }
 
-    private async void RewardPlayer(Quest quest, Client client) {
+    private void RewardPlayer(Quest quest, Client client) {
         client.Data.Experience += quest.Reward.Experience;
         client.Data.Balance += quest.Reward.Credits;
         client.Data.Balance = Math.Clamp(client.Data.Balance, 0, Server.Config.MaxCredits);
-
-        if (Leveling.CheckRankUp(client, out var nextRank)) {
-            client.Data.Balance += nextRank.Reward;
-            client.Data.Rank = nextRank;
-        }
-
-        ServerSend.SendPlayerData(client);
-        await DatabaseUtils.UpdatePlayerData(client.Data);
     }
 
     private void UpdateBattlesCount(GameResults results, Client client) {
@@ -229,7 +224,7 @@ public class Player {
         }
     }
 
-    private async void UpdateRank(Client client, GameResults results) {
+    private void UpdateRank(Client client, GameResults results) {
         var collectedExperience =
             (int) (TotalDamage * (1 + Kills * 0.25) * (1 + (results == GameResults.Win ? 0.5f : 0)));
         client.Data.Experience += collectedExperience;
@@ -238,9 +233,6 @@ public class Player {
             client.Data.Balance += nextRank.Reward;
             client.Data.Rank = nextRank;
         }
-
-        ServerSend.SendPlayerData(client);
-        await DatabaseUtils.UpdatePlayerData(client.Data);
     }
 
     private void UpdateBalance(Client client, GameResults results) {
