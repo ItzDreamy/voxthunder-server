@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Protocol;
 
@@ -26,18 +27,15 @@ public static class Leveling {
         return ranks.ToList().Find(rank => rank.Name == rankName);
     }
 
-    public static async Task<Rank> GetRank(Client client) {
-        var table = await DatabaseUtils.RequestData(
-            $"SELECT `rankID` FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
-
-        return GetRank((int) table.Rows[0][0]);
+    public static Task<Rank> GetRank(Client client) {
+        return Task.FromResult(GetRank((Server.DatabaseService.Context.PlayerStats.ToList())
+            .Find(data => data.Nickname == client.Data.Nickname)!.RankId));
     }
 
     public static async Task<int> GetCurrentExp(string username) {
-        var table = await DatabaseUtils.RequestData(
-            $"SELECT `exp` FROM `playerstats` WHERE `nickname` = '{username}'");
-
-        return (int) table.Rows[0][0];
+        return (Server.DatabaseService.Context.PlayerStats.ToList()).Find(player =>
+                string.Equals(player.Nickname, username, StringComparison.CurrentCultureIgnoreCase))!
+            .Exp;
     }
 
     public static bool CheckRankUp(Client client, out Rank nextRank) {
@@ -47,6 +45,6 @@ public static class Leveling {
         }
 
         nextRank = GetRank(client.Data.Rank.Id + 1);
-        return client.Data.Experience >= nextRank.RequiredExp;
+        return client.Data.Exp >= nextRank.RequiredExp;
     }
 }

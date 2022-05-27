@@ -223,7 +223,7 @@ public class Packet : IDisposable {
             Write(player.Id);
             Write(player.Kills);
             Write(player.TotalDamage);
-            Write(player.SelectedTank.Name);
+            Write(player.SelectedTank.TankName);
             Write(player.IsAlive ? "Alive" : "Dead");
         }
     }

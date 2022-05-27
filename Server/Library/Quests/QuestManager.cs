@@ -20,20 +20,20 @@ public class QuestManager {
     }
 
     public static void CheckAndUpdateQuests(Client client) {
-        string questsDataPath = Path.Combine("PlayersData", "Quests", $"{client.Data.Username}.json");
+        string questsDataPath = Path.Combine("PlayersData", "Quests", $"{client.Data.Nickname}.json");
         QuestsData questsData;
 
         if (File.Exists(questsDataPath)) {
             string dataJson = File.ReadAllText(questsDataPath);
             questsData = JsonConvert.DeserializeObject<QuestsData>(dataJson);
             if (questsData.GeneratedDate.Date != DateTime.Today) {
-                Log.Information($"New day. Generating new quests for {client.Data.Username}");
+                Log.Information($"New day. Generating new quests for {client.Data.Nickname}");
                 questsData = GenerateQuests();
                 UpdateQuests(questsData, questsDataPath);
             }
         }
         else {
-            Log.Information($"New player. Generating new quests for {client.Data.Username}");
+            Log.Information($"New player. Generating new quests for {client.Data.Nickname}");
             questsData = GenerateQuests();
             UpdateQuests(questsData, questsDataPath);
         }

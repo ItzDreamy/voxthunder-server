@@ -1,6 +1,8 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using VoxelTanksServer.Database.Models;
 using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.LevelingSystem;
 using VoxelTanksServer.Library.Quests;
@@ -42,7 +44,7 @@ public class Player {
             return;
         }
 
-        Health = tank.MaxHealth;
+        Health = tank.Health;
 
         ConnectedRoom.CachedPlayers.Add(CachePlayer());
     }
@@ -72,7 +74,7 @@ public class Player {
 
     public void Move(Vector3 velocity, Quaternion rotation, Quaternion barrelRotation, float speed, bool isForward) {
         if (!IsAlive || CheckSpeedHack(speed,
-                isForward ? SelectedTank.MaxSpeed : SelectedTank.MaxBackSpeed)) return;
+                isForward ? SelectedTank.MaxSpeed : SelectedTank.BackSpeed)) return;
 
         BarrelRotation = barrelRotation;
     }
@@ -103,7 +105,7 @@ public class Player {
 
         TakenDamage += damage;
 
-        ServerSend.TakeDamage(Id, SelectedTank.MaxHealth, Health);
+        ServerSend.TakeDamage(Id, SelectedTank.Health, Health);
     }
 
     private void Die(Player enemy) {
@@ -115,8 +117,8 @@ public class Player {
 
         foreach (var team in ConnectedRoom.Teams)
             ServerSend.ShowKillFeed(team, team == Team ? Color.Red : Color.Lime, enemy.Username, Username,
-                enemy.SelectedTank.Name,
-                SelectedTank.Name);
+                enemy.SelectedTank.TankName,
+                SelectedTank.TankName);
 
         if (Team.PlayersDeadCheck() && !ConnectedRoom.GameEnded) {
             ConnectedRoom.GameEnded = true;
@@ -150,7 +152,7 @@ public class Player {
         return new CachedPlayer(this);
     }
 
-    public async void UpdatePlayerStats(GameResults results) {
+    public Task UpdatePlayerStats(GameResults results) {
         try {
             var client = Server.Clients[Id];
 
@@ -159,13 +161,35 @@ public class Player {
             UpdateRank(client, results);
             UpdateBattleStats(client);
             UpdateBalance(client, results);
-            
+
             ServerSend.SendPlayerData(client);
-            await DatabaseUtils.UpdatePlayerData(client.Data);
+            var databaseData = (Server.DatabaseService.Context.PlayerStats.ToList())
+                .Find(data => string.Equals(data.Nickname, Username, StringComparison.CurrentCultureIgnoreCase));
+            var (username, battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience,
+                balance,
+                experience, rank) = client.Data;
+
+            databaseData.Battles = battles;
+            databaseData.Damage = damage;
+            databaseData.Kills = kills;
+            databaseData.Wins = wins;
+            databaseData.Loses = loses;
+            databaseData.Draws = draws;
+            databaseData.WinRate = winRate;
+            databaseData.AvgDamage = avgDamage;
+            databaseData.AvgKills = avgKills;
+            databaseData.AvgExp = avgExperience;
+            databaseData.Balance = balance;
+            databaseData.RankId = client.Data.RankId;
+            databaseData.Exp = experience;
+
+            Server.DatabaseService.Context.SaveChanges();
         }
         catch (Exception exception) {
             Log.Error(exception.ToString());
         }
+
+        return Task.CompletedTask;
     }
 
     private void UpdateQuestsData(Client client, GameResults results) {
@@ -197,11 +221,11 @@ public class Player {
 
         client.Data.QuestsData.Quests = quests;
         QuestManager.UpdateQuests(client.Data.QuestsData,
-            Path.Combine("PlayersData", "Quests", $"{client.Data.Username}.json"));
+            Path.Combine("PlayersData", "Quests", $"{client.Data.Nickname}.json"));
     }
 
     private void RewardPlayer(Quest quest, Client client) {
-        client.Data.Experience += quest.Reward.Experience;
+        client.Data.Exp += quest.Reward.Experience;
         client.Data.Balance += quest.Reward.Credits;
         client.Data.Balance = Math.Clamp(client.Data.Balance, 0, Server.Config.MaxCredits);
     }
@@ -227,11 +251,11 @@ public class Player {
     private void UpdateRank(Client client, GameResults results) {
         var collectedExperience =
             (int) (TotalDamage * (1 + Kills * 0.25) * (1 + (results == GameResults.Win ? 0.5f : 0)));
-        client.Data.Experience += collectedExperience;
+        client.Data.Exp += collectedExperience;
 
         if (Leveling.CheckRankUp(client, out var nextRank)) {
             client.Data.Balance += nextRank.Reward;
-            client.Data.Rank = nextRank;
+            client.Data.RankId = nextRank.Id;
         }
     }
 
@@ -248,7 +272,7 @@ public class Player {
         client.Data.Kills += Kills;
         client.Data.AvgDamage = client.Data.Damage / client.Data.Battles;
         client.Data.AvgKills = client.Data.Kills / client.Data.Battles;
-        client.Data.AvgExperience = client.Data.Experience / client.Data.Battles;
+        client.Data.AvgExp = client.Data.Exp / client.Data.Battles;
         client.Data.WinRate = (client.Data.Wins + 0.5f * client.Data.Draws) / client.Data.Battles * 100f;
         client.Data.WinRate = (float) Math.Round(Math.Clamp(client.Data.WinRate, 0f, 100f), 1,
             MidpointRounding.AwayFromZero);

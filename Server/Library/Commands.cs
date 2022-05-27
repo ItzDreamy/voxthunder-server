@@ -36,7 +36,7 @@ public static class Commands {
     public static void ShowPlayerList() {
         Console.WriteLine("Player list: ");
         foreach (var client in Server.Clients.Values.Where(client => client.IsAuth))
-            Console.WriteLine(client.Data.Username);
+            Console.WriteLine(client.Data.Nickname);
     }
 
     public static void SetMaxPlayersInRoom() {
@@ -56,7 +56,7 @@ public static class Commands {
     }
 
     private static bool TryGetClient(string? username, out Client client) {
-        client = Server.Clients.Values.ToList().Find(c => c?.Data.Username?.ToLower() == username.ToLower());
+        client = Server.Clients.Values.ToList().Find(c => c?.Data.Nickname?.ToLower() == username.ToLower());
         Console.Write(client == null ? "Player not found\n" : null);
         return client != null;
     }

@@ -1,6 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using System.Numerics;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
-using VoxelTanksServer.DB;
+using VoxelTanksServer.Database;
+using VoxelTanksServer.Database.Models;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.Quests;
@@ -26,22 +28,32 @@ public static class PacketsHandler {
         if (player.Tcp.Socket == null) return;
 
         player.ReadyToSpawn = true;
-        if (player.Reconnected) player.SendIntoGame(player.Data.Username, player.SelectedTank);
+        if (player.Reconnected) player.SendIntoGame(player.Data.Nickname, player.SelectedTank);
     }
 
-    public static async void ChangeTank(int fromClient, Packet packet) {
-        var tankName = packet.ReadString();
+    public static void ChangeTank(int fromClient, Packet packet) {
+        string tankName = packet.ReadString()!;
         var client = Server.Clients[fromClient];
 
         if (!client.IsAuth) client.Disconnect("Игрок не вошел в аккаунт");
 
-        var table = await DatabaseUtils.RequestData(
-            $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}' AND `{tankName}` = 1");
+        int ownedValue = 0;
+        switch (tankName.ToLower()) {
+            case "raider":
+                ownedValue = client.Data.Raider;
+                break;
+            case "mamont":
+                ownedValue = client.Data.Mamont;
+                break;
+            case "berserk":
+                ownedValue = client.Data.Berserk;
+                break;
+        }
 
-        var isOwned = (long) table.Rows[0][0] > 0;
+        var isOwned = ownedValue > 0;
 
-        var tank = Server.Tanks.Find(tank =>
-            string.Equals(tank.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
+        var tank = Server.DatabaseService.Context.TanksStats.ToList().Find(t =>
+            string.Equals(t.TankName, tankName, StringComparison.CurrentCultureIgnoreCase));
         if (tank == null) {
             client.Disconnect("Неизвестный танк");
             return;
@@ -98,26 +110,36 @@ public static class PacketsHandler {
 
         if (await AuthorizationHandler.TryLogin(username, password, rememberUser,
                 client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient)) {
-            var table = await DatabaseUtils.RequestData(
-                $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
+            if ((Server.DatabaseService.Context.PlayerStats.ToList()).Any(data =>
+                    string.Equals(data.Nickname, username, StringComparison.CurrentCultureIgnoreCase)) == false) {
+                Server.DatabaseService.Context.PlayerStats.Add(new PlayerData {
+                    Nickname = client.Data.Nickname,
+                    RankId = 1,
+                    Raider = 1,
+                    SelectedTank = "raider"
+                });
 
-            if ((long) table.Rows[0][0] <= 0)
-                await DatabaseUtils.ExecuteNonQuery(
-                    $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`, `selectedTank`) VALUES ('{client.Data.Username}', 1, 1, 'raider')");
-            
-            client.Data = await DatabaseUtils.GetPlayerData(client);
+                Server.DatabaseService.Context.SaveChanges();
+            }
+
+            client.Data = (Server.DatabaseService.Context.PlayerStats.ToList()).Find(data =>
+                string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase))!;
             QuestManager.CheckAndUpdateQuests(client);
+            ServerSend.LoginResult(fromClient, true, "Успех");
             ServerSend.SendPlayerData(client);
+        }
+        else {
+            ServerSend.LoginResult(fromClient, false, "Неправильный логин или пароль");
         }
     }
 
     public static async void GetLastSelectedTank(int fromClient, Packet packet) {
-        var table = await DatabaseUtils.RequestData(
-            $"SELECT `selectedTank` FROM `playerstats` WHERE `nickname` = '{Server.Clients[fromClient].Data.Username}'");
-        var selectedTankName = (string) table.Rows[0][0];
-
-        var tank = Server.Tanks.Find(t =>
-            t.Name.ToLower() == selectedTankName.ToLower());
+        var client = Server.Clients[fromClient];
+        var selectedTankName =
+            client.Data
+                .SelectedTank;
+        var tank = (Server.DatabaseService.Context.TanksStats.ToList()).Find(t =>
+            string.Equals(t.TankName, selectedTankName, StringComparison.CurrentCultureIgnoreCase));
 
         ServerSend.SwitchTank(Server.Clients[fromClient], tank, true);
     }
@@ -227,10 +249,10 @@ public static class PacketsHandler {
 
         foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false}))
         foreach (var cachedPlayer in room?.CachedPlayers.Where(cachedPlayer =>
-                     cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Data.Username?.ToLower() &&
+                     cachedPlayer?.Username.ToLower() == Server.Clients[fromClient].Data.Nickname?.ToLower() &&
                      cachedPlayer.IsAlive && !room.GameEnded)) {
             ServerSend.AbleToReconnect(fromClient);
-            Log.Information($"{Server.Clients[fromClient].Data.Username} can reconnect to battle");
+            Log.Information($"{Server.Clients[fromClient].Data.Nickname} can reconnect to battle");
         }
     }
 
@@ -240,7 +262,7 @@ public static class PacketsHandler {
 
         foreach (var room in Server.Rooms.Where(room => room is {IsOpen: false})) {
             var cachedPlayer = room?.CachedPlayers.Find(player =>
-                player?.Username?.ToLower() == Server.Clients[fromClient].Data.Username?.ToLower());
+                player?.Username?.ToLower() == Server.Clients[fromClient].Data.Nickname?.ToLower());
             if (cachedPlayer == null) return;
 
             client.JoinRoom(room);
@@ -258,7 +280,7 @@ public static class PacketsHandler {
 
         foreach (var room in Server.Rooms)
         foreach (var cachedPlayer in room.CachedPlayers)
-            if (cachedPlayer?.Username == Server.Clients[fromClient].Data.Username) {
+            if (cachedPlayer?.Username == Server.Clients[fromClient].Data.Nickname) {
                 Log.Information($"{cachedPlayer?.Username} canceled reconnect");
                 room.CachedPlayers[room.CachedPlayers.IndexOf(cachedPlayer)] = null;
                 return;
@@ -283,21 +305,50 @@ public static class PacketsHandler {
         ServerSend.SendPlayerData(client);
     }
 
-    public static async void AuthById(int fromClient, Packet packet) {
+    public static void AuthById(int fromClient, Packet packet) {
         var client = Server.Clients[fromClient];
         var id = packet.ReadString();
         if (client.IsAuth) return;
-        var isAuth = await DatabaseUtils.TryLoginByToken(id, fromClient);
+
+        var authedClient =
+            Server.DatabaseService.Context.AuthData.ToList().Find(data => data.AuthId == id);
+        bool isAuth = false;
+        if (authedClient != null) {
+            var nickname = authedClient.Login;
+            Log.Information($"{nickname} успешно зашел в аккаунт");
+
+            var samePlayer = Server.Clients.Values.ToList()
+                .Find(player =>
+                    player.Data != null &&
+                    string.Equals(player.Data.Nickname, nickname, StringComparison.CurrentCultureIgnoreCase));
+            samePlayer?.Disconnect("Другой игрок зашел в аккаунт");
+
+            client.Data = new PlayerData();
+            client.Data.Nickname = nickname;
+            client.IsAuth = true;
+            var guid = Guid.NewGuid();
+            authedClient.AuthId = guid.ToString();
+            Server.DatabaseService.Context.SaveChanges();
+            ServerSend.SendAuthId(guid.ToString(), fromClient);
+            isAuth = true;
+        }
 
         if (isAuth) {
-            var table = await DatabaseUtils.RequestData(
-                $"SELECT Count(*) FROM `playerstats` WHERE `nickname` = '{client.Data.Username}'");
+            if ((Server.DatabaseService.Context.PlayerStats.ToList()).Any(data =>
+                    string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase)) ==
+                false) {
+                Server.DatabaseService.Context.PlayerStats.Add(new PlayerData {
+                    Nickname = client.Data.Nickname,
+                    RankId = 1,
+                    Raider = 1,
+                    SelectedTank = "raider"
+                });
+            }
 
-            if ((long) table.Rows[0][0] <= 0)
-                await DatabaseUtils.ExecuteNonQuery(
-                    $"INSERT INTO `playerstats` (`nickname`, `rankID`, `raider`) VALUES ('{client.Data.Username}', 1, 1)");
+            Server.DatabaseService.Context.SaveChanges();
 
-            client.Data = await DatabaseUtils.GetPlayerData(client);
+            client.Data = Server.DatabaseService.Context.PlayerStats.ToList().Find(data =>
+                string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase))!;
             QuestManager.CheckAndUpdateQuests(client);
             ServerSend.SendPlayerData(client);
         }
@@ -308,7 +359,21 @@ public static class PacketsHandler {
     public static void SignOut(int fromClient, Packet packet) {
         var client = Server.Clients[fromClient];
         client.IsAuth = false;
-        client.Data = default;
+
+        var databaseData = (Server.DatabaseService.Context.PlayerStats.ToList())
+            .Find(data =>
+                string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase));
+        databaseData = (PlayerData) client.Data.Clone();
+        Server.DatabaseService.Context.SaveChanges();
+        
+        client.Reconnected = false;
+        client.Player = null;
+        client.SpawnPosition = Vector3.Zero;
+        client.SpawnRotation = Quaternion.Identity;
+        client.SelectedTank = null;
+        client.ReadyToSpawn = false;
+
+        client.Data = null;
         ServerSend.SignOut(fromClient);
     }
 
@@ -323,7 +388,7 @@ public static class PacketsHandler {
 
         if (client.ConnectedRoom == null) return;
 
-        ServerSend.SendMessage(MessageType.Player, client.Data.Username, message, client.ConnectedRoom);
+        ServerSend.SendMessage(MessageType.Player, client.Data.Nickname, message, client.ConnectedRoom);
     }
 
     public static void OpenProfile(int fromClient, Packet packet) {
@@ -332,7 +397,8 @@ public static class PacketsHandler {
 
     public static void BuyTankRequest(int fromClient, Packet packet) {
         var tankName = packet.ReadString();
-        var tank = Server.Tanks.Find(t => string.Equals(t.Name, tankName, StringComparison.CurrentCultureIgnoreCase));
+        var tank = Server.DatabaseService.Context.TanksStats.ToList().Find(
+            t => string.Equals(t.TankName, tankName, StringComparison.CurrentCultureIgnoreCase));
         var client = Server.Clients[fromClient];
 
         if (tank == null) {
@@ -346,8 +412,19 @@ public static class PacketsHandler {
         if (client.Data.Balance >= tank.Cost) {
             try {
                 client.Data.Balance -= tank.Cost;
-                DatabaseUtils.ExecuteNonQuery(
-                    $"UPDATE `playerstats` SET `{tankName.ToLower()}` = '1', `balance` = '{client.Data.Balance}' WHERE `nickname` = '{client.Data.Username}'");
+
+                switch (tankName.ToLower()) {
+                    case "raider":
+                        client.Data.Raider = 1;
+                        break;
+                    case "mamont":
+                        client.Data.Mamont = 1;
+                        break;
+                    case "berserk":
+                        client.Data.Berserk = 1;
+                        break;
+                }
+
                 successful = true;
                 message = "Успех";
 

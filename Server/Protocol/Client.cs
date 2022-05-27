@@ -1,7 +1,9 @@
 ﻿using System.Net.Sockets;
 using System.Numerics;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
-using VoxelTanksServer.DB;
+using VoxelTanksServer.Database;
+using VoxelTanksServer.Database.Models;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 
@@ -61,13 +63,16 @@ public class Client {
             ServerSend.SpawnPlayer(client.Id, Player);
     }
 
-    public async void Disconnect(string reason = "") {
+    public void Disconnect(string reason = "") {
         if (Tcp?.Socket == null)
             return;
 
-        await DatabaseUtils.UpdatePlayerData(Data);
+        var databaseData = (Server.DatabaseService.Context.PlayerStats.ToList())
+            .Find(data => string.Equals(data.Nickname, Data.Nickname, StringComparison.CurrentCultureIgnoreCase));
+        databaseData = (PlayerData) Data.Clone();
+        Server.DatabaseService.Context.SaveChanges();
 
-        reason = reason == string.Empty ? "" : $"Причина: {reason}"; 
+        reason = reason == string.Empty ? "" : $"Причина: {reason}";
         Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. {reason}");
         ServerSend.PlayerDisconnected(Id, ConnectedRoom);
 
@@ -75,7 +80,7 @@ public class Client {
             if (Player != null) {
                 var playerIndex = Player.ConnectedRoom.CachedPlayers.IndexOf(
                     Player.ConnectedRoom.CachedPlayers.Find(cachedPlayer =>
-                        string.Equals(cachedPlayer?.Username, Data.Username,
+                        string.Equals(cachedPlayer?.Username, Data.Nickname,
                             StringComparison.CurrentCultureIgnoreCase)));
                 if (playerIndex != -1)
                     Player.ConnectedRoom.CachedPlayers[playerIndex] = Player.CachePlayer();
@@ -200,6 +205,7 @@ public class Client {
             catch (Exception e) {
                 Console.WriteLine(e.ToString());
             }
+
             return true;
         }
 

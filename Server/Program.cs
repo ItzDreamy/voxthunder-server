@@ -1,4 +1,7 @@
-﻿using Serilog;
+﻿using System.Text;
+using MySql.Data.MySqlClient;
+using Serilog;
+using VoxelTanksServer.Database;
 using VoxelTanksServer.Discord;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
@@ -37,44 +40,57 @@ public static class Program {
 
     public static void Main(string[] args) {
         Console.Title = "Server";
-
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         try {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console()
-                .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Hour)
-                .CreateLogger();
+            IDatabaseService databaseService = new DatabaseService();
+            SetupLogger();
+            StartCommandThread();
+            SetupServer(databaseService);
 
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-            var config = deserializer.Deserialize<Config>(File.ReadAllText("Library/Config/config.yml"));
-
-            _isRunning = true;
-
-            Thread mainThread = new(MainThread);
-            Thread commandsThread = new(() => {
-                while (_isRunning) {
-                    var command = Console.ReadLine()?.ToLower();
-                    if (command != null && ServerCommands.ContainsKey(command))
-                        ServerCommands[command]();
-                    else
-                        Console.WriteLine("Command doesnt exists");
-                }
-            });
-            commandsThread.Start();
-            mainThread.Start();
-
-            Server.Start(config);
-            ApiServer.Start(config);
-
-            Log.Information($"Client version: {config.ClientVersion}");
             new DiscordStartUp().MainAsync();
         }
         catch (Exception e) {
             Log.Error(e.ToString());
             Console.ReadLine();
         }
+    }
+
+    private static void SetupServer(IDatabaseService databaseService) {
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+        var serverConfig = deserializer.Deserialize<Config>(File.ReadAllText("Library/Config/config.yml"));
+
+        _isRunning = true;
+
+        Thread mainThread = new(MainThread);
+        mainThread.Start();
+
+        Server.Start(serverConfig, databaseService);
+        ApiServer.Start(serverConfig);
+
+        Log.Information($"Client version: {serverConfig.ClientVersion}");
+    }
+
+    private static void StartCommandThread() {
+        Thread commandsThread = new(() => {
+            while (_isRunning) {
+                var command = Console.ReadLine()?.ToLower();
+                if (command != null && ServerCommands.ContainsKey(command))
+                    ServerCommands[command]();
+                else
+                    Console.WriteLine("Command doesnt exists");
+            }
+        });
+        commandsThread.Start();
+    }
+
+    private static void SetupLogger() {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Hour)
+            .CreateLogger();
     }
 
     private static void MainThread() {

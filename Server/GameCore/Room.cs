@@ -76,7 +76,7 @@ public class Room {
             while (waitingTime > 0) {
                 if (CheckPlayersReady()) {
                     foreach (var client in Players.Values)
-                        client?.SendIntoGame(client.Data.Username, client.SelectedTank);
+                        client?.SendIntoGame(client.Data.Nickname, client.SelectedTank);
 
                     StartTimer(Timers.Preparative, PreparationTime);
                     return;

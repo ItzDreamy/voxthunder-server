@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Numerics;
 using Serilog;
+using VoxelTanksServer.Database;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library.Config;
 
@@ -9,6 +10,8 @@ namespace VoxelTanksServer.Protocol;
 
 public static class Server {
     public delegate void PacketHandler(int fromClient, Packet packet);
+
+    public static IDatabaseService DatabaseService { get; private set; }
 
     public static bool IsOnline;
     public static Config? Config;
@@ -28,12 +31,6 @@ public static class Server {
         })
     };
 
-    public static readonly List<Tank?> Tanks = new() {
-        new Tank("Raider"),
-        new Tank("Mamont"),
-        new Tank("Berserk")
-    };
-
     public static Dictionary<int, PacketHandler>? PacketHandlers;
 
     private static TcpListener? _tcpListener;
@@ -44,11 +41,12 @@ public static class Server {
 
     public static int MaxPlayers { get; private set; }
 
-    public static void Start(Config config) {
+    public static void Start(Config config, IDatabaseService databaseService) {
         try {
             Config = config;
             MaxPlayers = config.MaxPlayers;
             _port = config.ServerPort;
+            DatabaseService = databaseService;
 
             Log.Information("Starting server...");
             InitializeServerData();
@@ -56,6 +54,8 @@ public static class Server {
 
             Log.Information($"Server started on {_port}");
             Log.Information($"Max players: {MaxPlayers}");
+
+            BeginListenConnections();
         }
         catch (Exception e) {
             Log.Error(e.ToString());

@@ -1,6 +1,8 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using VoxelTanksServer.Database.Models;
 using VoxelTanksServer.GameCore;
 using VoxelTanksServer.Library;
 using VoxelTanksServer.Library.LevelingSystem;
@@ -77,7 +79,7 @@ public static class ServerSend {
             packet.Write(player.Movement.Rotation);
             packet.Write(player.TurretRotation);
             packet.Write(player.BarrelRotation);
-            packet.Write(player.SelectedTank.Name);
+            packet.Write(player.SelectedTank.TankName);
             packet.Write(player.ConnectedRoom.PlayersLocked);
 
             SendTcpData(toClient, packet);
@@ -92,11 +94,11 @@ public static class ServerSend {
             packet.Write(!player.CanShoot);
             packet.Write(player.SelectedTank.Cooldown);
             packet.Write(player.Health);
-            packet.Write(player.SelectedTank.MaxHealth);
+            packet.Write(player.SelectedTank.Health);
             packet.Write(player.SelectedTank.MaxSpeed);
-            packet.Write(player.SelectedTank.MaxBackSpeed);
-            packet.Write(player.SelectedTank.Acceleration);
-            packet.Write(player.SelectedTank.BackAcceleration);
+            packet.Write(player.SelectedTank.BackSpeed);
+            packet.Write(player.SelectedTank.AccelerationSpeed);
+            packet.Write(player.SelectedTank.BackAccelerationSpeed);
             packet.Write(player.SelectedTank.TankRotateSpeed);
             packet.Write(player.SelectedTank.TowerRotateSpeed);
             packet.Write(player.SelectedTank.AngleUp);
@@ -106,22 +108,23 @@ public static class ServerSend {
         }
     }
 
-    public static async void SwitchTank(Client client, Tank tank, bool isOwned) {
+    public static void SwitchTank(Client client, Tank tank, bool isOwned) {
         using (var packet = new Packet((int) ServerPackets.SwitchTank)) {
             if (isOwned) {
                 client.SelectedTank = tank;
-                await DatabaseUtils.ExecuteNonQuery(
-                    $"UPDATE `playerstats` SET `selectedTank` = '{tank.Name.ToLower()}' WHERE `nickname` = '{client.Data.Username}'");
+                client.Data.SelectedTank = tank.TankName;
             }
 
-            var topHealth = Server.Tanks.Max(t => t.MaxHealth);
-            var topDamage = Server.Tanks.Max(t => t.Damage);
-            var topSpeed = Server.Tanks.Max(t => t.MaxSpeed);
+            var tanks = Server.DatabaseService.Context.TanksStats.ToList();
+
+            var topHealth = tanks.Max(t => t.Health);
+            var topDamage = tanks.Max(t => t.Damage);
+            var topSpeed = tanks.Max(t => t.MaxSpeed);
 
             packet.Write(isOwned);
-            packet.Write(tank.Name);
+            packet.Write(tank.TankName);
             packet.Write(tank.Cost);
-            packet.Write(tank.MaxHealth);
+            packet.Write(tank.Health);
             packet.Write(topHealth);
             packet.Write(tank.Damage);
             packet.Write(topDamage);
@@ -228,7 +231,7 @@ public static class ServerSend {
     public static void TakeDamageOtherPlayer(Room room, Player player) {
         using (var packet = new Packet((int) ServerPackets.TakeDamageOtherPlayer)) {
             packet.Write(player.Id);
-            packet.Write(player.SelectedTank.MaxHealth);
+            packet.Write(player.SelectedTank.Health);
             packet.Write(player.Health);
 
             SendTcpDataToRoom(room, packet);
@@ -305,7 +308,7 @@ public static class ServerSend {
         using (var packet = new Packet((int) ServerPackets.PlayerData)) {
             var data = toClient.Data;
             var rank = toClient.Data.Rank;
-            packet.Write(data.Username);
+            packet.Write(data.Nickname);
 
             packet.Write(rank.Id);
             packet.Write(rank.Name);
@@ -320,9 +323,9 @@ public static class ServerSend {
             packet.Write(data.Draws);
             packet.Write(data.WinRate);
             packet.Write(data.AvgDamage);
-            packet.Write(data.AvgExperience);
+            packet.Write(data.AvgExp);
             packet.Write(data.Balance);
-            packet.Write(data.Experience);
+            packet.Write(data.Exp);
             packet.Write(Leveling.MaxRank.Id != rank.Id ? Leveling.GetRank(rank.Id + 1).RequiredExp : rank.RequiredExp);
 
             SendTcpData(toClient.Id, packet);
