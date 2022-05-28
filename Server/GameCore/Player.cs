@@ -163,7 +163,7 @@ public class Player {
             UpdateBalance(client, results);
 
             ServerSend.SendPlayerData(client);
-            var databaseData = (Server.DatabaseService.Context.PlayerStats.ToList())
+            var databaseData = (Server.DatabaseService.Context.playerstats.ToList())
                 .Find(data => string.Equals(data.Nickname, Username, StringComparison.CurrentCultureIgnoreCase));
             var (username, battles, damage, kills, wins, loses, draws, winRate, avgDamage, avgKills, avgExperience,
                 balance,

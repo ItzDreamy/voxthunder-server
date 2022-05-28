@@ -9,7 +9,7 @@ public static class AuthorizationHandler {
     public static Task<bool> TryLogin(string username, string password, bool rememberUser, string ip,
         int clientId) {
         try {
-            var authClient = Server.DatabaseService.Context.AuthData.ToList()
+            var authClient = Server.DatabaseService.Context.authdata.ToList()
                 .Find(data => data.Login.ToLower() == username.ToLower() && data.Password == password);
 
             if (authClient != null) {

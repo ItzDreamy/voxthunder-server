@@ -52,7 +52,7 @@ public static class PacketsHandler {
 
         var isOwned = ownedValue > 0;
 
-        var tank = Server.DatabaseService.Context.TanksStats.ToList().Find(t =>
+        var tank = Server.DatabaseService.Context.tanksstats.ToList().Find(t =>
             string.Equals(t.TankName, tankName, StringComparison.CurrentCultureIgnoreCase));
         if (tank == null) {
             client.Disconnect("Неизвестный танк");
@@ -110,9 +110,9 @@ public static class PacketsHandler {
 
         if (await AuthorizationHandler.TryLogin(username, password, rememberUser,
                 client.Tcp.Socket.Client.RemoteEndPoint?.ToString(), fromClient)) {
-            if ((Server.DatabaseService.Context.PlayerStats.ToList()).Any(data =>
+            if ((Server.DatabaseService.Context.playerstats.ToList()).Any(data =>
                     string.Equals(data.Nickname, username, StringComparison.CurrentCultureIgnoreCase)) == false) {
-                Server.DatabaseService.Context.PlayerStats.Add(new PlayerData {
+                Server.DatabaseService.Context.playerstats.Add(new PlayerData {
                     Nickname = client.Data.Nickname,
                     RankId = 1,
                     Raider = 1,
@@ -122,7 +122,7 @@ public static class PacketsHandler {
                 Server.DatabaseService.Context.SaveChanges();
             }
 
-            client.Data = (Server.DatabaseService.Context.PlayerStats.ToList()).Find(data =>
+            client.Data = (Server.DatabaseService.Context.playerstats.ToList()).Find(data =>
                 string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase))!;
             QuestManager.CheckAndUpdateQuests(client);
             ServerSend.LoginResult(fromClient, true, "Успех");
@@ -138,7 +138,7 @@ public static class PacketsHandler {
         var selectedTankName =
             client.Data
                 .SelectedTank;
-        var tank = (Server.DatabaseService.Context.TanksStats.ToList()).Find(t =>
+        var tank = (Server.DatabaseService.Context.tanksstats.ToList()).Find(t =>
             string.Equals(t.TankName, selectedTankName, StringComparison.CurrentCultureIgnoreCase));
 
         ServerSend.SwitchTank(Server.Clients[fromClient], tank, true);
@@ -311,7 +311,7 @@ public static class PacketsHandler {
         if (client.IsAuth) return;
 
         var authedClient =
-            Server.DatabaseService.Context.AuthData.ToList().Find(data => data.AuthId == id);
+            Server.DatabaseService.Context.authdata.ToList().Find(data => data.AuthId == id);
         bool isAuth = false;
         if (authedClient != null) {
             var nickname = authedClient.Login;
@@ -334,10 +334,10 @@ public static class PacketsHandler {
         }
 
         if (isAuth) {
-            if ((Server.DatabaseService.Context.PlayerStats.ToList()).Any(data =>
+            if ((Server.DatabaseService.Context.playerstats.ToList()).Any(data =>
                     string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase)) ==
                 false) {
-                Server.DatabaseService.Context.PlayerStats.Add(new PlayerData {
+                Server.DatabaseService.Context.playerstats.Add(new PlayerData {
                     Nickname = client.Data.Nickname,
                     RankId = 1,
                     Raider = 1,
@@ -347,7 +347,7 @@ public static class PacketsHandler {
 
             Server.DatabaseService.Context.SaveChanges();
 
-            client.Data = Server.DatabaseService.Context.PlayerStats.ToList().Find(data =>
+            client.Data = Server.DatabaseService.Context.playerstats.ToList().Find(data =>
                 string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase))!;
             QuestManager.CheckAndUpdateQuests(client);
             ServerSend.SendPlayerData(client);
@@ -360,12 +360,14 @@ public static class PacketsHandler {
         var client = Server.Clients[fromClient];
         client.IsAuth = false;
 
-        var databaseData = (Server.DatabaseService.Context.PlayerStats.ToList())
-            .Find(data =>
-                string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase));
-        databaseData = (PlayerData) client.Data.Clone();
-        Server.DatabaseService.Context.SaveChanges();
-        
+        if (client.Data != null && client.Data.Nickname != null) {
+            var databaseData = (Server.DatabaseService.Context.playerstats.ToList())
+                .Find(data =>
+                    string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase));
+            databaseData = (PlayerData) client.Data.Clone();
+            Server.DatabaseService.Context.SaveChanges();
+        }
+
         client.Reconnected = false;
         client.Player = null;
         client.SpawnPosition = Vector3.Zero;
@@ -397,7 +399,7 @@ public static class PacketsHandler {
 
     public static void BuyTankRequest(int fromClient, Packet packet) {
         var tankName = packet.ReadString();
-        var tank = Server.DatabaseService.Context.TanksStats.ToList().Find(
+        var tank = Server.DatabaseService.Context.tanksstats.ToList().Find(
             t => string.Equals(t.TankName, tankName, StringComparison.CurrentCultureIgnoreCase));
         var client = Server.Clients[fromClient];
 

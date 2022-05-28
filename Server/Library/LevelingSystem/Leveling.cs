@@ -28,12 +28,12 @@ public static class Leveling {
     }
 
     public static Task<Rank> GetRank(Client client) {
-        return Task.FromResult(GetRank((Server.DatabaseService.Context.PlayerStats.ToList())
+        return Task.FromResult(GetRank((Server.DatabaseService.Context.playerstats.ToList())
             .Find(data => data.Nickname == client.Data.Nickname)!.RankId));
     }
 
     public static async Task<int> GetCurrentExp(string username) {
-        return (Server.DatabaseService.Context.PlayerStats.ToList()).Find(player =>
+        return (Server.DatabaseService.Context.playerstats.ToList()).Find(player =>
                 string.Equals(player.Nickname, username, StringComparison.CurrentCultureIgnoreCase))!
             .Exp;
     }

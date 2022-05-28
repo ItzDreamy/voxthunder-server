@@ -44,7 +44,6 @@ public static class Program {
         try {
             IDatabaseService databaseService = new DatabaseService();
             SetupLogger();
-            StartCommandThread();
             SetupServer(databaseService);
 
             new DiscordStartUp().MainAsync();
@@ -64,6 +63,7 @@ public static class Program {
         _isRunning = true;
 
         Thread mainThread = new(MainThread);
+        StartCommandThread();
         mainThread.Start();
 
         Server.Start(serverConfig, databaseService);

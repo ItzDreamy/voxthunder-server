@@ -67,11 +67,13 @@ public class Client {
         if (Tcp?.Socket == null)
             return;
 
-        var databaseData = (Server.DatabaseService.Context.PlayerStats.ToList())
-            .Find(data => string.Equals(data.Nickname, Data.Nickname, StringComparison.CurrentCultureIgnoreCase));
-        databaseData = (PlayerData) Data.Clone();
-        Server.DatabaseService.Context.SaveChanges();
-
+        if (Data != null && Data.Nickname != null) {
+            var databaseData = (Server.DatabaseService.Context.playerstats.ToList())
+                .Find(data => string.Equals(data.Nickname, Data.Nickname, StringComparison.CurrentCultureIgnoreCase));
+            databaseData = (PlayerData) Data.Clone();
+            Server.DatabaseService.Context.SaveChanges();
+        }
+        
         reason = reason == string.Empty ? "" : $"Причина: {reason}";
         Log.Information($"{Tcp.Socket?.Client?.RemoteEndPoint} отключился. {reason}");
         ServerSend.PlayerDisconnected(Id, ConnectedRoom);

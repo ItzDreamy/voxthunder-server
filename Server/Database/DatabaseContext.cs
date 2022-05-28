@@ -13,9 +13,9 @@ public class DatabaseContextFactory : IDesignTimeDbContextFactory<DatabaseContex
 }
 
 public sealed class DatabaseContext : DbContext {
-    public DbSet<PlayerData> PlayerStats { get; set; }
-    public DbSet<AuthData> AuthData { get; set; }
-    public DbSet<Tank> TanksStats { get; set; }
+    public DbSet<PlayerData> playerstats { get; set; }
+    public DbSet<AuthData> authdata { get; set; }
+    public DbSet<Tank> tanksstats { get; set; }
 
     private readonly DatabaseConfig _config;
 

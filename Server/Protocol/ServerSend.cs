@@ -115,7 +115,7 @@ public static class ServerSend {
                 client.Data.SelectedTank = tank.TankName;
             }
 
-            var tanks = Server.DatabaseService.Context.TanksStats.ToList();
+            var tanks = Server.DatabaseService.Context.tanksstats.ToList();
 
             var topHealth = tanks.Max(t => t.Health);
             var topDamage = tanks.Max(t => t.Damage);
