@@ -457,7 +457,7 @@ public static class PacketsHandler {
         Client client = Server.Clients[fromClient];
         Client otherClient = Server.Clients[otherPlayerId];
 
-        if (client.Player == null) return;
+        if (client.Player == null || otherClient.Player == null || otherClient.ConnectedRoom == null) return;
 
         int damage = (int) (senderVelocity *
             ((float) client.Player.SelectedTank.Weight / 100) / 2);
