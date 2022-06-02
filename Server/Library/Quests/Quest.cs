@@ -8,6 +8,7 @@ public struct Quest {
     public QuestType Type;
     [JsonIgnore]
     public bool Completed => Progress >= Require;
+    public string Description { get; set; }
 
     public int Require;
     public Reward Reward;

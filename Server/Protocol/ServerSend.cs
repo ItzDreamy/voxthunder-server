@@ -327,6 +327,16 @@ public static class ServerSend {
             packet.Write(data.Balance);
             packet.Write(data.Exp);
             packet.Write(Leveling.MaxRank.Id != rank.Id ? Leveling.GetRank(rank.Id + 1).RequiredExp : rank.RequiredExp);
+            foreach (var quest in data.QuestsData.Quests) {
+                packet.Write(quest.Type.ToString());
+                packet.Write(quest.Description);
+                var timeToUpdate = data.QuestsData.GeneratedDate.AddDays(1) - DateTime.Now;
+                packet.Write($"{timeToUpdate.Hours}H {timeToUpdate.Minutes}M");
+                packet.Write(quest.Require);
+                packet.Write(quest.Progress);
+                packet.Write(quest.Reward.Credits);
+                packet.Write(quest.Reward.Experience);
+            }
 
             SendTcpData(toClient.Id, packet);
         }
@@ -366,6 +376,17 @@ public static class ServerSend {
             packet.Write(isSuccessful);
             packet.Write(message);
 
+            SendTcpData(toClient, packet);
+        }
+    }
+
+    public static void SendLastGameStats(int toClient, GameResults results, int exp, int credits, int kills) {
+        using (Packet packet = new Packet((int) ServerPackets.LastGameStats)) {
+            packet.Write((int) results);
+            packet.Write(credits);
+            packet.Write(exp);
+            packet.Write(kills);
+            
             SendTcpData(toClient, packet);
         }
     }

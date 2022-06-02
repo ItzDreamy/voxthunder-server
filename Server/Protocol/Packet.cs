@@ -34,7 +34,8 @@ public enum ServerPackets {
     SignOut,
     SendMessage,
     OpenProfile,
-    BoughtTankInfo
+    BoughtTankInfo,
+    LastGameStats
 }
 
 public enum ServerApiPackets {

@@ -1,6 +1,7 @@
 ﻿[
   {
     "type": "Wins",
+    "description": "Победите 3 раза",
     "require": 3,
     "reward": {
       "experience": 3500,
@@ -9,6 +10,7 @@
   },
   {
     "type": "Kills",
+    "description": "Уничтожьте 6 танков",
     "require": 6,
     "reward": {
       "experience": 800,
@@ -17,6 +19,7 @@
   },
   {
     "type": "Damage",
+    "description": "Нанесите 1500 урона",
     "require": 1500,
     "reward": {
       "experience": 1250,

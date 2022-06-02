@@ -121,7 +121,16 @@ public class Room {
                     ServerSend.SendPlayersStats(this);
 
                     foreach (var team in Teams) {
-                        foreach (var client in team.Players) client.Player.UpdatePlayerStats(GameResults.Draw);
+                        foreach (var client in team.Players) {
+                            int exp = (int) (client.Player.TotalDamage * (1 + client.Player.Kills * 0.25) * (1));
+                            int credits = (int) (client.Player.TotalDamage * 10 * (client.Player.Kills + 1) * (1 + 0) -
+                                                 client.Player.TakenDamage * 2.5f *
+                                                 (1 + (client.Player.IsAlive ? 1 : 0)));
+                            ServerSend.SendLastGameStats(client.Id, GameResults.Draw, exp, credits, client.Player.Kills);
+                            client.Player.UpdatePlayerStats(GameResults.Draw,
+                                exp, credits);
+                        }
+
                         ServerSend.EndGame(team, GameResults.Draw);
                     }
 

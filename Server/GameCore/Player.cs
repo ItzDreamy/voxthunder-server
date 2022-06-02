@@ -128,8 +128,16 @@ public class Player {
                 await Task.Delay(3000);
 
                 foreach (var team in ConnectedRoom.Teams) {
-                    foreach (var client in team.Players)
-                        client.Player.UpdatePlayerStats(team != Team ? GameResults.Win : GameResults.Lose);
+                    foreach (var client in team.Players) {
+                        var results = team != Team ? GameResults.Win : GameResults.Lose;
+                        int exp = (int) (client.Player.TotalDamage * (1 + client.Player.Kills * 0.25) * (1));
+                        int credits = (int) (client.Player.TotalDamage * 10 * (client.Player.Kills + 1) * (1 + 0) -
+                                             client.Player.TakenDamage * 2.5f *
+                                             (1 + (client.Player.IsAlive ? 1 : 0)));
+                        
+                        ServerSend.SendLastGameStats(client.Id, results, exp, credits, client.Player.Kills);
+                        client.Player.UpdatePlayerStats(results, exp, credits);
+                    }
 
                     ServerSend.EndGame(team, team != Team ? GameResults.Win : GameResults.Lose);
                 }
@@ -152,15 +160,15 @@ public class Player {
         return new CachedPlayer(this);
     }
 
-    public Task UpdatePlayerStats(GameResults results) {
+    public Task UpdatePlayerStats(GameResults results, int exp, int credits) {
         try {
             var client = Server.Clients[Id];
 
             UpdateBattlesCount(results, client);
             UpdateQuestsData(client, results);
-            UpdateRank(client, results);
+            UpdateRank(client, results, exp);
             UpdateBattleStats(client);
-            UpdateBalance(client, results);
+            UpdateBalance(client, results, credits);
 
             ServerSend.SendPlayerData(client);
             var databaseData = (Server.DatabaseService.Context.playerstats.ToList())
@@ -248,10 +256,8 @@ public class Player {
         }
     }
 
-    private void UpdateRank(Client client, GameResults results) {
-        var collectedExperience =
-            (int) (TotalDamage * (1 + Kills * 0.25) * (1 + (results == GameResults.Win ? 0.5f : 0)));
-        client.Data.Exp += collectedExperience;
+    private void UpdateRank(Client client, GameResults results, int exp) {
+        client.Data.Exp += exp;
 
         if (Leveling.CheckRankUp(client, out var nextRank)) {
             client.Data.Balance += nextRank.Reward;
@@ -259,11 +265,8 @@ public class Player {
         }
     }
 
-    private void UpdateBalance(Client client, GameResults results) {
-        var collectedCredits =
-            (int) (TotalDamage * 10 * (Kills + 1) * (1 + (results == GameResults.Win ? 1 : 0)) -
-                   TakenDamage * 2.5f * (1 + (IsAlive ? 1 : 0)));
-        client.Data.Balance += collectedCredits;
+    private void UpdateBalance(Client client, GameResults results, int credits) {
+        client.Data.Balance += credits;
         client.Data.Balance = Math.Clamp(client.Data.Balance, 0, Server.Config.MaxCredits);
     }
 
