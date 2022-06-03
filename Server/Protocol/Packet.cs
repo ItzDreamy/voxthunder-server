@@ -35,7 +35,8 @@ public enum ServerPackets {
     SendMessage,
     OpenProfile,
     BoughtTankInfo,
-    LastGameStats
+    LastGameStats,
+    QuestsTime
 }
 
 public enum ServerApiPackets {
@@ -69,7 +70,8 @@ public enum ClientPackets {
     ReceiveMessage,
     OpenProfile,
     GetLastSelectedTank,
-    Ram
+    Ram,
+    QuestsTime
 }
 
 public enum ClientApiPackets {

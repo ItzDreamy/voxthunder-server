@@ -391,5 +391,12 @@ public static class ServerSend {
         }
     }
 
+    public static void SendQuestsTime(TimeSpan time, int toClient) {
+        using (Packet packet = new Packet((int) ServerPackets.QuestsTime)) {
+            packet.Write($"{time.Hours}H {time.Minutes}M");
+            SendTcpData(toClient, packet);
+        }
+    }
+
     #endregion
 }

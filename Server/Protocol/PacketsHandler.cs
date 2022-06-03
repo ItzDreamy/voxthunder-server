@@ -465,4 +465,9 @@ public static class PacketsHandler {
         otherClient.Player.TakeDamage(damage, client.Player);
         ServerSend.TakeDamageOtherPlayer(otherClient.ConnectedRoom, otherClient.Player);
     }
+
+    public static void HandleQuestsTime(int fromClient, Packet packet) {
+        var timeToUpdate = Server.Clients[fromClient].Data.QuestsData.GeneratedDate.AddDays(1) - DateTime.Now;
+        ServerSend.SendQuestsTime(timeToUpdate, fromClient);
+    }
 }
