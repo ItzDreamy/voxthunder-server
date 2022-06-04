@@ -37,20 +37,15 @@ public static class PacketsHandler {
 
         if (!client.IsAuth) client.Disconnect("Игрок не вошел в аккаунт");
 
-        int ownedValue = 0;
-        switch (tankName.ToLower()) {
-            case "raider":
-                ownedValue = client.Data.Raider;
-                break;
-            case "mamont":
-                ownedValue = client.Data.Mamont;
-                break;
-            case "berserk":
-                ownedValue = client.Data.Berserk;
-                break;
+        var ownedTanks = Server.DatabaseService.Context.ownedtank.ToList()
+            .FindAll(tank => tank.Player.Nickname == client.Data.Nickname);
+        Console.WriteLine(tankName);
+        bool isOwned = false;
+        foreach (var t in ownedTanks) {
+            if (t.Name == tankName) {
+                isOwned = true;
+            }
         }
-
-        var isOwned = ownedValue > 0;
 
         var tank = Server.DatabaseService.Context.tanksstats.ToList().Find(t =>
             string.Equals(t.TankName, tankName, StringComparison.CurrentCultureIgnoreCase));
@@ -115,8 +110,12 @@ public static class PacketsHandler {
                 Server.DatabaseService.Context.playerstats.Add(new PlayerData {
                     Nickname = client.Data.Nickname,
                     RankId = 1,
-                    Raider = 1,
-                    SelectedTank = "raider"
+                    SelectedTank = "Raider",
+                    OwnedTanks = new List<OwnedTank> {
+                        new OwnedTank {
+                            Name = "Raider",
+                        }
+                    }
                 });
 
                 Server.DatabaseService.Context.SaveChanges();
@@ -124,6 +123,7 @@ public static class PacketsHandler {
 
             client.Data = (Server.DatabaseService.Context.playerstats.ToList()).Find(data =>
                 string.Equals(data.Nickname, client.Data.Nickname, StringComparison.CurrentCultureIgnoreCase))!;
+
             QuestManager.CheckAndUpdateQuests(client);
             ServerSend.LoginResult(fromClient, true, "Успех");
             ServerSend.SendPlayerData(client);
@@ -133,7 +133,7 @@ public static class PacketsHandler {
         }
     }
 
-    public static async void GetLastSelectedTank(int fromClient, Packet packet) {
+    public static void GetLastSelectedTank(int fromClient, Packet packet) {
         var client = Server.Clients[fromClient];
         var selectedTankName =
             client.Data
@@ -340,8 +340,12 @@ public static class PacketsHandler {
                 Server.DatabaseService.Context.playerstats.Add(new PlayerData {
                     Nickname = client.Data.Nickname,
                     RankId = 1,
-                    Raider = 1,
-                    SelectedTank = "raider"
+                    SelectedTank = "Raider",
+                    OwnedTanks = new List<OwnedTank> {
+                        new OwnedTank {
+                            Name = "Raider",
+                        }
+                    }
                 });
             }
 
@@ -414,18 +418,8 @@ public static class PacketsHandler {
         if (client.Data.Balance >= tank.Cost) {
             try {
                 client.Data.Balance -= tank.Cost;
-
-                switch (tankName.ToLower()) {
-                    case "raider":
-                        client.Data.Raider = 1;
-                        break;
-                    case "mamont":
-                        client.Data.Mamont = 1;
-                        break;
-                    case "berserk":
-                        client.Data.Berserk = 1;
-                        break;
-                }
+                client.Data.OwnedTanks ??= new List<OwnedTank>();
+                client.Data.OwnedTanks.Add(new OwnedTank {Name = tankName});
 
                 successful = true;
                 message = "Успех";
@@ -446,6 +440,7 @@ public static class PacketsHandler {
 
         ServerSend.SendBoughtTankInfo(fromClient, message, successful);
         ServerSend.SendPlayerData(client);
+        Server.DatabaseService.Context.SaveChanges();
     }
 
     public static void RamPlayer(int fromClient, Packet packet) {
@@ -457,7 +452,8 @@ public static class PacketsHandler {
         Client client = Server.Clients[fromClient];
         Client otherClient = Server.Clients[otherPlayerId];
 
-        if (client.Player == null || otherClient.Player == null || otherClient.ConnectedRoom == null) return;
+        if (client.Player == null || otherClient.Player == null || otherClient.ConnectedRoom == null ||
+            !client.Player.IsAlive) return;
 
         int damage = (int) (senderVelocity *
             ((float) client.Player.SelectedTank.Weight / 100) / 2);

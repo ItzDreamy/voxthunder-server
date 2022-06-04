@@ -22,10 +22,8 @@ public class PlayerData : ICloneable {
     public int Loses { get; set; }
     public int Balance { get; set; }
     public int Exp { get; set; }
-    public int Mamont { get; set; }
-    public int Raider { get; set; }
-    public int Berserk { get; set; }
     public string SelectedTank { get; set; }
+    public List<OwnedTank> OwnedTanks { get; set; }
 
     [NotMapped] public Rank Rank => Leveling.GetRank(RankId);
     [NotMapped] public QuestsData QuestsData;

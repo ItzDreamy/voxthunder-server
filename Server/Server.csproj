@@ -18,6 +18,12 @@
         <PackageReference Include="Discord.Net.Rest" Version="3.6.1" />
         <PackageReference Include="Discord.Net.Webhook" Version="3.6.1" />
         <PackageReference Include="Discord.Net.WebSocket" Version="3.6.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.Design" Version="2.0.0-preview1-final" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-preview.1.22076.8" />
         <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0-preview.1.22076.8" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0-preview.1.22076.8" />

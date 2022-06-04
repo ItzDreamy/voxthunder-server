@@ -3,12 +3,18 @@ using Microsoft.EntityFrameworkCore.Design;
 using MySql.Data.MySqlClient;
 using VoxelTanksServer.Database.Models;
 using VoxelTanksServer.Library.Config;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoxelTanksServer.Database;
 
 public class DatabaseContextFactory : IDesignTimeDbContextFactory<DatabaseContext> {
     public DatabaseContext CreateDbContext(string[] args) {
-        return new DatabaseContext(new DatabaseConfig());
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+        var config = deserializer.Deserialize<DatabaseConfig>(File.ReadAllText("Library/Config/databaseCfg.yml"));
+        return new DatabaseContext(config);
     }
 }
 
@@ -16,12 +22,15 @@ public sealed class DatabaseContext : DbContext {
     public DbSet<PlayerData> playerstats { get; set; }
     public DbSet<AuthData> authdata { get; set; }
     public DbSet<Tank> tanksstats { get; set; }
+    public DbSet<OwnedTank> ownedtank { get; set; }
 
     private readonly DatabaseConfig _config;
 
     public DatabaseContext(DatabaseConfig config) {
         _config = config;
         Database.EnsureCreated();
+        //Database.EnsureDeleted();
+        //Database.Migrate();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
